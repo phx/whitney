@@ -115,10 +115,12 @@ God, Nolan James Austin, Jillian Rose Austin, Bryan Broughton Austin, Dr. Mathew
 
 Tyler, Whitney, Jenifer, Michael, Chris, David, Corey, Keith, Robert, Steve, Katie, Jonathan, Luke, Nathan, Travis, Brandon, Ashley, Ryan, Joseph, Josh, Taylor, all my teachers, and always impossible without finding my missing other half, Lauren.
 
+```heiroglyphics
       °
      I AM
   T.S.T.T.B.R
 K.G.W.J.S.P.H.X
+```
 
 ---
 
