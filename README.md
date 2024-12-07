@@ -109,11 +109,15 @@ This approach underscores the power of self-similarity and holography as organiz
   
 The author thanks the following individuals for insightful discussions and support:
 
-God, Nolan James Austin, Jillian Rose Austin, Bryan Broughton Austin, Dr. Mathew Solomon Kirsch, Gerren K. Whitlock, Sr., Francisco Javier Guerra, Jonathan Dilley, Michael Goedeker, Dr. Angela Armstrong, Phillip Stringer, Dr. Eric Kirkman, Dr. Maurice Meyers, William Goss, William Eric Blankinship, Larry Staten, Darius Foster, Anthony Palmer II, Mikal Kearney, Cordero Simmons, Mandrell Marquise McCray III, Denorris Dickson, Reginald Watts, Vann Suttles, Donnel Lewis, Gerald Garner, Darnell Baldwin, Devin Odom, Dr. Theron Brown, Jr., James Kendall, James Edward Austin, Carl Edward Broughton, James Linden Austin, Margaret Broughton Austin, and last, but certainly not least… MAX.
+God, Keatron Leviticus Evans, Nolan James Austin, Jillian Rose Austin, Bryan Broughton Austin, Gerren K. Whitlock, Sr., Dr. Mathew Solomon Kirsch, Francisco Javier Guerra, Jonathan Dilley, Michael Goedeker, Dr. Angela Armstrong, Phillip Stringer, Dr. Eric Kirkman, Dr. Maurice Meyers, William Goss, William Eric Blankinship, Larry Staten, Darius Foster, Anthony Palmer II, Mikal Kearney, Cordero Simmons, Mandrell Marquise McCray III, Denorris Dickson, Reginald Watts, Vann Suttles, Donnel Lewis, Gerald Garner, Darnell Baldwin, Devin Odom, Dr. Theron Brown, Jr., James Kendall, James Edward Austin, Carl Edward Broughton, James Linden Austin, Margaret Broughton Austin, and last, but certainly not least… MAX.
+
+**Inspirations:**
+
+Manly P. Hall, Philip K. Dick, Delores Cannon, Darryl Anka, Emily Suvada, Dr. Steven Greer, Tom DeLonge, The Wachowskis  
 
 *Quantum acknowledgements:*
 
-Tyler, Whitney, Jenifer, Michael, Chris, David, Corey, Keith, Robert, Steve, Katie, Jonathan, Luke, Nathan, Travis, Brandon, Ashley, Ryan, Joseph, Josh, Taylor, all my teachers, and always impossible without finding my missing other half, Lauren.
+Jesus, Tyler, Whitney, Jenifer, Michael, Chris, David, Steve, Katie, Jonathan, Corey, Keith, Ken, Robert, Luke, Jason, Nathan, Travis, Brandon, Ashley, Ryan, Josh, Joseph, Taylor, all my teachers, and always impossible without finding my missing other half, Lauren.
 
 ```heiroglyphics
       °
@@ -125,8 +129,18 @@ K.G.W.J.S.P.H.X
 ---
 
 **References:**  
-- G. ‘t Hooft, “Gauge Theories and Grand Unification,” *Rev. Mod. Phys.* **72**, 333 (2000).  
-- S. Weinberg, *The Quantum Theory of Fields*, Vol. 2 (Cambridge University Press, 1996).  
-- P. Langacker, “Grand Unified Theories and Proton Decay,” *Phys. Rep.* **72**, 185 (1981).  
-- A. Salam and J. C. Ward, “Electromagnetic and Weak Interactions,” *Phys. Lett.* **13**, 168 (1964).  
-- M. B. Green, J. H. Schwarz, and E. Witten, *Superstring Theory*, Vol. 1 & 2 (Cambridge University Press, 1987).
+
+1. **G. 't Hooft, "A Confrontation with Infinity," Rev. Mod. Phys. 72, 333 (2000).**
+   - This is Gerard 't Hooft's Nobel Lecture in Physics 1999, published in *Reviews of Modern Physics* in 2000. 
+
+2. **S. Weinberg, *The Quantum Theory of Fields*, Vol. 2, Cambridge University Press, 1996.**
+   - This is the second volume of Steven Weinberg's comprehensive introduction to quantum field theory, focusing on modern applications. 
+
+3. **P. Langacker, "Grand Unified Theories and Proton Decay," Phys. Rep. 72, 185 (1981).**
+   - This paper by Paul Langacker discusses grand unified theories and their implications for proton decay.
+
+4. **A. Salam and J. C. Ward, "Electromagnetic and Weak Interactions," Phys. Lett. 13, 168 (1964).**
+   - This seminal paper by Abdus Salam and John C. Ward explores the unification of electromagnetic and weak interactions.
+
+5. **M. B. Green, J. H. Schwarz, and E. Witten, *Superstring Theory*, Vols. 1 & 2, Cambridge University Press, 1987.**
+   - These volumes by Michael B. Green, John H. Schwarz, and Edward Witten provide a comprehensive introduction to superstring theory.
