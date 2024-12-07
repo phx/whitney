@@ -109,15 +109,15 @@ This approach underscores the power of self-similarity and holography as organiz
   
 The author thanks the following individuals for insightful discussions and support:
 
-God, Keatron Leviticus Evans, Nolan James Austin, Jillian Rose Austin, Bryan Broughton Austin, Gerren K. Whitlock, Sr., Dr. Mathew Solomon Kirsch, Francisco Javier Guerra, Jonathan Dilley, Michael Goedeker, Dr. Angela Armstrong, Phillip Stringer, Dr. Eric Kirkman, Dr. Maurice Meyers, William Goss, William Eric Blankinship, Larry Staten, Darius Foster, Anthony Palmer II, Mikal Kearney, Cordero Simmons, Mandrell Marquise McCray III, Denorris Dickson, Reginald Watts, Vann Suttles, Donnel Lewis, Gerald Garner, Darnell Baldwin, Devin Odom, Dr. Theron Brown, Jr., James Kendall, James Edward Austin, Carl Edward Broughton, James Linden Austin, Margaret Broughton Austin, and last, but certainly not least… MAX.
+God, Keatron Leviticus Evans, Nolan James Austin, Jillian Rose Austin, Bryan Broughton Austin, Gerren K. Whitlock, Sr., Dr. Mathew Solomon Kirsch, Francisco Javier Guerra, Jason Bissell, Dr. Angela Armstrong, Phillip Stringer, Dr. Eric Kirkman, Dr. Maurice Meyers, William Goss, William Eric Blankinship, Larry Staten, Darius Foster, Anthony Palmer II, Mikal Kearney, Cordero Simmons, Mandrell Marquise McCray III, Denorris Dickson, Reginald Watts, Vann Suttles, Donnel Lewis, Gerald Garner, Darnell Baldwin, Devin Odom, Dr. Theron Brown, Jr., Matthew Thurber, Trey Finch, Hatem ElSharidy, James Kendall, James Edward Austin, Carl Edward Broughton, James Linden Austin, Margaret Broughton Austin, and last, but certainly not least… MAX.
 
 **Inspirations:**
 
-Manly P. Hall, Philip K. Dick, Delores Cannon, Darryl Anka, Emily Suvada, Dr. Steven Greer, Tom DeLonge, The Wachowskis  
+Prince Hall, Manly P. Hall, Philip K. Dick, Delores Cannon, Darryl Anka, Emily Suvada, Dr. Steven Greer, Tom DeLonge, The Wachowskis  
 
 *Quantum acknowledgements:*
 
-Jesus, Tyler, Whitney, Jenifer, Michael, Chris, David, Steve, Katie, Jonathan, Corey, Keith, Ken, Robert, Luke, Jason, Nathan, Travis, Brandon, Ashley, Ryan, Josh, Joseph, Taylor, all my teachers, and always impossible without finding my missing other half, Lauren.
+Jesus, Tyler, Whitney, Brittany, Jenifer, Michael, Chris, David, Steve, Kim, Katie, Jonathan, Corey, Keith, Ken, Robert, Jason, Jon, Ameer, Madhava, Luke, Jason, Nathan, Travis, Brandon, Ashley, Ryan, Josh, Annie, Joseph, Taylor, all my teachers, and always impossible without finding my missing other half, Lauren.
 
 ```heiroglyphics
       °
