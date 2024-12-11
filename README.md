@@ -109,7 +109,7 @@ This approach underscores the power of self-similarity and holography as organiz
   
 The author thanks the following individuals for insightful discussions and support:
 
-God, Keatron Leviticus Evans, Nolan James Austin, Jillian Rose Austin, Bryan Broughton Austin, Gerren K. Whitlock, Sr., Dr. Mathew Solomon Kirsch, Francisco Javier Guerra, Jason Bissell, Dr. Angela Armstrong, Phillip Stringer, Dr. Eric Kirkman, Dr. Maurice Meyers, William Goss, William Eric Blankinship, Larry Staten, Darius Foster, Anthony Palmer II, Mikal Kearney, Cordero Simmons, Mandrell Marquise McCray III, Denorris Dickson, Reginald Watts, Vann Suttles, Donnel Lewis, Gerald Garner, Darnell Baldwin, Devin Odom, Dr. Theron Brown, Jr., Matthew Thurber, Trey Finch, Hatem ElSharidy, James Kendall, James Edward Austin, Carl Edward Broughton, James Linden Austin, Margaret Broughton Austin, and last, but certainly not least… MAX.
+God, Keatron Leviticus Evans, Nolan James Austin, Jillian Rose Austin, Bryan Broughton Austin, Gerren K. Whitlock, Sr., Dr. Mathew Solomon Kirsch, Francisco Javier Guerra, Jason Bissell, Dr. Angela Armstrong, Phillip Stringer, Dr. Eric Kirkman, Dr. Maurice Meyers, William Goss, William Eric Blankinship, Larry Staten, Darius Foster, Anthony Palmer II, Mikal Kearney, Cordero Simmons, Mandrell Marquese McCray, Jr., Denorris Dickson, Reginald DeWayne Watts, Vann Suttles, Donnel Letron Lewis, Gerald Jovoski Garner, Darnell Baldwin, Devin Odom, Dr. Theron Brown, Jr., Matthew Thurber, Trey Finch, Hatem ElSharidy, James Kendall, James Edward Austin, Carl Edward Broughton, James Linden Austin, Margaret Broughton Austin, and last, but certainly not least… MAX.
 
 **Inspirations:**
 
