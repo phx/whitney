@@ -129,5 +129,3 @@ K.G.W.J.S.P.H.X
 * P. Langacker, “Grand Unified Theories and Proton Decay,” _Phys. Rep._ **72**, 185 (1981).
 * A. Salam and J. C. Ward, “Electromagnetic and Weak Interactions,” _Phys. Lett._ **13**, 168 (1964).
 * M. B. Green, J. H. Schwarz, and E. Witten, _Superstring Theory_, Vol. 1 & 2 (Cambridge University Press, 1987).
-
-* * *
