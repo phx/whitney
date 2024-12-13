@@ -4,8 +4,19 @@
 - [ ] Fix Critical Theoretical Components
   - [ ] Fix Import Dependencies (BUG-009)
     - [ ] Move common constants to physics_constants.py
-    - [x] Add E symbol to physics_constants.py
-    - [x] Update imports in conftest.py
+      - [x] Add E symbol to physics_constants.py
+      - [x] Update imports in conftest.py
+      - [x] Move transformations to separate module
+        - [x] Create transforms.py
+        - [x] Move lorentz_boost function
+        - [x] Move gauge_transform function
+        - [x] Update field.py imports
+      - [x] Add missing error classes
+        - [x] Add EnergyConditionError
+        - [x] Add CausalityError
+        - [x] Add GaugeError
+        - [x] Fix duplicate error definitions
+        - [x] Consolidate error hierarchy
     - [x] Update import hierarchy in field.py and basis.py
     - [ ] Fix circular dependencies in test fixtures
     - [ ] Refactor imports to resolve circular dependencies (BUG-018)

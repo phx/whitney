@@ -372,26 +372,35 @@ class Momentum(RealValue):
 
 @dataclass
 class FieldConfig:
-    """
-    Field configuration with parameters.
+    """Field configuration parameters.
     
     Attributes:
-        alpha (float): Coupling constant
-        dimension (int): Field dimension
-        parameters (Dict): Additional parameters
-        
-    Examples:
-        >>> config = FieldConfig(alpha=0.1, dimension=4, parameters={'mass': 125.0})
-        >>> config.validate()  # Check configuration is valid
+        mass: float
+            Mass parameter in GeV
+        coupling: float
+            Coupling constant (dimensionless)
+        dimension: int
+            Number of dimensions
+        parameters: Dict[str, float]
+            Additional configuration parameters
     """
-    alpha: float
+    mass: float
+    coupling: float
     dimension: int
-    parameters: Dict[str, float]
+    parameters: Dict[str, float] = None
+    
+    def __post_init__(self):
+        """Initialize with empty parameters if None."""
+        if self.parameters is None:
+            self.parameters = {}
+        self.validate()
     
     def validate(self) -> None:
         """Validate field configuration."""
-        if not 0 < self.alpha < 1:
-            raise ValueError("Coupling must be between 0 and 1")
+        if self.mass < 0:
+            raise ValueError("Mass must be non-negative")
+        if self.coupling < 0:
+            raise ValueError("Coupling must be non-negative")
         if self.dimension < 1:
             raise ValueError("Dimension must be positive")
 

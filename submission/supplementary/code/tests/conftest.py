@@ -2,6 +2,8 @@
 
 import os
 import sys
+from typing import Dict, Any, List, Tuple, Optional
+
 import pytest
 import numpy as np
 
@@ -11,16 +13,11 @@ if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
 from core.detector import Detector
-from core.types import Energy, Momentum, CrossSection
+from core.types import Energy, Momentum, CrossSection, FieldConfig
+from core.modes import ComputationMode
 from core.physics_constants import (
     ALPHA_VAL, Z_MASS,
-    g1_REF, g2_REF, g3_REF
-)
-from core.types import FieldConfig
-from core.modes import ComputationMode
-from typing import Dict, Any, List, Tuple, Optional
-from core.physics_constants import (
-    HBAR, C, G, X, T, P, E,  # Add E to imports
+    HBAR, C, G, X, T, P, E,
     g1_REF, g2_REF, g3_REF
 )
 from core.field import UnifiedField

@@ -3,25 +3,36 @@
 import pytest
 from hypothesis import given, strategies as st
 import numpy as np
-from sympy import exp, I, pi, sqrt
+from sympy import (
+    exp, I, pi, sqrt, 
+    diff, integrate, conjugate,
+    evalf
+)
+
 from core.field import UnifiedField
 from core.basis import FractalBasis
-from core.types import Energy, FieldConfig, WaveFunction
+from core.types import (
+    Energy, 
+    FieldConfig, 
+    WaveFunction
+)
+from core.transforms import lorentz_boost, gauge_transform
 from core.physics_constants import (
-    X, T, P, HBAR, C,
-    lorentz_boost, gauge_transform
+    ALPHA_VAL,
+    HBAR, C,
+    X, T, P
 )
 from core.errors import PhysicsError
 
 @pytest.fixture
 def field():
     """Create UnifiedField instance for testing."""
-    return UnifiedField(alpha=0.1)
+    return UnifiedField(alpha=ALPHA_VAL)
 
 @pytest.fixture
 def basis():
     """Create FractalBasis instance for testing."""
-    return FractalBasis(alpha=0.1)
+    return FractalBasis(alpha=ALPHA_VAL)
 
 class TestLorentzInvariance:
     """Test Lorentz invariance of field theory."""

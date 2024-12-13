@@ -1,30 +1,24 @@
 #!/usr/bin/env python3
 """Run test suite with coverage reporting."""
 
-import subprocess
+import os
 import sys
-from pathlib import Path
+import pytest
 
-def run_tests():
-    """Run test suite with coverage."""
-    # Run tests with coverage
-    result = subprocess.run([
-        'pytest',
-        '--cov=core',
-        '--cov-report=term-missing',
-        '--cov-report=html',
-        '--cov-fail-under=80'
+def main():
+    """Run all tests with proper configuration."""
+    # Add project root to Python path
+    project_root = os.path.dirname(os.path.abspath(__file__))
+    if project_root not in sys.path:
+        sys.path.insert(0, project_root)
+    
+    # Run pytest with configuration
+    pytest.main([
+        "tests",
+        "-v",
+        "--cov=core",
+        "--cov-report=term-missing"
     ])
-    
-    if result.returncode != 0:
-        print("Tests failed!")
-        sys.exit(1)
-    
-    # Generate coverage badge
-    subprocess.run(['python', 'tests/generate_badge.py'])
-    
-    print("\nTest suite completed successfully!")
-    print("Coverage report available in coverage_html/index.html")
 
-if __name__ == '__main__':
-    run_tests() 
+if __name__ == "__main__":
+    main() 

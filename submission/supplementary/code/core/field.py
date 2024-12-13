@@ -10,8 +10,7 @@ from .physics_constants import (
     ALPHA_VAL, X, T, P, Z_MASS,
     g1_REF, g2_REF, g3_REF,
     ALPHA_REF, GAMMA_1, GAMMA_2, GAMMA_3,
-    lorentz_boost, gauge_transform,
-    HBAR, C
+    HBAR, C, G, E
 )
 from .types import Energy, FieldConfig, WaveFunction
 from .modes import ComputationMode
@@ -19,6 +18,7 @@ from .errors import (
     PhysicsError, ValidationError, ComputationError,
     EnergyConditionError, CausalityError, GaugeError
 )
+from .transforms import lorentz_boost, gauge_transform
 
 class UnifiedField:
     """Base class for unified field theory implementation."""

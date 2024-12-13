@@ -13,9 +13,9 @@ from .physics_constants import (
     ALPHA_VAL, X, E, T, P, Z_MASS,
     GAMMA_1, GAMMA_2, GAMMA_3,
     g1_REF, g2_REF, g3_REF,
-    ALPHA_REF, lorentz_boost, gauge_transform,
-    HBAR, C
+    ALPHA_REF, HBAR, C
 )
+from .transforms import lorentz_boost, gauge_transform
 from .types import (Energy, FieldConfig, WaveFunction, 
                    ErrorEstimate, RealValue, AnalysisResult)
 from .modes import ComputationMode
