@@ -26,4 +26,12 @@ class PhysicsError(FractalTheoryError):
 
 class ConfigurationError(FractalTheoryError):
     """Framework configuration error."""
+    pass
+
+class PrecisionError(FractalTheoryError):
+    """Error in precision requirements."""
+    pass
+
+class VersionError(FractalTheoryError):
+    """Error in version handling."""
     pass 

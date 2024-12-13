@@ -4,6 +4,8 @@ import numpy as np
 from typing import Dict, Tuple
 from .constants import ALPHA_REF, Z_MASS
 from .field import UnifiedField
+from .types import NumericValue
+from .errors import PrecisionError
 
 class PrecisionMeasurement:
     """Implements high-precision measurement techniques."""
@@ -48,3 +50,29 @@ class FrequencyComb:
         """Use frequency comb to enhance measurement precision."""
         # Comb implementation
         return value  # Placeholder 
+
+def validate_precision(
+    value: NumericValue,
+    target: float,
+    rtol: float = 1e-6,
+    atol: float = 1e-8
+) -> bool:
+    """
+    Validate numerical precision of result.
+    
+    Args:
+        value: Computed value
+        target: Expected value
+        rtol: Relative tolerance
+        atol: Absolute tolerance
+        
+    Returns:
+        bool: True if precision requirements met
+    """
+    if value.uncertainty is None:
+        raise PrecisionError("Cannot validate precision without uncertainty")
+        
+    abs_error = abs(value.value - target)
+    rel_error = abs_error / (abs(target) + atol)
+    
+    return rel_error <= rtol and abs_error <= atol

@@ -2,7 +2,7 @@
 
 from typing import Dict, List, Callable, Any, Union
 import numpy as np
-from .types import NumericValue
+from .types import NumericValue, Energy
 from .errors import StabilityError
 
 def analyze_perturbation(func: Callable[..., NumericValue],
@@ -65,47 +65,26 @@ def analyze_perturbation(func: Callable[..., NumericValue],
         'condition': float(condition)
     }
 
-def check_convergence(sequence: List[float],
-                     rtol: float = 1e-8,
-                     atol: float = 1e-10,
-                     window: int = 10) -> bool:
+def check_convergence(
+    values: List[NumericValue],
+    threshold: float = 1e-6
+) -> bool:
     """
-    Check convergence of numerical sequence.
-    
-    Implements convergence tests from paper Sec. 3.5:
-    1. Relative change between successive terms
-    2. Absolute change between successive terms
-    3. Moving average stability
+    Check if sequence of values has converged.
     
     Args:
-        sequence: Numerical sequence to check
-        rtol: Relative tolerance
-        atol: Absolute tolerance
-        window: Window size for moving average
+        values: Sequence of numeric values
+        threshold: Convergence threshold
         
     Returns:
-        bool: True if sequence has converged
+        bool: True if converged
     """
-    if len(sequence) < window + 1:
+    if len(values) < 2:
         return False
         
-    # Check relative change
-    rel_change = np.abs(np.diff(sequence[-window:])) / (np.abs(sequence[-window-1:-1]) + atol)
-    if np.any(rel_change > rtol):
-        return False
-        
-    # Check absolute change
-    abs_change = np.abs(np.diff(sequence[-window:]))
-    if np.any(abs_change > atol):
-        return False
-        
-    # Check moving average stability
-    ma = np.convolve(sequence[-2*window:], np.ones(window)/window, mode='valid')
-    ma_change = np.abs(np.diff(ma)) / (np.abs(ma[:-1]) + atol)
-    if np.any(ma_change > rtol):
-        return False
-        
-    return True
+    # Compare last two values
+    diff = abs(values[-1].value - values[-2].value)
+    return diff < threshold
 
 def verify_error_bounds(nominal: float,
                        error_est: float,

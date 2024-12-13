@@ -6,56 +6,39 @@ import numpy as np
 import time
 from dataclasses import dataclass
 from sympy import Expr, N
-from .types import RealValue, ComplexValue
-from .errors import PhysicsError, ComputationError, StabilityError
+from .types import RealValue, ComplexValue, NumericValue
+from .errors import PhysicsError, ComputationError, StabilityError, ValidationError
 
 T = TypeVar('T')
 
-def evaluate_expr(expr: Expr, 
-                 subs: Optional[Dict[str, float]] = None, 
-                 precision: int = 53) -> Union[RealValue, ComplexValue]:
+def evaluate_expr(
+    expr: Any,
+    params: Dict[str, Union[float, NumericValue]],
+    *,
+    check_finite: bool = True
+) -> NumericValue:
     """
-    Evaluate symbolic expression numerically.
-    
-    Implements numerical evaluation from paper Sec. 3.3:
-    1. Convert symbolic expression to lambda function
-    2. Evaluate with given substitutions
-    3. Check numerical stability
+    Safely evaluate expression with validation.
     
     Args:
-        expr: Symbolic expression to evaluate
-        subs: Optional substitutions for variables
-        precision: Binary precision bits (default: double precision)
-    
+        expr: Expression to evaluate
+        params: Parameter values
+        check_finite: Validate result is finite
+        
     Returns:
-        float or complex: Numerical value of expression
-    
-    Raises:
-        ComputationError: If evaluation fails
-        StabilityError: If result is numerically unstable
+        NumericValue: Evaluated result
     """
     try:
-        # Handle substitutions
-        if subs is None:
-            subs = {}
-            
-        # First try direct numerical evaluation
-        result = N(expr.subs(subs), precision)
+        result = expr.evalf(subs=params)
+        value = complex(result) if result.is_complex else float(result)
         
-        # Convert to Python numeric type
-        if result.is_complex:
-            value = complex(result)
-        else:
-            value = float(result)
+        if check_finite and not np.isfinite(value):
+            raise ValueError("Expression evaluated to non-finite value")
             
-        # Check stability
-        if not check_numerical_stability(value):
-            raise StabilityError(f"Unstable evaluation result: {value}")
-            
-        return value
+        return NumericValue(value)
         
     except Exception as e:
-        raise ComputationError(f"Expression evaluation failed: {e}")
+        raise ValidationError(f"Expression evaluation failed: {e}")
 
 @lru_cache(maxsize=1024)
 def cached_evaluation(func: Callable[..., T], *args: Any, **kwargs: Any) -> T:

@@ -1,214 +1,142 @@
-"""Tests for the detector simulation module."""
+"""Tests for detector simulation and response."""
 
 import pytest
 import numpy as np
-from core.types import Energy, Momentum, RealValue
 from core.detector import Detector
-from core.errors import PhysicsError
+from core.types import Energy, Momentum, CrossSection
+from core.errors import ValidationError, PhysicsError
+from core.constants import Z_MASS
 
-@pytest.fixture
-def standard_detector():
-    """Create a standard detector configuration for testing."""
-    return Detector(
-        resolution={
-            'energy': 0.1,  # 10% energy resolution
-            'momentum': 0.05,  # 5% momentum resolution
-            'position': 0.001  # 1mm position resolution
-        },
-        acceptance={
-            'eta': (-2.5, 2.5),  # Pseudorapidity range
-            'pt_min': 20.0,  # Minimum pT in GeV
-            'phi': (0, 2*np.pi)  # Full azimuthal coverage
+@pytest.mark.physics
+class TestDetectorResponse:
+    """Test detector response and efficiency."""
+    
+    @pytest.fixture
+    def detector(self):
+        """Create test detector instance."""
+        config = {
+            'resolution': 0.01,  # 1% resolution
+            'acceptance': (-2.5, 2.5),  # Pseudorapidity range
+            'threshold': 10.0,  # GeV
+            'efficiency': 0.9  # 90% efficiency
         }
-    )
+        return Detector(**config)
+    
+    def test_energy_resolution(self, detector):
+        """Test energy resolution scaling."""
+        E = Energy(100.0)  # 100 GeV
+        measured = detector.measure_energy(E)
+        
+        # Resolution should scale as σ/E = a/√E
+        expected_sigma = E.value * detector.resolution / np.sqrt(E.value/Z_MASS)
+        assert measured.uncertainty <= expected_sigma
+    
+    def test_momentum_resolution(self, detector):
+        """Test momentum resolution."""
+        p = Momentum(50.0, theta=np.pi/4, phi=0)
+        measured = detector.measure_momentum(p)
+        
+        # Check components are measured correctly
+        assert np.isclose(measured.magnitude, p.magnitude, rtol=0.1)
+        assert np.isclose(measured.theta, p.theta, atol=0.01)
+        assert np.isclose(measured.phi, p.phi, atol=0.01)
+    
+    @pytest.mark.parametrize('eta', [-2.0, 0.0, 2.0])
+    def test_acceptance(self, detector, eta):
+        """Test detector acceptance."""
+        p = Momentum(50.0, eta=eta, phi=0)
+        assert detector.in_acceptance(p)
+        
+        # Test outside acceptance
+        p_out = Momentum(50.0, eta=3.0, phi=0)
+        assert not detector.in_acceptance(p_out)
 
-def test_detector_initialization():
-    """Test detector initialization and parameter validation."""
-    # Test valid initialization
-    detector = standard_detector()
-    assert detector.resolution['energy'] == 0.1
-    assert detector.acceptance['eta'] == (-2.5, 2.5)
-    
-    # Test invalid resolution
-    with pytest.raises(ValueError):
-        Detector(
-            resolution={'energy': -0.1},  # Invalid negative resolution
-            acceptance={'eta': (-2.5, 2.5)}
-        )
-    
-    # Test invalid acceptance
-    with pytest.raises(ValueError):
-        Detector(
-            resolution={'energy': 0.1},
-            acceptance={'eta': (2.5, -2.5)}  # Invalid range
-        )
-
-def test_detector_response():
-    """Test detector response simulation."""
-    detector = standard_detector()
-    
-    # Test energy measurement
-    true_energy = Energy(100.0)
-    measured = detector.simulate_measurement(true_energy)
-    assert isinstance(measured['energy'], RealValue)
-    assert measured['energy'].uncertainty is not None
-    assert np.isclose(
-        measured['energy'].uncertainty,
-        true_energy.value * detector.resolution['energy'],
-        rtol=1e-6
-    )
-    
-    # Test momentum measurement
-    true_momentum = Momentum(50.0)
-    measured = detector.simulate_measurement(true_momentum)
-    assert isinstance(measured['momentum'], RealValue)
-    assert measured['momentum'].uncertainty is not None
-    assert np.isclose(
-        measured['momentum'].uncertainty,
-        true_momentum.value * detector.resolution['momentum'],
-        rtol=1e-6
-    )
-
-def test_detector_efficiency():
+@pytest.mark.physics
+class TestDetectorEfficiency:
     """Test detector efficiency calculations."""
-    detector = standard_detector()
     
-    # Test efficiency in acceptance
-    pt = RealValue(30.0)  # Above pt threshold
-    eta = RealValue(0.0)  # Central region
-    eff = detector.compute_efficiency(pt, eta)
-    assert eff.value > 0.0
-    assert eff.value <= 1.0
+    @pytest.fixture
+    def detector(self):
+        return Detector(efficiency=0.9)
     
-    # Test efficiency outside acceptance
-    pt = RealValue(10.0)  # Below pt threshold
-    eta = RealValue(3.0)  # Outside eta range
-    eff = detector.compute_efficiency(pt, eta)
-    assert eff.value == 0.0
+    def test_basic_efficiency(self, detector):
+        """Test basic efficiency calculation."""
+        n_events = 1000
+        detected = sum(detector.trigger() for _ in range(n_events))
+        efficiency = detected / n_events
+        
+        assert np.isclose(efficiency, detector.efficiency, rtol=0.1)
+    
+    def test_energy_dependent_efficiency(self, detector):
+        """Test energy-dependent efficiency."""
+        E_low = Energy(15.0)  # Just above threshold
+        E_high = Energy(1000.0)  # Well above threshold
+        
+        eff_low = detector.compute_efficiency(E_low)
+        eff_high = detector.compute_efficiency(E_high)
+        
+        assert eff_high > eff_low  # Higher efficiency at higher energy
 
-def test_detector_acceptance():
-    """Test detector acceptance checks."""
-    detector = standard_detector()
+@pytest.mark.physics
+class TestCalibration:
+    """Test detector calibration."""
     
-    # Test pt acceptance
-    assert detector.check_acceptance(
-        pt=RealValue(25.0),
-        eta=RealValue(0.0)
-    )
-    assert not detector.check_acceptance(
-        pt=RealValue(15.0),  # Below threshold
-        eta=RealValue(0.0)
-    )
+    @pytest.fixture
+    def detector(self):
+        return Detector()
     
-    # Test eta acceptance
-    assert detector.check_acceptance(
-        pt=RealValue(30.0),
-        eta=RealValue(2.0)
-    )
-    assert not detector.check_acceptance(
-        pt=RealValue(30.0),
-        eta=RealValue(3.0)  # Outside range
-    )
-
-def test_detector_error_handling():
-    """Test detector error handling."""
-    detector = standard_detector()
+    def test_energy_calibration(self, detector):
+        """Test energy calibration."""
+        # Generate calibration data
+        true_energies = np.linspace(10, 1000, 100)
+        measured = [detector.measure_energy(Energy(E)) for E in true_energies]
+        
+        # Perform calibration
+        detector.calibrate(true_energies, measured)
+        
+        # Test calibrated measurement
+        E_test = Energy(500.0)
+        result = detector.measure_calibrated_energy(E_test)
+        assert np.isclose(result.value, E_test.value, rtol=0.02)
     
-    # Test invalid energy
-    with pytest.raises(PhysicsError):
-        detector.simulate_measurement(Energy(-100.0))
-    
-    # Test invalid momentum
-    with pytest.raises(PhysicsError):
-        detector.simulate_measurement(Momentum(-50.0))
-    
-    # Test invalid efficiency inputs
-    with pytest.raises(ValueError):
-        detector.compute_efficiency(
-            pt=RealValue(float('nan')),
-            eta=RealValue(0.0)
+    def test_cross_section_measurement(self, detector):
+        """Test cross section measurement."""
+        sigma = CrossSection(1e-3)  # 1 fb
+        n_events = 1000
+        luminosity = 1e4  # 10/fb
+        
+        measured = detector.measure_cross_section(
+            n_events,
+            luminosity,
+            efficiency=0.9
         )
+        
+        assert isinstance(measured, CrossSection)
+        assert measured.uncertainty is not None
 
-def test_detector_calibration():
-    """Test detector calibration and recalibration."""
-    detector = standard_detector()
+@pytest.mark.physics
+class TestSystematics:
+    """Test systematic uncertainty handling."""
     
-    # Test initial calibration constants
-    assert 'energy_scale' in detector.calibration
-    assert 'position_offset' in detector.calibration
+    @pytest.fixture
+    def detector(self):
+        return Detector(systematics={'energy_scale': 0.01})
     
-    # Test calibration with reference data
-    reference_data = {
-        'energy': [100.0, 200.0, 300.0],
-        'measured': [98.5, 197.0, 295.5],
-        'uncertainties': [2.0, 3.0, 4.0]
-    }
+    def test_systematic_uncertainties(self, detector):
+        """Test systematic uncertainty propagation."""
+        E = Energy(100.0)
+        result = detector.measure_energy(E, include_systematics=True)
+        
+        # Total uncertainty should include systematics
+        assert result.uncertainty > E.value * detector.resolution
     
-    detector.calibrate(reference_data)
-    
-    # Verify calibration improved energy scale
-    assert np.isclose(detector.calibration['energy_scale'], 0.985, rtol=1e-3)
-    
-    # Test applying calibration
-    true_energy = Energy(150.0)
-    measured = detector.simulate_measurement(true_energy)
-    expected = 150.0 * detector.calibration['energy_scale']
-    assert np.isclose(measured['energy'].value, expected, rtol=1e-3)
-    
-    # Test calibration stability
-    for _ in range(3):
-        detector.calibrate(reference_data)
-        new_scale = detector.calibration['energy_scale']
-        assert np.isclose(new_scale, 0.985, rtol=1e-3)
-
-def test_resolution_scaling():
-    """Test detector resolution scaling with energy/momentum."""
-    detector = standard_detector()
-    
-    # Test energy resolution scaling (typically ~ 1/√E)
-    e1 = Energy(100.0)
-    e2 = Energy(400.0)
-    
-    res1 = detector.get_resolution(e1)
-    res2 = detector.get_resolution(e2)
-    
-    # Verify resolution improves with √E
-    assert np.isclose(res1/res2, 2.0, rtol=1e-2)
-    
-    # Test momentum resolution scaling
-    p1 = Momentum(50.0)
-    p2 = Momentum(200.0)
-    
-    res1 = detector.get_resolution(p1)
-    res2 = detector.get_resolution(p2)
-    
-    # Verify resolution scaling with momentum
-    assert res2 > res1  # Resolution gets worse at higher momentum
-
-def test_systematic_uncertainties():
-    """Test handling of detector systematic uncertainties."""
-    detector = standard_detector()
-    
-    # Test systematic uncertainty sources
-    systematics = detector.get_systematics()
-    assert 'energy_scale' in systematics
-    assert 'resolution' in systematics
-    assert 'acceptance' in systematics
-    
-    # Test systematic uncertainty propagation
-    energy = Energy(100.0, 2.0)
-    measurement = detector.simulate_measurement(
-        energy, 
-        include_systematics=True
-    )
-    
-    # Verify systematics are included
-    assert measurement['energy'].systematics is not None
-    assert 'energy_scale' in measurement['energy'].systematics
-    
-    # Test total uncertainty calculation
-    total_unc = np.sqrt(
-        measurement['energy'].uncertainty**2 +
-        sum(s**2 for s in measurement['energy'].systematics.values())
-    )
-    assert total_unc > measurement['energy'].uncertainty  # Systematics increase uncertainty
+    def test_correlation_handling(self, detector):
+        """Test correlated systematic uncertainties."""
+        E1 = Energy(100.0)
+        E2 = Energy(200.0)
+        
+        r1 = detector.measure_energy(E1, include_systematics=True)
+        r2 = detector.measure_energy(E2, include_systematics=True)
+        
+        correlation = detector.compute_correlation(r1, r2)
+        assert 0 <= correlation <= 1  # Should be positively correlated

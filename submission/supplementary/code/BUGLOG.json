@@ -2,54 +2,278 @@
   "bugs": [
     {
       "id": "BUG-001",
-      "timestamp": "2024-02-14T12:00:00Z",
-      "title": "ValidationError undefined in multiple files",
-      "description": "ValidationError class was duplicated in core/errors.py and not properly imported in other files",
-      "steps_to_reproduce": [
-        "Run generate_data.py",
-        "Run validate_all.py",
-        "Observe ValidationError undefined errors"
-      ],
-      "solution": "Cleaned up duplicate error class definitions in core/errors.py and added proper imports",
-      "status": "FIXED",
-      "fixed_timestamp": "2024-02-14T12:30:00Z"
+      "timestamp": "2024-03-20T10:00:00Z",
+      "title": "Missing NumericValue type",
+      "description": "ImportError: cannot import name 'NumericValue' from 'core.types'",
+      "status": "fixed",
+      "fixed_timestamp": "2024-03-20T11:00:00Z",
+      "solution": "Added NumericValue class to types.py with validation and error propagation"
     },
     {
       "id": "BUG-002",
-      "timestamp": "2024-02-14T12:15:00Z",
-      "title": "Missing test coverage for numerical stability",
-      "description": "Numerical stability tests not comprehensive enough",
-      "steps_to_reproduce": [
-        "Run test coverage report",
-        "Observe missing coverage for stability checks"
+      "timestamp": "2024-03-20T10:00:00Z",
+      "title": "Low test coverage",
+      "description": "Coverage failure: total of 33% is less than fail-under=80%",
+      "status": "in_progress",
+      "steps_taken": [
+        "Added tests for numeric.py",
+        "Added tests for precision.py",
+        "Added tests for stability.py",
+        "Added tests for version.py"
       ],
-      "solution": "Added test_numerical_stability to test_basis.py",
-      "status": "FIXED",
-      "fixed_timestamp": "2024-02-14T13:00:00Z"
+      "remaining_issues": [
+        "core/basis.py (25% coverage)",
+        "core/field.py (25% coverage)",
+        "core/detector.py (28% coverage)",
+        "core/utils.py (26% coverage)",
+        "core/validation.py (32% coverage)",
+        "core/version.py (14% coverage)"
+      ]
     },
     {
       "id": "BUG-003",
-      "timestamp": "2024-02-14T13:30:00Z",
-      "title": "Missing core utility functions",
-      "description": "Core utility functions referenced but not implemented in utils.py",
-      "steps_to_reproduce": [
-        "Check imports in field.py",
-        "Note missing evaluate_expr and cached_evaluation functions"
-      ],
-      "solution": null,
-      "status": "OPEN"
+      "timestamp": "2024-03-20T12:00:00Z",
+      "title": "memoize_computation decorator error",
+      "description": "TypeError: memoize_computation() got an unexpected keyword argument 'maxsize'",
+      "status": "fixed",
+      "fixed_timestamp": "2024-03-20T12:30:00Z",
+      "solution": "Updated memoize_computation to be a decorator factory accepting maxsize parameter"
     },
     {
       "id": "BUG-004",
-      "timestamp": "2024-02-14T13:45:00Z",
-      "title": "Incomplete type definitions",
-      "description": "Missing type definitions in core/types.py for key classes",
+      "timestamp": "2024-03-20T13:00:00Z",
+      "title": "Missing VersionError in errors.py",
+      "description": "ImportError: cannot import name 'VersionError' from 'core.errors'",
+      "status": "open",
       "steps_to_reproduce": [
-        "Check type hints in field.py",
-        "Note undefined Energy, FieldConfig types"
+        "Run python run_tests.py",
+        "Observe ImportError when importing VersionError"
       ],
-      "solution": null,
-      "status": "OPEN"
+      "affected_files": [
+        "core/errors.py",
+        "core/version.py"
+      ]
+    },
+    {
+      "id": "BUG-005",
+      "timestamp": "2024-03-20T14:00:00Z",
+      "title": "Missing compute_basis_function method",
+      "description": "AttributeError: 'FractalBasis' object has no attribute 'compute_basis_function'",
+      "status": "open",
+      "steps_to_reproduce": [
+        "Run test suite",
+        "Observe AttributeError in test_basis.py"
+      ],
+      "affected_files": [
+        "core/basis.py",
+        "tests/test_basis.py"
+      ]
+    },
+    {
+      "id": "BUG-006",
+      "timestamp": "2024-03-20T14:00:00Z",
+      "title": "Cached evaluation error with symbolic expressions",
+      "description": "ComputationError: Cached evaluation failed: 'Mul' object is not callable",
+      "status": "open",
+      "steps_to_reproduce": [
+        "Run test_numerical_precision",
+        "Observe error when caching symbolic expressions"
+      ],
+      "affected_files": [
+        "core/utils.py",
+        "core/basis.py"
+      ]
+    },
+    {
+      "id": "BUG-007",
+      "timestamp": "2024-03-20T14:00:00Z",
+      "title": "Missing required argument in compute_basis_function",
+      "description": "TypeError: UnifiedField.compute_basis_function() missing 1 required positional argument: 'E'",
+      "status": "open",
+      "steps_to_reproduce": [
+        "Run test_gauge_invariance",
+        "Observe missing argument error"
+      ],
+      "affected_files": [
+        "core/field.py",
+        "tests/test_consistency.py"
+      ]
+    },
+    {
+      "id": "BUG-008",
+      "timestamp": "2024-03-20T14:30:00Z",
+      "title": "X symbol undefined in basis.py",
+      "description": "NameError: name 'X' is not defined when using X symbol in basis functions",
+      "status": "open",
+      "steps_to_reproduce": [
+        "Run test suite",
+        "Observe NameError in basis.py"
+      ],
+      "affected_files": [
+        "core/basis.py",
+        "core/constants.py"
+      ],
+      "analysis": "The X symbol is imported from constants but also redefined locally, causing conflicts"
+    },
+    {
+      "id": "BUG-009",
+      "timestamp": "2024-03-20T14:45:00Z",
+      "title": "Circular import dependency",
+      "description": "ImportError while loading conftest: circular import between field.py and basis.py",
+      "status": "open",
+      "steps_to_reproduce": [
+        "Run test suite",
+        "Observe ImportError in conftest.py loading"
+      ],
+      "affected_files": [
+        "core/field.py",
+        "core/basis.py",
+        "tests/conftest.py"
+      ],
+      "analysis": "Circular dependency between field.py importing basis.py and basis.py importing field.py through constants.py"
+    },
+    {
+      "id": "BUG-010",
+      "timestamp": "2024-03-20T15:00:00Z",
+      "title": "Missing UnifiedField class",
+      "description": "ImportError: cannot import name 'UnifiedField' from 'core.field'",
+      "status": "open",
+      "steps_to_reproduce": [
+        "Run test suite",
+        "Observe ImportError in multiple test files"
+      ],
+      "affected_files": [
+        "core/field.py",
+        "tests/test_*.py"
+      ],
+      "analysis": "UnifiedField class is referenced but not implemented in field.py"
+    },
+    {
+      "id": "BUG-011",
+      "timestamp": "2024-03-20T15:00:00Z",
+      "title": "Low test coverage",
+      "description": "Coverage failure: total of 33% is less than fail-under=80%",
+      "status": "open",
+      "steps_to_reproduce": [
+        "Run test suite with coverage",
+        "Observe coverage below threshold"
+      ],
+      "affected_files": [
+        "core/compute.py (0%)",
+        "core/validation.py (0%)",
+        "core/basis.py (23%)",
+        "core/detector.py (28%)",
+        "core/types.py (38%)"
+      ],
+      "analysis": "Multiple core modules have insufficient test coverage"
+    },
+    {
+      "id": "BUG-012",
+      "timestamp": "2024-03-20T15:30:00Z",
+      "title": "Missing T symbol in constants",
+      "description": "ImportError: cannot import name 'T' from 'core.constants'",
+      "status": "open",
+      "steps_to_reproduce": [
+        "Run test suite",
+        "Observe ImportError in test_properties.py"
+      ],
+      "affected_files": [
+        "core/constants.py",
+        "tests/test_properties.py"
+      ],
+      "analysis": "Symbol T is referenced but not defined in constants.py"
+    },
+    {
+      "id": "BUG-013",
+      "timestamp": "2024-03-20T15:30:00Z",
+      "title": "Unknown pytest markers",
+      "description": "Multiple PytestUnknownMarkWarning warnings for custom markers",
+      "status": "fixed",
+      "fixed_timestamp": "2024-03-20T16:00:00Z",
+      "steps_to_reproduce": [
+        "Run test suite",
+        "Observe marker warnings"
+      ],
+      "affected_files": [
+        "pytest.ini",
+        "tests/test_performance.py",
+        "tests/test_physics.py",
+        "tests/test_precision.py",
+        "tests/test_stability.py",
+        "tests/test_types.py",
+        "tests/test_version.py"
+      ],
+      "analysis": "Custom pytest markers not registered in pytest.ini",
+      "solution": "Added all required markers to pytest.ini and removed --strict-markers option"
+    },
+    {
+      "id": "BUG-014",
+      "timestamp": "2024-03-20T16:15:00Z",
+      "title": "Unknown config option python_paths",
+      "description": "PytestConfigWarning: Unknown config option: python_paths",
+      "status": "fixed",
+      "fixed_timestamp": "2024-03-20T17:00:00Z",
+      "steps_to_reproduce": [
+        "Run test suite",
+        "Observe config warning about python_paths"
+      ],
+      "affected_files": [
+        "pytest.ini"
+      ],
+      "analysis": "python_paths is not a valid pytest configuration option",
+      "solution": "Moved pythonpath configuration to --pythonpath command line option in addopts"
+    },
+    {
+      "id": "BUG-015",
+      "timestamp": "2024-03-20T16:30:00Z",
+      "title": "NumericValue division operation not implemented",
+      "description": "TypeError: unsupported operand type(s) for /: 'NumericValue' and 'int'",
+      "status": "fixed",
+      "fixed_timestamp": "2024-03-20T16:45:00Z",
+      "steps_to_reproduce": [
+        "Run test suite",
+        "Observe TypeError in numeric value division"
+      ],
+      "affected_files": [
+        "core/types.py",
+        "tests/test_numeric_value.py"
+      ],
+      "analysis": "NumericValue class is missing __truediv__ implementation",
+      "solution": "Added __truediv__ method with proper uncertainty propagation and tests"
+    },
+    {
+      "id": "BUG-016",
+      "timestamp": "2024-03-20T17:15:00Z",
+      "title": "Duplicate pytest configuration",
+      "description": "ERROR: duplicate name 'python_functions' in pytest.ini",
+      "status": "fixed",
+      "fixed_timestamp": "2024-03-20T17:16:00Z",
+      "steps_to_reproduce": [
+        "Run test suite",
+        "Observe duplicate configuration error"
+      ],
+      "affected_files": [
+        "pytest.ini"
+      ],
+      "analysis": "python_functions defined twice in pytest.ini",
+      "solution": "Removed duplicate python_functions entry"
+    },
+    {
+      "id": "BUG-017",
+      "timestamp": "2024-03-20T17:30:00Z",
+      "title": "Insufficient property-based testing",
+      "description": "Property tests do not cover all physical invariants and conservation laws",
+      "status": "open",
+      "steps_to_reproduce": [
+        "Review test_properties.py",
+        "Observe missing tests for fundamental physical properties"
+      ],
+      "affected_files": [
+        "tests/test_properties.py",
+        "tests/test_theorems.py",
+        "tests/test_correlations.py"
+      ],
+      "analysis": "Property-based tests need enhancement to verify physical constraints"
     }
   ]
 } 

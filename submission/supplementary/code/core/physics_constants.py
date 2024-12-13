@@ -1,12 +1,10 @@
-"""Framework constants and configuration."""
+"""Physical constants and common definitions."""
 
 from sympy import Symbol
 
 # Symbolic variables
 X = Symbol('x')  # Spatial coordinate
 E = Symbol('E')  # Energy scale
-T = Symbol('t')  # Time coordinate for field evolution
-P = Symbol('p')  # Momentum coordinate
 
 # Physical constants
 Z_MASS = 91.2  # Z boson mass in GeV
@@ -21,11 +19,4 @@ g3_REF = 1.221  # SU(3) coupling
 # Anomalous dimensions
 GAMMA_1 = 0.1  # U(1) anomalous dimension
 GAMMA_2 = -0.2  # SU(2) anomalous dimension
-GAMMA_3 = -0.3  # SU(3) anomalous dimension
-
-# Framework configuration constants
-VERSION = "1.0.0"
-DEBUG = False
-MAX_WORKERS = 4
-CACHE_SIZE = 1000
-LOG_LEVEL = "INFO"
+GAMMA_3 = -0.3  # SU(3) anomalous dimension 

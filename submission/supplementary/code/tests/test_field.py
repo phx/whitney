@@ -1,97 +1,156 @@
-"""Tests for UnifiedField implementation."""
+"""Tests for unified field theory implementation."""
 
 import pytest
 import numpy as np
 from core.field import UnifiedField
-from core.constants import ALPHA_VAL, M_Z, M_PLANCK
-from core.errors import PhysicsError
-from core.types import Energy, Momentum
+from core.types import Energy, FieldConfig, WaveFunction
+from core.modes import ComputationMode
+from core.errors import PhysicsError, ValidationError
+from core.constants import (
+    ALPHA_VAL, Z_MASS, g1_REF, g2_REF, g3_REF,
+    GAMMA_1, GAMMA_2, GAMMA_3
+)
 
-@pytest.fixture
-def field():
-    """Create a test field instance."""
-    return UnifiedField(alpha=ALPHA_VAL)
+@pytest.mark.physics
+class TestFieldEvolution:
+    """Test field evolution and dynamics."""
+    
+    @pytest.fixture
+    def field(self):
+        """Create test field instance."""
+        return UnifiedField(alpha=ALPHA_VAL, mode=ComputationMode.MIXED)
+    
+    def test_field_initialization(self, field):
+        """Test field initialization."""
+        assert isinstance(field, UnifiedField)
+        assert field.alpha == pytest.approx(ALPHA_VAL)
+        assert hasattr(field, 'basis')
+    
+    def test_field_evolution(self, field):
+        """Test time evolution of field."""
+        # Initial state
+        psi0 = np.zeros(10)
+        psi0[0] = 1.0  # Ground state
+        
+        # Evolution parameters
+        times = np.linspace(0, 10, 100)
+        evolution = field.evolve_field(
+            initial_state=psi0,
+            times=times,
+            precision=1e-6
+        )
+        
+        assert 'state' in evolution
+        assert 'energy' in evolution
+        assert 'error' in evolution
+        assert len(evolution['state']) == len(times)
+        
+        # Test energy conservation
+        energies = evolution['energy']
+        assert np.allclose(energies, energies[0], rtol=1e-5)
+    
+    def test_gauge_invariance(self, field):
+        """Test gauge invariance of evolution."""
+        psi0 = np.zeros(10)
+        psi0[0] = 1.0
+        
+        # Original evolution
+        times = np.linspace(0, 1, 10)
+        evolution1 = field.evolve_field(psi0, times)
+        
+        # Gauge transformed evolution
+        gauge_phase = np.exp(1j * np.pi/4)
+        psi0_transformed = psi0 * gauge_phase
+        evolution2 = field.evolve_field(psi0_transformed, times)
+        
+        # Physical observables should be unchanged
+        assert np.allclose(
+            np.abs(evolution1['state']),
+            np.abs(evolution2['state']),
+            rtol=1e-6
+        )
 
-@pytest.fixture
-def energy_points():
-    """Generate test energy points."""
-    return np.logspace(np.log10(M_Z), np.log10(M_PLANCK), 100)
+@pytest.mark.physics
+class TestCouplingEvolution:
+    """Test coupling constant evolution."""
+    
+    @pytest.fixture
+    def field(self):
+        return UnifiedField()
+    
+    def test_coupling_running(self, field):
+        """Test running coupling constants."""
+        # Test at Z mass
+        g1 = field.compute_coupling(1, Energy(Z_MASS))
+        g2 = field.compute_coupling(2, Energy(Z_MASS))
+        g3 = field.compute_coupling(3, Energy(Z_MASS))
+        
+        # Compare with reference values
+        assert np.isclose(g1, g1_REF, rtol=1e-3)
+        assert np.isclose(g2, g2_REF, rtol=1e-3)
+        assert np.isclose(g3, g3_REF, rtol=1e-3)
+    
+    def test_beta_functions(self, field):
+        """Test beta function computation."""
+        E = Energy(1000.0)  # 1 TeV
+        
+        beta1 = field.compute_beta_function(1, E)
+        beta2 = field.compute_beta_function(2, E)
+        beta3 = field.compute_beta_function(3, E)
+        
+        # Beta functions should have correct signs
+        assert beta1 > 0  # U(1) is asymptotically free
+        assert beta2 < 0  # SU(2) is asymptotically free
+        assert beta3 < 0  # SU(3) is asymptotically free
+    
+    @pytest.mark.parametrize('gauge_index', [1, 2, 3])
+    def test_anomalous_dimensions(self, field, gauge_index):
+        """Test anomalous dimension computation."""
+        E = Energy(1000.0)
+        gamma = field.compute_anomalous_dimension(gauge_index, E)
+        
+        # Compare with theoretical values
+        gamma_ref = {
+            1: GAMMA_1,
+            2: GAMMA_2,
+            3: GAMMA_3
+        }[gauge_index]
+        
+        assert np.isclose(gamma, gamma_ref, rtol=1e-3)
 
-def test_field_initialization(field):
-    """Test field initialization."""
-    assert isinstance(field, UnifiedField)
-    assert hasattr(field, 'alpha')
-    assert field.alpha == pytest.approx(ALPHA_VAL)
+@pytest.mark.physics
+class TestFieldConfiguration:
+    """Test field configuration handling."""
     
-    # Test invalid initialization
-    with pytest.raises(PhysicsError):
-        UnifiedField(alpha=-1.0)  # Invalid coupling
+    @pytest.fixture
+    def field(self):
+        return UnifiedField()
     
-    with pytest.raises(PhysicsError):
-        UnifiedField(alpha=1.0)  # Coupling too large
-
-def test_coupling_evolution(field, energy_points):
-    """Test gauge coupling evolution."""
-    # Test U(1) coupling
-    g1 = field.compute_coupling(1, energy_points)
-    assert len(g1) == len(energy_points)
-    assert np.all(g1 > 0)  # Couplings must be positive
-    assert np.all(np.isfinite(g1))  # Must be finite
+    def test_config_validation(self, field):
+        """Test field configuration validation."""
+        # Valid config
+        valid_config = FieldConfig(
+            mass=125.0,
+            coupling=0.1,
+            dimension=4
+        )
+        assert field.validate_config(valid_config)
+        
+        # Invalid configs
+        with pytest.raises(ValidationError):
+            field.validate_config(FieldConfig(mass=-1.0))  # Negative mass
+            
+        with pytest.raises(ValidationError):
+            field.validate_config(FieldConfig(coupling=-0.1))  # Negative coupling
     
-    # Test SU(2) coupling
-    g2 = field.compute_coupling(2, energy_points)
-    assert len(g2) == len(energy_points)
-    assert np.all(g2 > 0)
-    assert np.all(np.isfinite(g2))
-    
-    # Test SU(3) coupling
-    g3 = field.compute_coupling(3, energy_points)
-    assert len(g3) == len(energy_points)
-    assert np.all(g3 > 0)
-    assert np.all(np.isfinite(g3))
-    
-    # Test coupling unification
-    high_E = np.array([M_PLANCK])
-    g1_gut = field.compute_coupling(1, high_E)
-    g2_gut = field.compute_coupling(2, high_E)
-    g3_gut = field.compute_coupling(3, high_E)
-    
-    assert abs(g1_gut - g2_gut) < 0.1  # Should unify within 10%
-    assert abs(g2_gut - g3_gut) < 0.1
-
-def test_field_equations(field):
-    """Test field equation solutions."""
-    x = np.linspace(-10, 10, 100)
-    phi = field.compute_field_configuration(x)
-    
-    assert len(phi) == len(x)
-    assert np.all(np.isfinite(phi))
-    
-    # Test energy conservation
-    energy = field.compute_energy(x, phi)
-    assert energy > 0
-    assert np.isfinite(energy)
-    
-    # Test field equations
-    eom = field.check_field_equations(x, phi)
-    assert np.all(np.abs(eom) < 1e-6)  # Should satisfy equations of motion
-
-def test_observables(field):
-    """Test observable calculations."""
-    # Test weak mixing angle
-    result = field.compute_observable('sin2_theta_W')
-    assert 'value' in result
-    assert 'total_uncertainty' in result
-    assert 0.2 < result['value'] < 0.24  # Physical range
-    
-    # Test branching ratio
-    BR = field.compute_branching_ratio('Bs_to_mumu')
-    assert 'value' in BR
-    assert 'error' in BR
-    assert 1e-9 < BR['value'] < 1e-8  # Physical range
-    
-    # Test correlation function
-    r_points = np.linspace(0, 10, 100)
-    corr = field.compute_correlation_function(r_points)
-    assert len(corr) == len(r_points)
-    assert np.all(np.isfinite(corr))
+    def test_energy_validation(self, field):
+        """Test energy scale validation."""
+        # Valid energy
+        assert field.validate_energy(Energy(100.0))
+        
+        # Invalid energies
+        with pytest.raises(PhysicsError):
+            field.validate_energy(Energy(-100.0))  # Negative energy
+            
+        with pytest.raises(PhysicsError):
+            field.validate_energy(Energy(0.0))  # Zero energy

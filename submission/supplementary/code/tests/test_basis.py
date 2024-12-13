@@ -1,113 +1,95 @@
-"""Tests for FractalBasis implementation."""
+"""Tests for fractal basis functions."""
 
 import pytest
 import numpy as np
+from sympy import exp, I
 from core.basis import FractalBasis
-from core.constants import ALPHA_VAL
-from core.errors import PhysicsError
-from core.types import WaveFunction
+from core.types import Energy, WaveFunction
+from core.modes import ComputationMode
+from core.errors import PhysicsError, ValidationError
+from core.physics_constants import ALPHA_VAL, Z_MASS, X
 
 @pytest.fixture
 def basis():
-    """Create a test basis instance."""
-    return FractalBasis(alpha=ALPHA_VAL, max_level=3)
+    """Create test basis instance."""
+    return FractalBasis(alpha=ALPHA_VAL, mode=ComputationMode.SYMBOLIC)
 
-def test_basis_initialization(basis):
-    """Test basis initialization."""
-    assert isinstance(basis, FractalBasis)
-    assert hasattr(basis, 'alpha')
-    assert basis.alpha == pytest.approx(ALPHA_VAL)
-    assert basis.max_level == 3
+class TestBasisFunctions:
+    """Test basis function computation and properties."""
     
-    # Test invalid initialization
-    with pytest.raises(PhysicsError):
-        FractalBasis(alpha=-1.0)  # Invalid coupling
+    def test_basic_function(self, basis):
+        """Test basic basis function computation."""
+        n = 0  # Ground state
+        E = Energy(Z_MASS)
+        
+        psi = basis.compute_basis_function(n, E)
+        
+        # Should be normalized Gaussian-like
+        assert isinstance(psi, WaveFunction)
+        assert psi.contains(exp(-X**2))  # Contains Gaussian factor
+        
+        # Test normalization
+        norm = basis.compute_inner_product(psi, psi)
+        assert np.isclose(norm, 1.0, rtol=1e-6)
     
-    with pytest.raises(ValueError):
-        FractalBasis(alpha=ALPHA_VAL, max_level=0)  # Invalid level
-
-def test_basis_functions(basis):
-    """Test basis function generation."""
-    x = np.linspace(-5, 5, 100)
+    def test_orthonormality(self, basis):
+        """Test basis function orthonormality."""
+        E = Energy(Z_MASS)
+        
+        # Test <ψₙ|ψₙ> = 1
+        for n in range(3):
+            psi_n = basis.compute_basis_function(n, E)
+            norm = basis.compute_inner_product(psi_n, psi_n)
+            assert np.isclose(norm, 1.0, rtol=1e-6)
+        
+        # Test <ψₘ|ψₘ> = 0 for n ≠ m
+        for n in range(2):
+            for m in range(n+1, 3):
+                psi_n = basis.compute_basis_function(n, E)
+                psi_m = basis.compute_basis_function(m, E)
+                overlap = basis.compute_inner_product(psi_n, psi_m)
+                assert np.isclose(overlap, 0.0, atol=1e-6)
     
-    # Test ground state
-    psi_0 = basis.compute_basis_function(0, x)
-    assert isinstance(psi_0, WaveFunction)
-    assert np.all(np.isfinite(psi_0.psi))
-    assert psi_0.quantum_numbers['n'] == 0
+    def test_completeness(self, basis):
+        """Test basis completeness relation."""
+        E = Energy(Z_MASS)
+        test_points = np.linspace(-1, 1, 5)
+        
+        # Test resolution of identity
+        for x in test_points:
+            # Sum over first few basis functions
+            sum_val = 0
+            for n in range(5):
+                psi = basis.compute_basis_function(n, E)
+                sum_val += abs(psi.evaluate_at(x))**2
+            
+            # Should approach 1 for complete basis
+            assert sum_val > 0.9  # Allow some truncation error
     
-    # Test excited states
-    for n in range(1, 4):
-        psi_n = basis.compute_basis_function(n, x)
-        assert isinstance(psi_n, WaveFunction)
-        assert np.all(np.isfinite(psi_n.psi))
-        assert psi_n.quantum_numbers['n'] == n
-
-def test_orthonormality(basis):
-    """Test basis orthonormality."""
-    x = np.linspace(-10, 10, 200)
-    dx = x[1] - x[0]
+    @pytest.mark.parametrize("n,E", [
+        (-1, 100.0),  # Invalid index
+        (0, -100.0),  # Invalid energy
+        (0, 0.0),     # Zero energy
+    ])
+    def test_invalid_parameters(self, basis, n, E):
+        """Test error handling for invalid parameters."""
+        with pytest.raises((ValidationError, PhysicsError)):
+            basis.compute_basis_function(n, Energy(E))
     
-    # Generate basis functions
-    basis_functions = [
-        basis.compute_basis_function(n, x)
-        for n in range(4)
-    ]
-    
-    # Test orthonormality
-    for i, psi_i in enumerate(basis_functions):
-        for j, psi_j in enumerate(basis_functions):
-            overlap = np.sum(np.conj(psi_i.psi) * psi_j.psi) * dx
-            if i == j:
-                assert abs(overlap - 1.0) < 1e-6  # Normalized
-            else:
-                assert abs(overlap) < 1e-6  # Orthogonal
-
-def test_completeness(basis):
-    """Test basis completeness."""
-    x = np.linspace(-5, 5, 100)
-    
-    # Test function to expand
-    def test_func(x):
-        return np.exp(-x**2/2) * np.cos(2*x)
-    
-    # Expand in basis
-    coeffs = basis.compute_expansion_coefficients(test_func, x)
-    reconstruction = basis.reconstruct_function(coeffs, x)
-    
-    # Test reconstruction accuracy
-    error = np.max(np.abs(test_func(x) - reconstruction))
-    assert error < 1e-3  # Should reconstruct within tolerance
-
-def test_fractal_properties(basis):
-    """Test fractal scaling properties."""
-    x = np.linspace(-5, 5, 100)
-    psi = basis.compute_basis_function(0, x)
-    
-    # Test scaling property
-    lambda_scale = 2.0
-    scaled_x = x * lambda_scale
-    scaled_psi = basis.compute_basis_function(0, scaled_x)
-    
-    # Check scaling relation
-    scale_factor = lambda_scale**basis.scaling_dimension
-    assert np.allclose(
-        scaled_psi.psi * scale_factor,
-        psi.psi,
-        rtol=1e-5
-    )
-
-def test_error_handling(basis):
-    """Test error handling."""
-    x = np.linspace(-5, 5, 100)
-    
-    # Test invalid quantum number
-    with pytest.raises(ValueError):
-        basis.compute_basis_function(-1, x)
-    
-    with pytest.raises(ValueError):
-        basis.compute_basis_function(basis.max_level + 1, x)
-    
-    # Test invalid grid
-    with pytest.raises(ValueError):
-        basis.compute_basis_function(0, np.array([]))  # Empty grid
+    def test_gauge_transformation(self, basis):
+        """Test gauge transformation properties."""
+        n = 0
+        E = Energy(Z_MASS)
+        psi = basis.compute_basis_function(n, E)
+        
+        # Apply U(1) transformation
+        phase = exp(I * np.pi/4)
+        psi_transformed = basis.apply_gauge_transformation(psi, phase)
+        
+        # Check norm preservation
+        norm = basis.compute_inner_product(psi_transformed, psi_transformed)
+        assert np.isclose(norm, 1.0, rtol=1e-6)
+        
+        # Check phase relation
+        ratio = psi_transformed / psi
+        assert np.isclose(abs(ratio), 1.0, rtol=1e-6)

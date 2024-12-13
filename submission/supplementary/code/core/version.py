@@ -2,6 +2,10 @@
 
 import pkg_resources
 import datetime
+import re
+from packaging import version
+from typing import Optional
+from .errors import VersionError
 
 # Version information
 VERSION_MAJOR = 0
@@ -17,7 +21,9 @@ if VERSION_SUFFIX:
 # Build timestamp
 BUILD_TIMESTAMP = datetime.datetime.now().isoformat()
 
-def get_version():
+VERSION_PATTERN = r'^\d+\.\d+\.\d+$'
+
+def get_version() -> str:
     """Get current version string."""
     return VERSION
 
@@ -56,3 +62,55 @@ def check_version_compatibility(min_version):
     required = parse_version(min_version)
     
     return current >= required 
+
+def parse_version_string(version_str: str) -> version.Version:
+    """
+    Parse version string into Version object.
+    
+    Args:
+        version_str: Version string in X.Y.Z format
+        
+    Returns:
+        Version object
+        
+    Raises:
+        VersionError: If version string is invalid
+    """
+    if not re.match(VERSION_PATTERN, version_str):
+        raise VersionError(f"Invalid version format: {version_str}")
+    return version.parse(version_str)
+
+def check_compatibility(
+    v1: str,
+    v2: str,
+    *,
+    min_version: Optional[str] = None
+) -> bool:
+    """
+    Check version compatibility.
+    
+    Args:
+        v1: First version string
+        v2: Second version string
+        min_version: Optional minimum required version
+        
+    Returns:
+        bool: True if versions are compatible
+        
+    Raises:
+        VersionError: If any version string is invalid
+    """
+    try:
+        ver1 = parse_version_string(v1)
+        ver2 = parse_version_string(v2)
+        
+        if min_version:
+            min_ver = parse_version_string(min_version)
+            if ver1 < min_ver or ver2 < min_ver:
+                return False
+        
+        # Major version must match
+        return ver1.major == ver2.major
+        
+    except Exception as e:
+        raise VersionError(f"Version comparison failed: {e}")

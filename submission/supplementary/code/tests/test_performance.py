@@ -8,6 +8,8 @@ from core.field import UnifiedField
 from core.numeric import integrate_phase_space
 from core.stability import check_convergence
 from core.utils import get_memory_usage
+from core.types import NumericValue, Energy, RealValue
+from core.errors import ComputationError
 
 # Conditionally import psutil
 try:

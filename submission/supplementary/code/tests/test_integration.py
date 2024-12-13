@@ -8,6 +8,7 @@ from core.detector import Detector
 from core.types import Energy, Momentum, CrossSection
 from core.numeric import integrate_phase_space
 from core.stability import check_convergence
+from core.errors import ComputationError
 
 @pytest.mark.integration
 class TestPhysicsWorkflow:

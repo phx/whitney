@@ -1137,87 +1137,27 @@
 
 ### 14.24 Test Coverage Improvement (BUG-011)
 - [ ] Fix insufficient test coverage
-  - [x] Add tests for compute.py (0%)
-    - [x] Add computation tests
-      - [x] Add cross section computation
-      - [x] Add correlation function computation
-      - [x] Add branching ratio computation
-    - [x] Add error handling tests
-      - [x] Test invalid inputs
-      - [x] Test physics constraints
-    - [x] Add edge case tests
-      - [x] Test threshold behavior
-      - [x] Test symmetry properties
-      - [x] Test conservation laws
-  - [x] Add tests for validation.py (0%)
-    - [x] Add validation function tests
-    - [x] Add error case tests
-  - [x] Improve basis.py coverage (23%)
-    - [x] Add missing basis function tests
-    - [x] Add transformation tests
-  - [x] Improve detector.py coverage (28%)
-    - [x] Add detector response tests
-    - [x] Add calibration tests
-  - [x] Improve types.py coverage (38%)
-    - [x] Add type validation tests
-    - [x] Add conversion tests
-
-### 14.25 Constants Definition Fixes (BUG-012)
-- [x] Fix missing T symbol in constants
-  - [x] Add T symbol to constants.py
-  - [x] Update symbol documentation
-  - [ ] Fix test_properties.py imports and usage
-    - [ ] Update imports to include P symbol
-    - [ ] Fix gauge invariance test to use proper coordinates
-    - [ ] Add time evolution tests
-    - [ ] Add momentum space tests
-  - [ ] Add comprehensive symbol tests
-    - [ ] Test coordinate system completeness
-    - [ ] Test symbol independence
-    - [ ] Test physical constraints
-    - [ ] Test gauge transformations
-    - [ ] Test Lorentz invariance
-
-### 14.26 Test Configuration Fixes (BUG-013)
-- [ ] Fix pytest marker configuration
-  - [x] Fix pytest marker configuration
-  - [x] Update pytest.ini markers
-    - [x] Add benchmark marker
-    - [x] Add theory marker
-    - [x] Add precision marker
-    - [x] Add stability marker
-    - [x] Add types marker
-    - [x] Add version marker
-  - [x] Fix python_paths configuration
-  - [x] Update marker documentation
-  - [x] Verify marker registration
-
-### 14.27 Pytest Configuration Fix (BUG-014)
-- [ ] Fix python_paths configuration warning
-  - [x] Remove python_paths from pytest.ini
-  - [x] Use PYTHONPATH environment variable instead
-  - [x] Update test documentation
-  - [x] Verify test imports work correctly
-
-### 14.28 NumericValue Operations Fix (BUG-015)
-- [ ] Fix NumericValue division operation
-  - [x] Implement __truediv__ method
-  - [x] Add uncertainty propagation for division
-  - [x] Add tests for division operation
-  - [x] Add tests for division uncertainty propagation
-  - [x] Add division documentation
-
-### 14.29 Property Tests Enhancement (BUG-017)
-- [ ] Improve property-based testing
-  - [ ] Add hypothesis test strategies
-    - [ ] Add coordinate strategies
-    - [ ] Add field configuration strategies
-    - [ ] Add gauge transformation strategies
-  - [ ] Add invariance tests
-    - [ ] Test Lorentz invariance
-    - [ ] Test gauge invariance
-    - [ ] Test scaling invariance
-  - [ ] Add conservation tests
-    - [ ] Test energy conservation
-    - [ ] Test momentum conservation
-    - [ ] Test charge conservation
+  - [ ] Add tests for compute.py (0%)
+    - [ ] Add computation tests
+      - [ ] Add cross section computation
+      - [ ] Add correlation function computation
+      - [ ] Add branching ratio computation
+    - [ ] Add error handling tests
+      - [ ] Test invalid inputs
+      - [ ] Test physics constraints
+    - [ ] Add edge case tests
+      - [ ] Test threshold behavior
+      - [ ] Test symmetry properties
+      - [ ] Test conservation laws
+  - [ ] Add tests for validation.py (0%)
+    - [ ] Add validation function tests
+    - [ ] Add error case tests
+  - [ ] Improve basis.py coverage (23%)
+    - [ ] Add missing basis function tests
+    - [ ] Add transformation tests
+  - [ ] Improve detector.py coverage (28%)
+    - [ ] Add detector response tests
+    - [ ] Add calibration tests
+  - [ ] Improve types.py coverage (38%)
+    - [ ] Add type validation tests
+    - [ ] Add conversion tests

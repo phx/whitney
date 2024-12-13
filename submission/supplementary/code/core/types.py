@@ -5,6 +5,17 @@ from dataclasses import dataclass
 import numpy as np
 from .errors import PhysicsError
 
+__all__ = [
+    'RealValue',
+    'ComplexValue',
+    'NumericValue',
+    'Energy',
+    'Momentum',
+    'CrossSection',
+    'BranchingRatio',
+    'ErrorEstimate'
+]
+
 @dataclass
 class RealValue:
     """
@@ -582,3 +593,142 @@ class ErrorEstimate:
     
     def __str__(self) -> str:
         return f"{self.value:.3g} ± {self.total_uncertainty:.3g}"
+
+@dataclass
+class NumericValue:
+    """
+    Base class for numeric values with validation and error propagation.
+    
+    Represents a numeric value (real or complex) with optional uncertainty
+    and validation rules. Used as base class for specific physical quantities.
+    
+    Attributes:
+        value: The numeric value (float or complex)
+        uncertainty: Optional uncertainty in the value
+        valid_range: Optional tuple of (min, max) for validation
+        
+    Methods:
+        validate(): Check if value is within valid range
+        propagate_error(): Propagate uncertainties in calculations
+        
+    Examples:
+        >>> x = NumericValue(1.0, uncertainty=0.1)
+        >>> y = NumericValue(2.0, uncertainty=0.2)
+        >>> z = x * y  # Uncertainties are properly propagated
+    """
+    value: Union[float, complex]
+    uncertainty: Optional[float] = None
+    valid_range: Optional[Tuple[float, float]] = None
+    
+    def __post_init__(self):
+        """Validate numeric value."""
+        if isinstance(self.value, (int, float)):
+            if not np.isfinite(float(self.value)):
+                raise ValueError("Value must be finite")
+        elif isinstance(self.value, complex):
+            if not (np.isfinite(self.value.real) and np.isfinite(self.value.imag)):
+                raise ValueError("Complex value must have finite real and imaginary parts")
+        else:
+            raise TypeError(f"Value must be numeric, got {type(self.value)}")
+             
+        if self.uncertainty is not None:
+            if not isinstance(self.uncertainty, (int, float)):
+                raise TypeError("Uncertainty must be real number")
+            if self.uncertainty < 0:
+                raise ValueError("Uncertainty must be non-negative")
+            if not np.isfinite(float(self.uncertainty)):
+                raise ValueError("Uncertainty must be finite")
+                 
+        if self.valid_range is not None:
+            self.validate()
+    
+    def validate(self) -> None:
+        """Check if value is within valid range."""
+        if self.valid_range is not None:
+            min_val, max_val = self.valid_range
+            if isinstance(self.value, (int, float)):
+                if not min_val <= self.value <= max_val:
+                    raise ValueError(f"Value {self.value} outside valid range [{min_val}, {max_val}]")
+            else:
+                # For complex values, check magnitude
+                magnitude = abs(self.value)
+                if not min_val <= magnitude <= max_val:
+                    raise ValueError(f"Magnitude {magnitude} outside valid range [{min_val}, {max_val}]")
+    
+    def __mul__(self, other: 'NumericValue') -> 'NumericValue':
+        """Multiply values with uncertainty propagation."""
+        value = self.value * other.value
+        
+        if self.uncertainty is None or other.uncertainty is None:
+            uncertainty = None
+        else:
+            # Relative uncertainties add in quadrature for multiplication
+            rel_unc = np.sqrt(
+                (self.uncertainty/abs(self.value))**2 +
+                (other.uncertainty/abs(other.value))**2
+            )
+            uncertainty = abs(value) * rel_unc
+            
+        return NumericValue(value, uncertainty)
+    
+    def __add__(self, other: 'NumericValue') -> 'NumericValue':
+        """Add values with uncertainty propagation."""
+        value = self.value + other.value
+        
+        if self.uncertainty is None or other.uncertainty is None:
+            uncertainty = None
+        else:
+            # Absolute uncertainties add in quadrature for addition
+            uncertainty = np.sqrt(self.uncertainty**2 + other.uncertainty**2)
+            
+        return NumericValue(value, uncertainty)
+    
+    def check_finite(self) -> None:
+        """Check if value is finite."""
+        if isinstance(self.value, (int, float)):
+            if not np.isfinite(float(self.value)):
+                raise ValueError("Value must be finite")
+        elif isinstance(self.value, complex):
+            if not (np.isfinite(self.value.real) and np.isfinite(self.value.imag)):
+                raise ValueError("Complex value must have finite real and imaginary parts")
+    
+    def check_uncertainty(self) -> None:
+        """Validate uncertainty value."""
+        if self.uncertainty is not None:
+            if not isinstance(self.uncertainty, (int, float)):
+                raise TypeError("Uncertainty must be real number")
+            if self.uncertainty < 0:
+                raise ValueError("Uncertainty must be non-negative")
+            if not np.isfinite(float(self.uncertainty)):
+                raise ValueError("Uncertainty must be finite")
+    
+    def __abs__(self) -> float:
+        """Get absolute value/magnitude."""
+        return abs(self.value)
+    
+    def __str__(self) -> str:
+        """String representation with uncertainty."""
+        if self.uncertainty is None:
+            return f"{self.value}"
+        return f"{self.value} ± {self.uncertainty}"
+    
+    def __repr__(self) -> str:
+        """Detailed string representation."""
+        return f"NumericValue(value={self.value}, uncertainty={self.uncertainty})"
+    
+    def __truediv__(self, other: Union[int, float, 'NumericValue']) -> 'NumericValue':
+        """Implement division with uncertainty propagation."""
+        if isinstance(other, (int, float)):
+            value = self.value / other
+            uncertainty = self.uncertainty / abs(other) if self.uncertainty is not None else None
+            return NumericValue(value, uncertainty)
+        elif isinstance(other, NumericValue):
+            value = self.value / other.value
+            if self.uncertainty is None and other.uncertainty is None:
+                return NumericValue(value)
+            # Propagate uncertainties using quadrature
+            rel_unc1 = (self.uncertainty / abs(self.value)) if self.uncertainty is not None else 0
+            rel_unc2 = (other.uncertainty / abs(other.value)) if other.uncertainty is not None else 0
+            uncertainty = abs(value) * np.sqrt(rel_unc1**2 + rel_unc2**2)
+            return NumericValue(value, uncertainty)
+        return NotImplemented

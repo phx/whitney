@@ -3,12 +3,16 @@
 from typing import Dict, List, Optional, Tuple, Union
 from dataclasses import dataclass
 import numpy as np
-from sympy import (symbols, exp, integrate, conjugate, sqrt, 
+from sympy import (Symbol, symbols, exp, integrate, conjugate, sqrt, 
                   hermite, Expr)
 import cmath
 import warnings
-from .constants import (ALPHA_VAL, X, E, GAMMA_1, GAMMA_2, GAMMA_3, 
-                        g1_REF, g2_REF, g3_REF, ALPHA_REF, Z_MASS)
+from .physics_constants import (
+    ALPHA_VAL, X, E, Z_MASS,
+    GAMMA_1, GAMMA_2, GAMMA_3,
+    g1_REF, g2_REF, g3_REF,
+    ALPHA_REF
+)
 from .types import (Energy, FieldConfig, WaveFunction, 
                     ErrorEstimate, RealValue, AnalysisResult)
 from .modes import ComputationMode
@@ -38,6 +42,7 @@ class FractalBasis:
             raise ValidationError("Alpha must be positive")
         self.alpha = alpha
         self.mode = mode
+        self.scaling_dimension = 1.0
     
     def validate_energy_scale(self, E: float) -> None:
         """
@@ -479,3 +484,78 @@ class FractalBasis:
             'integration_error': quad_error,
             'total_error': norm_error + trunc_error + quad_error
         }
+
+    def compute_basis_function(self, n: int, E: Energy) -> WaveFunction:
+        """
+        Compute nth basis function at energy E.
+        
+        Args:
+            n: Basis function index
+            E: Energy scale
+            
+        Returns:
+            WaveFunction: Computed basis function
+            
+        Raises:
+            PhysicsError: If parameters are invalid
+            ComputationError: If computation fails
+        """
+        # Validate inputs
+        if n < 0:
+            raise PhysicsError(f"Invalid basis index: {n}")
+        if E.value <= 0:
+            raise PhysicsError(f"Invalid energy: {E}")
+            
+        try:
+            # Get generator function with scaled argument
+            scaled_x = self.alpha**n * X
+            F = self._generator_function(scaled_x)
+            
+            # Apply modulation and scaling
+            modulation = self._modulation_factor(n, E)
+            
+            # Combine all factors
+            psi = self.alpha**n * F * modulation
+            
+            # Normalize
+            psi = self.normalize(psi)
+            
+            # Apply computation mode
+            if self.mode == ComputationMode.NUMERIC:
+                return evaluate_expr(psi)
+            elif self.mode == ComputationMode.MIXED:
+                return cached_evaluation(psi)
+            return psi
+            
+        except Exception as e:
+            raise ComputationError(f"Basis function computation failed: {e}")
+    
+    def _generator_function(self, x: Symbol) -> WaveFunction:
+        """Compute generator function."""
+        return exp(-x**2/2)
+    
+    def _modulation_factor(self, n: int, E: Energy) -> WaveFunction:
+        """Compute energy-dependent modulation."""
+        k = E.value / self.alpha**n
+        return exp(-k**2 * X**2/2)
+    
+    def normalize(self, psi: WaveFunction) -> WaveFunction:
+        """Normalize wavefunction."""
+        norm = self.compute_inner_product(psi, psi)
+        if norm <= 0:
+            raise PhysicsError("Invalid normalization")
+        return psi / np.sqrt(norm)
+    
+    def compute_inner_product(self, psi1: WaveFunction, psi2: WaveFunction) -> float:
+        """Compute inner product of two wavefunctions."""
+        try:
+            # Numerical integration
+            x_points = np.linspace(-10, 10, 1000)
+            integrand = np.conj(psi1) * psi2
+            return np.trapz(integrand, x_points)
+        except Exception as e:
+            raise ComputationError(f"Inner product computation failed: {e}")
+    
+    def apply_gauge_transformation(self, psi: WaveFunction, phase: complex) -> WaveFunction:
+        """Apply gauge transformation."""
+        return psi * phase
