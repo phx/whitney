@@ -11,43 +11,59 @@
       - [x] Update import statements in core/field.py
       - [ ] Update import statements in core/basis.py
       - [ ] Adjust tests/conftest.py to prevent indirect imports
-  - [ ] Fix Class Hierarchy (BUG-019)
-    - [ ] Implement UnifiedField base functionality
-      - [x] Add core field theory methods
-      - [x] Add state management
-      - [x] Add validation methods
-      - [ ] Implement field equations
-      - [ ] Add evolution operators
-    - [ ] Update FractalBasis to use UnifiedField
-      - [x] Convert FractalBasis to inherit from UnifiedField
-      - [x] Override field equation solver
-      - [x] Override evolution operator
-      - [x] Add basis-specific methods
-    - [ ] Add proper class inheritance
-      - [x] Fix method overrides
-      - [x] Add super() calls
-      - [x] Update docstrings
-      - [ ] Fix test dependencies
-        - [ ] Update test fixtures
-        - [ ] Fix test inheritance
-        - [ ] Add hierarchy tests
-  - [ ] Fix Coordinate System (BUG-008, BUG-012) # Required for field calculations
+  - [ ] Fix Coordinate System (BUG-008, BUG-012)
     - [ ] Consolidate symbol definitions in constants.py
-      - [ ] Fix X symbol usage
-      - [ ] Verify T symbol implementation
-      - [ ] Add P symbol documentation
+      - [x] Fix X symbol usage
+      - [x] Verify T symbol implementation
+      - [x] Add P symbol documentation
+      - [x] Add coordinate transformations
     - [ ] Update field calculations to use consistent coordinates
+      - [x] Update UnifiedField to use new coordinates
+        - [x] Update energy density calculation
+        - [x] Update causality check
+        - [x] Add Lorentz transformation
+        - [x] Add gauge transformation
+      - [x] Update FractalBasis to use new coordinates
+        - [x] Update field equations with light-cone coordinates
+        - [x] Update generator function for Lorentz invariance
+        - [x] Update modulation factor with relativistic corrections
+        - [x] Update evolution operator with proper dispersion
     - [ ] Add coordinate system tests
-      - [ ] Test Lorentz invariance
-      - [ ] Test gauge invariance
-  - [ ] Fix UnifiedField Implementation (BUG-010) # Core theoretical component
+      - [x] Test Lorentz invariance
+        - [x] Test energy density invariance
+        - [x] Test causality preservation
+        - [x] Test invalid boosts
+      - [x] Test gauge invariance
+        - [x] Test observable invariance
+        - [x] Test phase transformations
+      - [x] Test coordinate transformations
+        - [x] Test basis covariance
+        - [x] Test orthogonality preservation
+      - [x] Test near-lightspeed boosts
+      - [x] Test large gauge transformations
+      - [x] Test coordinate singularities
+      - [x] Test numerical stability
+        - [x] Test high boost stability
+        - [x] Test large coordinate values
+  - [ ] Fix UnifiedField Implementation (BUG-010)
     - [ ] Implement UnifiedField class
-      - [ ] Add field equations
-      - [ ] Add evolution methods
+      - [x] Add field equations
+        - [x] Implement Klein-Gordon operator
+        - [x] Add interaction terms
+        - [x] Add solution verification
+      - [x] Add evolution methods
+        - [x] Add Hamiltonian computation
+        - [x] Add evolution operator
       - [ ] Add gauge transformations
     - [ ] Add validation and constraints
-      - [ ] Add energy conditions
-      - [ ] Add causality checks
+      - [x] Add energy conditions
+        - [x] Weak energy condition
+        - [x] Strong energy condition
+        - [x] Dominant energy condition
+      - [x] Add causality checks
+        - [x] Microcausality
+        - [x] Superluminal propagation
+        - [x] Light cone structure
     - [ ] Fix failing tests
       - [ ] Fix field evolution tests
       - [ ] Fix gauge invariance tests
@@ -55,23 +71,6 @@
 
 ### 14.31 Validation Framework
 - [ ] Complete Validation System
-  - [ ] Fix Version Control (BUG-004) # Required for reproducibility
-    - [ ] Add VersionError to errors.py
-    - [ ] Implement version validation
-    - [ ] Add compatibility checks
-  - [ ] Add Property Tests (BUG-017) # Verifies physical properties
-    - [ ] Implement test strategies
-      - [ ] Add field configuration generators
-      - [ ] Add transformation generators
-    - [ ] Add invariance tests
-      - [ ] Test Poincaré invariance
-      - [ ] Test gauge invariance
-      - [ ] Test scaling properties
-    - [ ] Add conservation tests
-      - [ ] Test energy-momentum
-      - [ ] Test charge conservation
-      - [ ] Test unitarity
-  - [ ] Fix Test Coverage (BUG-002) # Final validation step
-    - [ ] Add missing core tests
-    - [ ] Verify coverage meets requirements
-    - [ ] Document test completeness
+  - [ ] Fix Version Control (BUG-004)
+  - [ ] Add Property Tests (BUG-017)
+  - [ ] Fix Test Coverage (BUG-002)
