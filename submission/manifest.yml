@@ -1,0 +1,15 @@
++ paper: main.tex
++ figures:
++   - figures/field_space.pdf
++   - figures/energy_scales.pdf
++   - figures/gauge_hierarchy.pdf
++   - figures/holographic_info.pdf
++ supplementary:
++   code:
++     - fractal_field_theory_implementation.py
++     - generate_figures.py
++     - generate_data.py
++   data:
++     - coupling_evolution.csv
++     - predictions.csv
++     - validation_results.csv 

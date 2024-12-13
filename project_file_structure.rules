@@ -1,0 +1,37 @@
+# Project File Structure Rules
+# =========================
+# This file defines the organization and management of files
+# for the Grand Unification Theory paper submission
+
+# arXiv Submission Structure
+
+## Active Files
+submission/main.tex                    # Main paper
+submission/figures/*.pdf               # Figures
+submission/supplementary/code/*.py     # Implementation
+submission/supplementary/data/*.csv    # Results
+submission/README.md                   # Instructions
+
+## Archive (Not for Submission)
+archive/unified_field_solution.py
+archive/unified_field_solution
+archive/equation_of_cosmic_unity.txt
+
+## Documentation
+CRITIQUE-o1-02.md                     # Review notes
+TODO.md                               # Task tracking
+CRITIQUE.md                           # Initial review
+
+# File type rules
+*.tex    # LaTeX source files
+*.py     # Python implementation files
+*.md     # Documentation and notes
+
+# Ignore rules
+.git/
+__pycache__/
+*.aux
+*.log
+*.out
+*.pdf
+*.synctex.gz 

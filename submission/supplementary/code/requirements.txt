@@ -1,0 +1,41 @@
+# Core numerical and scientific libraries
+numpy>=1.20.0  # Required for core computations
+scipy>=1.7.0   # Required for numerical integration
+sympy>=1.8     # Required for symbolic computations
+mpmath>=1.2.0  # Required for high-precision arithmetic
+
+# Optional: Performance monitoring
+psutil>=5.9.0; platform_system!="Windows"  # Optional memory monitoring
+
+# Visualization
+matplotlib>=3.4.0  # Required for plotting
+seaborn>=0.11.0   # Required for advanced visualization
+
+# Data handling
+pandas>=1.3.0     # Required for data analysis
+
+# Testing
+pytest>=6.0       # Required for unit testing
+pytest-cov>=2.12  # Required for coverage reporting
+hypothesis>=6.0   # Required for property-based testing
+
+# Optional: Machine Learning support
+scikit-learn>=0.24  # Optional: ML algorithms
+tensorflow>=2.6     # Optional: Deep learning
+torch>=1.9         # Optional: Deep learning alternative
+
+# Optional: Parallel processing
+dask>=2021.8.0     # Optional: Distributed computing
+ray>=1.5           # Optional: Parallel processing
+
+# Documentation
+sphinx>=4.0           # Required for documentation
+sphinx-rtd-theme>=0.5 # Required for documentation theme
+nbsphinx>=0.8        # Required for notebook integration
+
+# Development tools
+black>=21.0          # Required for code formatting
+flake8>=3.9          # Required for linting
+mypy>=0.900          # Required for type checking
+pylint>=2.8          # Required for code analysis
+isort>=5.9           # Required for import sorting

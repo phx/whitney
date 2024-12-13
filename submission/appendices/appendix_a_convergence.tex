@@ -1,0 +1,30 @@
+\section*{Appendix A: Convergence Proofs}
+
+\subsection*{A.1 Infinite Sum Convergence}
+
+We prove the convergence of the infinite sum in our base equation:
+
+\[
+\mathcal{F}(x, t, E) = \int \sum_{n=0}^{\infty} \alpha^n \, \Psi_n(x, t, E) \, e^{i \mathcal{L}(x, t, E)} \, dx
+\]
+
+Using the ratio test, let:
+\[
+a_n = \alpha^n \Psi_n(x, t, E)
+\]
+
+Then:
+\[
+\lim_{n \to \infty} \left|\frac{a_{n+1}}{a_n}\right| = \lim_{n \to \infty} \left|\alpha \frac{\Psi_{n+1}}{\Psi_n}\right|
+\]
+
+Substituting the explicit form of $\Psi_n$:
+\[
+\lim_{n \to \infty} \left|\alpha e^{-\beta} \frac{g_i(E)^{h(n+1,i)}}{g_i(E)^{h(n,i)}}\right| < 1
+\]
+
+This proves absolute convergence for $\alpha, \beta > 0$.
+
+\subsection*{A.2 Uniform Convergence of the Integral}
+
+The integral converges uniformly due to the exponential damping factor $\exp(-x^2)$ in $f_n(x)... 

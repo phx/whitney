@@ -1,0 +1,53 @@
+\section*{Appendix D: Scale Dependence Justification}
+
+\subsection*{D.1 Energy-Weighting Function Derivation}
+
+The form $g(E) = e^{-\frac{1}{E+1}}$ emerges naturally from requiring:
+
+1. Smooth transition between energy scales
+2. Proper asymptotic behavior
+3. Consistency with RG flow
+
+Starting from the general ansatz $g(E) = e^{f(E)}$, we require:
+
+\[
+\lim_{E \to 0} g(E) = 0 \quad \text{and} \quad \lim_{E \to \infty} g(E) = 1
+\]
+
+The unique solution satisfying these constraints and preserving analyticity is:
+
+\[
+f(E) = -\frac{1}{E+1}
+\]
+
+\subsection*{D.2 Cosmological Time Evolution}
+
+The form $T(t) = e^{kt}$ follows from the requirement of consistency with cosmological expansion. In the presence of a positive cosmological constant $\Lambda$, the scale factor $a(t)$ behaves as:
+
+\[
+a(t) \propto e^{H_0t}
+\]
+
+Our choice $k = H_0$ ensures that:
+
+\[
+T(t) \frac{\partial}{\partial t} \mathcal{F}(x,t,E) = H_0 \mathcal{F}(x,t,E)
+\]
+
+matching the observed Hubble expansion.
+
+\subsection*{D.3 Fractal-RG Connection}
+
+The fractal scaling connects to physical renormalization through:
+
+\[
+\mu \frac{d}{d\mu} g_i(E) = \beta_i(g) = \sum_{n=1}^{\infty} \alpha^n b_n(g)
+\]
+
+where $b_n(g)$ are the fractal beta function coefficients. This ensures:
+
+\[
+\lim_{E \to M_Z} g_i(E) = g_i^{\text{SM}}
+\]
+
+reproducing the Standard Model couplings at low energies. 

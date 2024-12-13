@@ -1,0 +1,52 @@
+\section*{Appendix J: Mathematical Details}
+
+\subsection*{J.1 Harmonic Mean Definition}
+
+The harmonic mean $H$ of the fractal exponents is defined as:
+
+\[
+H(n) = \frac{N}{\sum_{i=1}^N \frac{1}{h_i(n)}}
+\]
+
+where $h_i(n)$ are the individual fractal exponents at level $n$. This ensures:
+
+\[
+\lim_{n \to \infty} H(n) = h_{\text{crit}}
+\]
+
+where $h_{\text{crit}}$ is the critical exponent at unification.
+
+\subsection*{J.2 Intermediate Steps}
+
+The full derivation of the coupling evolution includes:
+
+1. Fractal Beta Function:
+   \[
+   \beta_i(g) = \sum_{n=1}^{\infty} \alpha^n b_n^i(g) = -\frac{g_i^3}{16\pi^2}\left(b_0^i + \sum_{n=1}^{\infty} \alpha^n b_n^i\right)
+   \]
+
+2. Scale Transition Function:
+   \[
+   F_n^i(x) = \int_0^x dt\, b_n^i(g(t))\prod_{k=1}^n (1 + \alpha^k t)^{-1}
+   \]
+
+3. Coupling Integration:
+   \[
+   g_i(E) = g_i(M_Z)\exp\left(\int_{M_Z}^E \frac{dE'}{E'}\sum_{n=0}^{\infty} \alpha^n \beta_n^i(g(E'))\right)
+   \]
+
+\subsection*{J.3 Energy Scale Transitions}
+
+The detailed transition between energy scales follows:
+
+\[
+\mathcal{T}(E_1 \to E_2) = \exp\left(\int_{E_1}^{E_2} dE\, K(E)\right)
+\]
+
+where the kernel $K(E)$ is:
+
+\[
+K(E) = \sum_{n=0}^{\infty} \alpha^n k_n(E)\prod_{j=1}^n (1 + \gamma_j E)^{-1}
+\]
+
+This ensures smooth transitions between all energy scales while preserving the fractal structure. 

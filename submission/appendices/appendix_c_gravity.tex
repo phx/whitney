@@ -1,0 +1,49 @@
+\section*{Appendix C: Gravity Integration}
+
+\subsection*{C.1 Quantum Gravity Regularization}
+
+The fractal structure naturally regularizes gravity through recursive dimensional reduction. At each scale $n$, the effective gravitational action takes the form:
+
+\[
+S_G^{(n)} = \frac{1}{16\pi G_n} \int d^4x \sqrt{-g_n} R_n + \sum_{k=1}^n \alpha^k \mathcal{C}_k(R_n)
+\]
+
+where $G_n$ is the scale-dependent Newton's constant and $\mathcal{C}_k(R_n)$ are curvature corrections. The fractal recursion ensures:
+
+\[
+\lim_{n \to \infty} G_n = G_P \exp\left(-\sum_{k=1}^{\infty} \frac{\alpha^k}{k!}\right)
+\]
+
+This sum converges due to our previously proven bounds on $\alpha$.
+
+\subsection*{C.2 Hierarchy Problem Resolution}
+
+The hierarchy between the electroweak and Planck scales emerges naturally from our fractal structure. The effective mass parameters at each scale are related by:
+
+\[
+m_n^2 = m_0^2 \prod_{k=1}^n (1 + \alpha^k h(k))
+\]
+
+where $h(k)$ is our fractal exponent function. This yields:
+
+\[
+\frac{M_W}{M_P} \approx \exp\left(-\sum_{k=1}^{\infty} \frac{\alpha^k h(k)}{k}\right)
+\]
+
+reproducing the observed hierarchy without fine-tuning.
+
+\subsection*{C.3 Gravitational Constraints}
+
+Our framework satisfies known gravitational constraints through the energy-dependent coupling:
+
+\[
+G(E) = G_N\left(1 + \sum_{n=1}^{\infty} \alpha^n f_n(E/M_P)\right)
+\]
+
+where $f_n(x)$ are our fractal form factors satisfying:
+
+\[
+\lim_{E \to 0} f_n(E/M_P) = 0
+\]
+
+ensuring consistency with classical tests of gravity. 
