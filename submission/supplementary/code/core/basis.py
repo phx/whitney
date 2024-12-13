@@ -1,6 +1,7 @@
 """Core implementation of fractal basis functions."""
 
-from typing import Dict
+from typing import Dict, List, Optional, Tuple, Union
+from dataclasses import dataclass
 import numpy as np
 from sympy import (symbols, exp, integrate, conjugate, sqrt, 
                   hermite, Expr)
@@ -9,7 +10,7 @@ import warnings
 from .constants import (ALPHA_VAL, X, E, GAMMA_1, GAMMA_2, GAMMA_3, 
                         g1_REF, g2_REF, g3_REF, ALPHA_REF, Z_MASS)
 from .types import (Energy, FieldConfig, WaveFunction, 
-                    AnalysisResult, ErrorEstimate)
+                    ErrorEstimate, RealValue, AnalysisResult)
 from .modes import ComputationMode
 from .utils import evaluate_expr, cached_evaluation, check_numerical_stability
 from .errors import (ValidationError, ComputationError, PhysicsError, 

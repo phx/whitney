@@ -1,0 +1,1 @@
+"""Core package for fractal field theory framework.""" 

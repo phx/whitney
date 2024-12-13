@@ -3,13 +3,15 @@
 import pytest
 import numpy as np
 import platform
+import os
 from core.field import UnifiedField
 from core.numeric import integrate_phase_space
 from core.stability import check_convergence
+from core.utils import get_memory_usage
 
 # Conditionally import psutil
 try:
-    import psutil # type: ignore
+    import psutil  # type: ignore
     PSUTIL_AVAILABLE = True
 except ImportError:
     PSUTIL_AVAILABLE = False
@@ -59,16 +61,16 @@ def test_phase_space_integration_performance(benchmark, numeric_precision):
                     reason="psutil not available for memory monitoring")
 def test_memory_usage():
     """Test memory usage during large calculations."""
-    import os
-    
-    process = psutil.Process(os.getpid())
-    initial_memory = process.memory_info().rss
+    initial_memory = get_memory_usage()
     
     # Perform memory-intensive calculation
     field = UnifiedField(dimension=4, max_level=10)
     field.compute_basis_functions(n_max=100)
     
-    final_memory = process.memory_info().rss
-    memory_increase = (final_memory - initial_memory) / 1024 / 1024  # MB
+    final_memory = get_memory_usage()
+    memory_increase = final_memory - initial_memory
     
-    assert memory_increase < 1000  # Less than 1GB increase
+    if initial_memory >= 0 and final_memory >= 0:
+        assert memory_increase < 1000  # Less than 1GB increase
+    else:
+        pytest.skip("Memory monitoring not available")

@@ -1,5 +1,12 @@
 """Common test fixtures and configuration."""
 
+import os
+import sys
+
+# Add project root to Python path
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, project_root)
+
 import pytest
 import numpy as np
 from core.field import UnifiedField

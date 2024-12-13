@@ -252,7 +252,7 @@ def propagate_errors(values: List[RealValue],
 def get_memory_usage() -> float:
     """Get current memory usage in MB."""
     try:
-        import psutil # type: ignore
+        import psutil  # type: ignore
         process = psutil.Process()
         return process.memory_info().rss / 1024 / 1024
     except (ImportError, AttributeError):

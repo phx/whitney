@@ -5,9 +5,9 @@ import numpy as np
 from sympy import Expr, Function, diff, integrate, conjugate
 from .basis import FractalBasis
 from .constants import (ALPHA_VAL, ALPHA_REF, X, T, E as E_sym,
-                        Z_MASS, g1_REF, g2_REF, g3_REF,
-                        GAMMA_1, GAMMA_2, GAMMA_3, E_PLANCK,
-                        SIN2_THETA_W, LAMBDA_QCD)
+                        PSI, PHI, g1_REF, g2_REF, g3_REF,
+                        Z_MASS, GAMMA_1, GAMMA_2, GAMMA_3,
+                        E_PLANCK, LAMBDA_QCD, SIN2_THETA_W)
 from .types import (Energy, FieldConfig, WaveFunction, 
                     AnalysisResult, ErrorEstimate, RealValue)
 from .modes import ComputationMode

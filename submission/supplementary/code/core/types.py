@@ -22,6 +22,20 @@ class RealValue:
     value: float
     uncertainty: Optional[float] = None
     
+    def __post_init__(self):
+        """Validate real value."""
+        if not isinstance(self.value, (int, float)):
+            raise ValueError("Value must be a real number")
+        if not np.isfinite(float(self.value)):
+            raise ValueError("Value must be finite")
+        if self.uncertainty is not None:
+            if not isinstance(self.uncertainty, (int, float)):
+                raise ValueError("Uncertainty must be a real number")
+            if self.uncertainty < 0:
+                raise ValueError("Uncertainty must be non-negative")
+            if not np.isfinite(float(self.uncertainty)):
+                raise ValueError("Uncertainty must be finite")
+    
     def __float__(self) -> float:
         return float(self.value)
     
@@ -43,6 +57,56 @@ class RealValue:
                             (other.uncertainty/other.value)**2)
             uncertainty = value * rel_unc
         return RealValue(value, uncertainty)
+
+@dataclass
+class ComplexValue:
+    """
+    Complex-valued physical quantity with uncertainty.
+    
+    Attributes:
+        value (complex): Complex value
+        uncertainty (Optional[float]): Uncertainty in absolute value
+        
+    Examples:
+        >>> z = ComplexValue(1+1j, 0.1)
+        >>> print(abs(z.value))  # Magnitude
+        >>> print(z.uncertainty)  # Uncertainty in magnitude
+    """
+    value: complex
+    uncertainty: Optional[float] = None
+    
+    def __post_init__(self):
+        """Validate complex value."""
+        if not isinstance(self.value, (complex, float, int)):
+            raise ValueError("Value must be complex number")
+        self.value = complex(self.value)
+    
+    def __abs__(self) -> float:
+        """Get magnitude of complex value."""
+        return abs(self.value)
+    
+    def conjugate(self) -> 'ComplexValue':
+        """Get complex conjugate."""
+        return ComplexValue(
+            value=self.value.conjugate(),
+            uncertainty=self.uncertainty
+        )
+    
+    def __mul__(self, other: Union['ComplexValue', RealValue]) -> 'ComplexValue':
+        """Multiply complex values with uncertainty propagation."""
+        if isinstance(other, (ComplexValue, RealValue)):
+            value = self.value * other.value
+            if self.uncertainty is None or other.uncertainty is None:
+                uncertainty = None
+            else:
+                # Relative uncertainties add in quadrature for multiplication
+                rel_unc = np.sqrt(
+                    (self.uncertainty/abs(self.value))**2 +
+                    (other.uncertainty/abs(other.value))**2
+                )
+                uncertainty = abs(value) * rel_unc
+            return ComplexValue(value, uncertainty)
+        return NotImplemented
 
 @dataclass
 class Energy(RealValue):
@@ -487,3 +551,34 @@ class BranchingRatio(RealValue):
         super().__post_init__()
         if not 0 <= self.value <= 1:
             raise ValueError("Branching ratio must be between 0 and 1")
+
+@dataclass
+class ErrorEstimate:
+    """
+    Represents an error estimate with statistical and systematic components.
+    
+    Attributes:
+        value (float): Central value
+        statistical (float): Statistical uncertainty
+        systematic (Dict[str, float]): Systematic uncertainties by source
+        
+    Examples:
+        >>> estimate = ErrorEstimate(100.0, 5.0, {'detector': 2.0, 'theory': 3.0})
+        >>> print(estimate.total_uncertainty)  # Combined uncertainty
+    """
+    value: float
+    statistical: float
+    systematic: Dict[str, float] = None
+    
+    def __post_init__(self):
+        if self.systematic is None:
+            self.systematic = {}
+    
+    @property
+    def total_uncertainty(self) -> float:
+        """Calculate total uncertainty combining statistical and systematic."""
+        syst_squared = sum(x*x for x in self.systematic.values())
+        return np.sqrt(self.statistical**2 + syst_squared)
+    
+    def __str__(self) -> str:
+        return f"{self.value:.3g} ± {self.total_uncertainty:.3g}"
