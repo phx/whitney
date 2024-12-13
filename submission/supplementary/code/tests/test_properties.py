@@ -3,10 +3,13 @@
 import pytest
 from hypothesis import given, strategies as st
 import numpy as np
-from sympy import exp, I, pi, sqrt, integrate, conjugate, oo
+from sympy import (
+    exp, I, pi, sqrt, integrate, conjugate,
+    oo, Symbol
+)
 from core.field import UnifiedField
 from core.types import Energy, FieldConfig, WaveFunction
-from core.physics_constants import X, T, P, HBAR, C
+from core.physics_constants import X, T, P, E, HBAR, C
 from core.errors import PhysicsError
 
 @pytest.fixture

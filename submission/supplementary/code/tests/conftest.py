@@ -20,7 +20,7 @@ from core.types import FieldConfig
 from core.modes import ComputationMode
 from typing import Dict, Any, List, Tuple, Optional
 from core.physics_constants import (
-    X, E, T, P,
+    HBAR, C, G, X, T, P, E,  # Add E to imports
     g1_REF, g2_REF, g3_REF
 )
 from core.field import UnifiedField

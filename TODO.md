@@ -4,6 +4,8 @@
 - [ ] Fix Critical Theoretical Components
   - [ ] Fix Import Dependencies (BUG-009)
     - [ ] Move common constants to physics_constants.py
+    - [x] Add E symbol to physics_constants.py
+    - [x] Update imports in conftest.py
     - [x] Update import hierarchy in field.py and basis.py
     - [ ] Fix circular dependencies in test fixtures
     - [ ] Refactor imports to resolve circular dependencies (BUG-018)
