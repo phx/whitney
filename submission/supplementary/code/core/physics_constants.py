@@ -5,6 +5,8 @@ from sympy import Symbol
 # Symbolic variables
 X = Symbol('x')  # Spatial coordinate
 E = Symbol('E')  # Energy scale
+T = Symbol('t')  # Time coordinate for field evolution
+P = Symbol('p')  # Momentum coordinate
 
 # Physical constants
 Z_MASS = 91.2  # Z boson mass in GeV

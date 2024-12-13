@@ -19,6 +19,12 @@ from core.physics_constants import (
 from core.types import FieldConfig
 from core.modes import ComputationMode
 from typing import Dict, Any, List, Tuple, Optional
+from core.physics_constants import (
+    X, E, T, P,
+    g1_REF, g2_REF, g3_REF
+)
+from core.field import UnifiedField
+from core.basis import FractalBasis
 
 # Physical constants for tests
 M_PLANCK = 1.22e19  # Planck mass in GeV

@@ -3,32 +3,46 @@
 from typing import Dict, List, Optional, Tuple, Union
 from dataclasses import dataclass
 import numpy as np
-from sympy import (Symbol, symbols, exp, integrate, conjugate, sqrt, 
-                  hermite, Expr)
+from sympy import (
+    Symbol, symbols, exp, integrate, conjugate, sqrt,
+    hermite, Expr, diff, oo, I, log, pi
+)
 import cmath
 import warnings
 from .physics_constants import (
-    ALPHA_VAL, X, E, Z_MASS,
+    ALPHA_VAL, X, E, T, P, Z_MASS,
     GAMMA_1, GAMMA_2, GAMMA_3,
     g1_REF, g2_REF, g3_REF,
     ALPHA_REF
 )
 from .types import (Energy, FieldConfig, WaveFunction, 
-                    ErrorEstimate, RealValue, AnalysisResult)
+                   ErrorEstimate, RealValue, AnalysisResult)
 from .modes import ComputationMode
 from .utils import evaluate_expr, cached_evaluation, check_numerical_stability
 from .errors import (ValidationError, ComputationError, PhysicsError, 
                     StabilityError, ConfigurationError)
+from .field import UnifiedField
 
-class FractalBasis:
-    """Implements recursive fractal basis functions."""
+class FractalBasis(UnifiedField):
+    """
+    Implements recursive fractal basis functions.
+    
+    Extends UnifiedField to provide specific implementation using fractal basis expansion.
+    The basis functions form a complete orthonormal set that diagonalizes the evolution
+    operator.
+    
+    Key features:
+    - Recursive construction via scaling relations
+    - Built-in energy scale dependence
+    - Automatic normalization and error estimation
+    """
     
     # Error thresholds
     STABILITY_THRESHOLD = 1e-10
     MAX_ITERATIONS = 1000
     
     # Physical constants
-    E0 = 91.2  # Z boson mass in GeV
+    E0 = Z_MASS  # Z boson mass in GeV
     E0_MIN = 1.0  # Minimum valid energy scale
     E0_MAX = 1000.0  # Maximum valid energy scale
     
@@ -37,28 +51,94 @@ class FractalBasis:
     LOG_NORM_THRESHOLD = 100  # Switch to log-space normalization above this
     
     def __init__(self, alpha: float = ALPHA_VAL, mode: ComputationMode = ComputationMode.MIXED):
-        """Initialize with scaling parameter."""
-        if alpha <= 0:
-            raise ValidationError("Alpha must be positive")
-        self.alpha = alpha
-        self.mode = mode
-        self.scaling_dimension = 1.0
+        """Initialize fractal basis with scaling parameter."""
+        super().__init__(alpha=alpha, mode=mode)
+        self.scaling_dimension = 1.0  # Specific to fractal basis
     
-    def validate_energy_scale(self, E: float) -> None:
+    def _solve_field_equations(self, config: FieldConfig) -> WaveFunction:
         """
-        Validate energy scale parameter.
+        Solve field equations using fractal basis expansion.
+        
+        Overrides UnifiedField._solve_field_equations to implement specific
+        solution method using fractal basis functions.
         
         Args:
-            E: Energy scale to validate
+            config: Field configuration parameters
             
-        Raises:
-            PhysicsError: If energy scale is invalid
+        Returns:
+            WaveFunction: Solution in fractal basis
         """
-        if not self.E0_MIN <= E <= self.E0_MAX:
-            raise PhysicsError(
-                f"Energy scale must be between {self.E0_MIN} and {self.E0_MAX} GeV, got {E}"
-            )
+        n = config.dimension
+        E = config.mass
+        
+        # Get generator function with scaled argument
+        scaled_x = self.alpha**n * X
+        F = self._generator_function(scaled_x)
+        
+        # Apply modulation and scaling
+        modulation = self._modulation_factor(n, Energy(E))
+        
+        # Combine all factors
+        psi = self.alpha**n * F * modulation
+        
+        # Normalize
+        return self.normalize(psi)
+
+    def _compute_evolution_operator(self, energy: Energy) -> WaveFunction:
+        """
+        Compute evolution operator in fractal basis.
+        
+        Overrides UnifiedField._compute_evolution_operator to provide
+        specific implementation for fractal basis evolution.
+        
+        Args:
+            energy: Target energy scale
+            
+        Returns:
+            WaveFunction: Evolution operator
+        """
+        k = energy.value / self.alpha
+        phase = exp(-I * k * T)
+        return phase * self._scaling_operator(k)
+
+    def _generator_function(self, x: Symbol) -> WaveFunction:
+        """
+        Compute generator function for basis construction.
+        
+        Args:
+            x: Scaled coordinate
+            
+        Returns:
+            WaveFunction: Generator function
+        """
+        return exp(-x**2/2)
     
+    def _modulation_factor(self, n: int, E: Energy) -> WaveFunction:
+        """
+        Compute energy-dependent modulation factor.
+        
+        Args:
+            n: Basis function index
+            E: Energy scale
+            
+        Returns:
+            WaveFunction: Modulation factor
+        """
+        k = E.value / self.alpha**n
+        return exp(-k**2 * X**2/2)
+
+    def _scaling_operator(self, k: float) -> WaveFunction:
+        """
+        Compute scaling part of evolution operator.
+        
+        Args:
+            k: Scaling parameter
+            
+        Returns:
+            WaveFunction: Scaling operator
+        """
+        return exp(self.scaling_dimension * log(k))
+
     def _validate_inputs(self, n: int, E: float) -> None:
         """
         Validate common input parameters.
@@ -119,41 +199,6 @@ class FractalBasis:
             raise ComputationError(f"Basis function computation failed: {e}")
         except Exception as e:
             raise ComputationError(f"Unexpected error in basis computation: {e}")
-
-    def _generator_function(self, x: Expr) -> Expr:
-        """
-        Core fractal generator function.
-        
-        Implements Eq. 2.7 from paper:
-        F_n(x) = N_n * exp(-x²/2) * H_n(x)
-        where:
-        - N_n is normalization factor
-        - H_n are Hermite polynomials
-        - x is scaled by α^n
-        """
-        H = hermite(0, x)  # Start with ground state
-        return exp(-x**2/2) * H
-
-    def _modulation_factor(self, n: int, E: float) -> Expr:
-        """
-        Energy-dependent modulation factor.
-        
-        This factor ensures proper energy scaling:
-        M(E,n) = exp(-E|x|/n) * (1 - exp(-E/E₀))^n
-        
-        Args:
-            n: Basis function index
-            E: Energy scale
-        
-        Returns:
-            Modulation factor expression
-        """
-        # Validate energy scale
-        self.validate_energy_scale(E)
-        
-        damping = exp(-E * abs(X)/max(n, 1))
-        scaling = (1 - exp(-E/self.E0))**n
-        return damping * scaling
 
     def normalize(self, psi: Expr) -> Expr:
         """
@@ -529,33 +574,3 @@ class FractalBasis:
             
         except Exception as e:
             raise ComputationError(f"Basis function computation failed: {e}")
-    
-    def _generator_function(self, x: Symbol) -> WaveFunction:
-        """Compute generator function."""
-        return exp(-x**2/2)
-    
-    def _modulation_factor(self, n: int, E: Energy) -> WaveFunction:
-        """Compute energy-dependent modulation."""
-        k = E.value / self.alpha**n
-        return exp(-k**2 * X**2/2)
-    
-    def normalize(self, psi: WaveFunction) -> WaveFunction:
-        """Normalize wavefunction."""
-        norm = self.compute_inner_product(psi, psi)
-        if norm <= 0:
-            raise PhysicsError("Invalid normalization")
-        return psi / np.sqrt(norm)
-    
-    def compute_inner_product(self, psi1: WaveFunction, psi2: WaveFunction) -> float:
-        """Compute inner product of two wavefunctions."""
-        try:
-            # Numerical integration
-            x_points = np.linspace(-10, 10, 1000)
-            integrand = np.conj(psi1) * psi2
-            return np.trapz(integrand, x_points)
-        except Exception as e:
-            raise ComputationError(f"Inner product computation failed: {e}")
-    
-    def apply_gauge_transformation(self, psi: WaveFunction, phase: complex) -> WaveFunction:
-        """Apply gauge transformation."""
-        return psi * phase

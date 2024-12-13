@@ -274,6 +274,27 @@
         "tests/test_correlations.py"
       ],
       "analysis": "Property-based tests need enhancement to verify physical constraints"
+    },
+    {
+      "id": "BUG-018",
+      "timestamp": "2024-03-20T17:45:00Z",
+      "title": "Refactor imports to resolve circular dependencies",
+      "description": "Moved common constants to physics_constants.py and updated imports in field.py and basis.py",
+      "status": "open",
+      "steps_to_reproduce": [
+        "Refactor physics constants",
+        "Update import statements in core/field.py and core/basis.py",
+        "Run test suite"
+      ],
+      "affected_files": [
+        "core/physics_constants.py",
+        "core/constants.py",
+        "core/field.py",
+        "core/basis.py",
+        "tests/conftest.py"
+      ],
+      "analysis": "Separated physics constants into a dedicated module to eliminate circular imports",
+      "solution": "Moved common constants to physics_constants.py and updated imports in field.py and basis.py"
     }
   ]
 } 
