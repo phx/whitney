@@ -4,7 +4,7 @@ from typing import Dict, Optional, Union, List
 import numpy as np
 from sympy import (
     Symbol, exp, integrate, conjugate, sqrt,
-    oo, I, pi, Matrix, diff, solve, Eq
+    oo, I, pi, Matrix, diff, solve, Eq, Function
 )
 from .physics_constants import (
     ALPHA_VAL, X, T, P, Z_MASS,
@@ -17,7 +17,7 @@ from .types import Energy, FieldConfig, WaveFunction
 from .modes import ComputationMode
 from .errors import (
     PhysicsError, ValidationError, ComputationError,
-    EnergyConditionError, CausalityError
+    EnergyConditionError, CausalityError, GaugeError
 )
 
 class UnifiedField:
@@ -26,6 +26,7 @@ class UnifiedField:
     # Physical constraints
     ENERGY_THRESHOLD = 1e-10  # Minimum allowed energy density
     CAUSALITY_THRESHOLD = 1e-10  # Maximum allowed acausal contribution
+    GAUGE_THRESHOLD = 1e-10  # Gauge invariance threshold
     
     def __init__(self, alpha: float = ALPHA_VAL, mode: ComputationMode = ComputationMode.SYMBOLIC):
         """Initialize unified field."""
@@ -86,8 +87,81 @@ class UnifiedField:
         return psi.subs({T: t_prime, X: x_prime})
         
     def apply_gauge_transform(self, psi: WaveFunction, phase: float) -> WaveFunction:
-        """Apply gauge transformation to field."""
-        return psi * gauge_transform(phase)
+        """
+        Apply U(1) gauge transformation to field.
+        
+        Args:
+            psi: Field configuration
+            phase: Gauge transformation phase
+            
+        Returns:
+            Gauge transformed field configuration
+        """
+        # Validate phase
+        if not isinstance(phase, (int, float)) or phase < 0 or phase > 2*pi:
+            raise GaugeError("Phase must be in [0, 2π]")
+            
+        # Apply U(1) transformation
+        return psi * exp(I * phase)
+        
+    def apply_nonabelian_gauge_transform(self, psi: WaveFunction, 
+                                       generators: List[Matrix],
+                                       params: List[float]) -> WaveFunction:
+        """
+        Apply non-abelian gauge transformation.
+        
+        Args:
+            psi: Field configuration
+            generators: Lie algebra generators
+            params: Transformation parameters
+            
+        Returns:
+            Gauge transformed field configuration
+        """
+        if len(generators) != len(params):
+            raise GaugeError("Number of generators must match parameters")
+            
+        # Construct gauge transformation
+        U = Matrix.eye(len(generators))
+        for g, theta in zip(generators, params):
+            U = U * exp(I * theta * g)
+            
+        # Apply transformation
+        return U * psi
+        
+    def compute_gauge_current(self, psi: WaveFunction) -> WaveFunction:
+        """Compute conserved gauge current."""
+        d_t_psi = diff(psi, T)
+        d_x_psi = diff(psi, X)
+        
+        # Time component (charge density)
+        j0 = I * (conjugate(psi) * d_t_psi - psi * conjugate(d_t_psi))
+        
+        # Space component (current density)
+        j1 = I * (conjugate(psi) * d_x_psi - psi * conjugate(d_x_psi))
+        
+        return (j0, j1)
+        
+    def check_gauge_invariance(self, psi: WaveFunction, observable: Function) -> bool:
+        """
+        Check if observable is gauge invariant.
+        
+        Args:
+            psi: Field configuration
+            observable: Physical observable
+            
+        Returns:
+            True if observable is gauge invariant
+        """
+        # Test U(1) gauge invariance
+        phase = pi/4  # Test phase
+        psi_transformed = self.apply_gauge_transform(psi, phase)
+        
+        # Compare observable values
+        val1 = observable(psi)
+        val2 = observable(psi_transformed)
+        
+        return abs(val1 - val2) < self.GAUGE_THRESHOLD
         
     def compute_field(self, config: FieldConfig) -> WaveFunction:
         """

@@ -54,7 +54,11 @@
       - [x] Add evolution methods
         - [x] Add Hamiltonian computation
         - [x] Add evolution operator
-      - [ ] Add gauge transformations
+      - [x] Add gauge transformations
+        - [x] Add U(1) gauge transformations
+        - [x] Add non-abelian gauge transformations
+        - [x] Add gauge current computation
+        - [x] Add gauge invariance checks
     - [ ] Add validation and constraints
       - [x] Add energy conditions
         - [x] Weak energy condition
@@ -66,7 +70,19 @@
         - [x] Light cone structure
     - [ ] Fix failing tests
       - [ ] Fix field evolution tests
-      - [ ] Fix gauge invariance tests
+      - [ ] Update gauge invariance tests
+        - [x] Test U(1) transformations
+          - [x] Test phase rotations
+          - [x] Test invalid phases
+        - [x] Test non-abelian transformations
+          - [x] Test SU(2) transformations
+          - [x] Test parameter validation
+        - [x] Test current conservation
+          - [x] Test current divergence
+          - [x] Test gauge covariance
+        - [x] Test observable invariance
+          - [x] Test energy density
+          - [x] Test charge density
       - [ ] Fix correlation tests
 
 ### 14.31 Validation Framework
