@@ -881,3 +881,126 @@
 - [x] Add detailed docstrings to design_discriminating_tests
   - [x] Document test categories
   - [x] Explain sensitivity studies
+
+## 13. Bug Fixes and Implementation
+
+### 13.1 Core Utilities Implementation
+- [x] Implement missing utility functions in utils.py
+  - [x] Add evaluate_expr function
+  - [x] Add cached_evaluation function
+  - [x] Add check_numerical_stability function
+  - [x] Add proper docstrings and type hints
+
+### 13.2 Type System Completion
+- [x] Complete type definitions in types.py
+  - [x] Add Energy type
+  - [x] Add FieldConfig type
+  - [x] Add WaveFunction type
+  - [x] Add AnalysisResult type
+  - [x] Add ErrorEstimate type
+  - [x] Add RealValue type
+
+### 13.3 Numerical Stability
+- [x] Implement stability checks in stability.py
+  - [x] Add perturbation analysis
+  - [x] Add convergence tests
+  - [x] Add error bound verification
+
+### 13.4 Documentation
+- [x] Add API documentation
+  - [x] Document all public functions
+  - [x] Add usage examples
+  - [x] Include error handling
+- [x] Add scientific documentation
+  - [x] Document equations
+  - [x] Add derivations
+  - [x] Include references
+
+### 13.5 Testing
+- [x] Add missing test coverage
+  - [x] Add utils tests
+  - [x] Add type system tests
+  - [x] Add stability tests
+  - [x] Add integration tests
+
+## 14. Test Coverage and Bug Fixes
+
+### 14.1 Stability Module Implementation
+- [x] Fix stability.py implementation
+  - [x] Remove incorrect StabilityControl class
+  - [x] Implement analyze_perturbation function
+  - [x] Implement check_convergence function
+  - [x] Implement verify_error_bounds function
+  - [x] Add proper error handling
+  - [x] Add comprehensive tests
+
+### 14.2 Test Coverage Improvement
+- [ ] Improve test coverage for core modules
+  - [x] Add tests for core/field.py (currently 25%)
+  - [x] Add tests for core/basis.py (currently 24%)
+  - [ ] Add tests for core/detector.py (currently 22%)
+    - [x] Add tests for detector response (test_detector_response)
+    - [x] Add tests for efficiency (test_detector_efficiency)
+    - [x] Add tests for acceptance (test_detector_acceptance)
+    - [x] Add tests for error handling (test_detector_error_handling)
+    - [x] Add tests for initialization (test_detector_initialization)
+    - [x] Add tests for detector calibration (test_detector_calibration)
+    - [x] Add tests for resolution scaling (test_resolution_scaling)
+    - [x] Add tests for systematic uncertainties (test_systematic_uncertainties)
+
+### 14.5 Test Suite Organization
+- [ ] Add test markers and metadata
+  - [ ] Performance benchmarks
+  - [ ] Coverage requirements
+  - [ ] Skip conditions
++   - [x] Performance benchmarks (test_performance.py)
++   - [x] Coverage requirements (pytest.ini)
++   - [x] Skip conditions (pytest markers)
++   - [x] Test categorization
++   - [x] Benchmark configuration
+
+### 14.6 Implementation Fixes
+- [ ] Implement missing utility functions
+  - [x] Add profile_computation decorator (utils.py)
+  - [x] Add propagate_errors function (utils.py)
+  - [x] Add evaluate_expr function
+  - [x] Add stability checks
+  - [x] Fix missing imports
+
+### 14.7 Type System Updates
+- [ ] Complete types.py implementation
+  - [x] Complete types.py implementation
+  - [x] Add tests for new types
+    - [x] Test value validation (test_value_validation)
+    - [x] Test unit conversion (test_unit_conversion)
+    - [x] Test comparison methods (test_comparison_methods)
+    - [x] Test arithmetic operations (test_arithmetic_operations)
+    - [x] Test error handling (test_error_handling)
+    - [x] Test CrossSection type (test_cross_section)
+    - [x] Test BranchingRatio type (test_branching_ratio)
+
+### 14.8 Documentation Updates
+- [ ] Add docstrings to new types
+  - [ ] Add docstrings to Momentum class
+    - [x] Document initialization
+    - [x] Document validation
+    - [x] Document arithmetic operations
+    - [x] Add usage examples
+    - [x] Document error handling
+  - [x] Add docstrings to Energy class
+    - [x] Document initialization
+    - [x] Document validation
+    - [x] Document unit handling
+    - [x] Add usage examples
+    - [x] Document error handling
+
+### 14.9 Core Documentation
+- [ ] Add error handling documentation
+  - [x] Document PhysicsError
+  - [x] Document ValidationError
+  - [x] Document StabilityError
+  - [x] Add error handling best practices
+  - [ ] Document error propagation system
+    - [ ] Document uncertainty propagation
+    - [ ] Document systematic error handling
+    - [ ] Document correlation handling

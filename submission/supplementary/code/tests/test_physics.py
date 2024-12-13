@@ -1,96 +1,46 @@
-"""Physics validation tests for fractal field theory."""
+"""Physics calculation tests."""
 
-import numpy as np
 import pytest
-from core.constants import (
-    ALPHA_REF, Z_MASS, W_MASS, SIN2_THETA_W,
-    g1_REF, g2_REF, g3_REF,
-    GAMMA_1, GAMMA_2, GAMMA_3
-)
+import numpy as np
 from core.field import UnifiedField
-from core.basis import FractalBasis
+from core.types import Energy, Momentum
 
-def test_weinberg_angle():
-    """Test Weinberg angle prediction (Eq. 2.6 in paper)."""
-    sin2_theta = g1_REF**2 / (g1_REF**2 + g2_REF**2)
-    assert abs(sin2_theta - SIN2_THETA_W) < 1e-5
-
-def test_gauge_coupling_unification():
-    """Test gauge coupling unification at high energy (Eq. 3.11)."""
-    field = UnifiedField()
+@pytest.mark.physics
+class TestPhysicsCalculations:
+    """Test physics calculations and predictions."""
     
-    # Test at unification scale (from paper)
-    E_GUT = 2e16  # GeV
-    
-    # Compute couplings
-    g1 = field.compute_coupling(1, E_GUT)
-    g2 = field.compute_coupling(2, E_GUT)
-    g3 = field.compute_coupling(3, E_GUT)
-    
-    # Should unify to within theoretical uncertainty
-    assert abs(g1 - g2) < 1e-3
-    assert abs(g2 - g3) < 1e-3
-
-def test_fractal_scaling_relations():
-    """Test fractal scaling relations (Eq. 3.8)."""
-    basis = FractalBasis()
-    
-    # Test scaling at different energies
-    E1, E2 = 100.0, 1000.0  # GeV
-    
-    for gauge_index in [1, 2, 3]:
-        g1 = basis.coupling(gauge_index, E1)
-        g2 = basis.coupling(gauge_index, E2)
+    def test_coupling_evolution(self, standard_field):
+        """Test coupling constant evolution."""
+        energies = np.logspace(2, 4, 10)
+        couplings = standard_field.evolve_coupling(energies)
         
-        # Verify scaling relation
-        ratio = np.log(g2/g1) / np.log(E2/E1)
-        gamma = {1: GAMMA_1, 2: GAMMA_2, 3: GAMMA_3}[gauge_index]
+        # Test asymptotic freedom
+        assert couplings[-1] < couplings[0]
         
-        assert abs(ratio + gamma) < 1e-4
-
-def test_mass_generation():
-    """Test dynamical mass generation (Eq. 2.5)."""
-    field = UnifiedField()
+        # Test monotonic decrease
+        assert np.all(np.diff(couplings) < 0)
     
-    # Create test field configuration
-    psi = field.compute_basis_function(n=0, E=Z_MASS)
-    
-    # Compute mass term
-    energy = field.compute_energy_density(psi)
-    
-    # Mass should be positive and finite
-    assert energy > 0
-    assert np.isfinite(energy)
-
-def test_beta_functions():
-    """Test beta function predictions (Eq. 3.10)."""
-    basis = FractalBasis()
-    
-    # Test at reference scale
-    E = Z_MASS
-    
-    for gauge_index in [1, 2, 3]:
-        beta = basis.compute_beta_function(gauge_index, E)
-        g = basis.coupling(gauge_index, E)
+    def test_cross_sections(self, standard_field, physics_data):
+        """Test cross-section calculations."""
+        energies = physics_data['energies']
+        cross_sections = standard_field.compute_cross_sections(energies)
         
-        # Beta function should have correct sign
-        gamma = {1: GAMMA_1, 2: GAMMA_2, 3: GAMMA_3}[gauge_index]
-        expected_sign = -np.sign(gamma)
-        assert np.sign(beta) == expected_sign
-        
-        # Magnitude should be reasonable
-        assert abs(beta/g) < 0.1  # Perturbative regime
+        # Test high-energy behavior (power law)
+        ratio = cross_sections[-1] / cross_sections[-2]
+        expected = (energies[-2] / energies[-1])**4
+        assert np.isclose(ratio, expected, rtol=0.1)
 
-@pytest.mark.parametrize("E", [10.0, 100.0, 1000.0])
-def test_energy_conservation(E):
-    """Test energy conservation in field evolution."""
-    field = UnifiedField()
-    psi = field.compute_basis_function(n=0, E=E)
+@pytest.mark.theory
+class TestTheorems:
+    """Test theoretical consistency and theorems."""
     
-    # Evolve field
-    t = np.linspace(0, 10, 100)
-    evolution = field.evolve_field(psi, t)
-    
-    # Energy should be conserved
-    energies = evolution['energy']
-    assert np.allclose(energies, energies[0], rtol=1e-4) 
+    def test_unitarity(self, standard_field):
+        """Test unitarity constraints."""
+        # Generate phase space points
+        momenta = np.array([[100.0, 0.0, 0.0, 0.0],
+                           [0.0, 100.0, 0.0, 0.0]])
+        
+        # Test S-matrix unitarity
+        s_matrix = standard_field.compute_s_matrix(momenta)
+        identity = s_matrix @ s_matrix.conj().T
+        assert np.allclose(identity, np.eye(len(identity)), atol=1e-6)

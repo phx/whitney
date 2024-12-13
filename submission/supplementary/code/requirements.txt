@@ -1,11 +1,11 @@
 # Core numerical and scientific libraries
-numpy>=1.20.0  # Required for core computations
+numpy>=1.21.0  # Required for core computations
 scipy>=1.7.0   # Required for numerical integration
 sympy>=1.8     # Required for symbolic computations
 mpmath>=1.2.0  # Required for high-precision arithmetic
 
 # Optional: Performance monitoring
-psutil>=5.9.0; platform_system!="Windows"  # Optional memory monitoring
+psutil>=5.8.0; platform_system!="Windows"  # Optional memory monitoring
 
 # Visualization
 matplotlib>=3.4.0  # Required for plotting
@@ -15,8 +15,8 @@ seaborn>=0.11.0   # Required for advanced visualization
 pandas>=1.3.0     # Required for data analysis
 
 # Testing
-pytest>=6.0       # Required for unit testing
-pytest-cov>=2.12  # Required for coverage reporting
+pytest>=6.0.0       # Required for unit testing
+pytest-cov>=2.12.0  # Required for coverage reporting
 hypothesis>=6.0   # Required for property-based testing
 
 # Optional: Machine Learning support

@@ -1,0 +1,55 @@
+{
+  "bugs": [
+    {
+      "id": "BUG-001",
+      "timestamp": "2024-02-14T12:00:00Z",
+      "title": "ValidationError undefined in multiple files",
+      "description": "ValidationError class was duplicated in core/errors.py and not properly imported in other files",
+      "steps_to_reproduce": [
+        "Run generate_data.py",
+        "Run validate_all.py",
+        "Observe ValidationError undefined errors"
+      ],
+      "solution": "Cleaned up duplicate error class definitions in core/errors.py and added proper imports",
+      "status": "FIXED",
+      "fixed_timestamp": "2024-02-14T12:30:00Z"
+    },
+    {
+      "id": "BUG-002",
+      "timestamp": "2024-02-14T12:15:00Z",
+      "title": "Missing test coverage for numerical stability",
+      "description": "Numerical stability tests not comprehensive enough",
+      "steps_to_reproduce": [
+        "Run test coverage report",
+        "Observe missing coverage for stability checks"
+      ],
+      "solution": "Added test_numerical_stability to test_basis.py",
+      "status": "FIXED",
+      "fixed_timestamp": "2024-02-14T13:00:00Z"
+    },
+    {
+      "id": "BUG-003",
+      "timestamp": "2024-02-14T13:30:00Z",
+      "title": "Missing core utility functions",
+      "description": "Core utility functions referenced but not implemented in utils.py",
+      "steps_to_reproduce": [
+        "Check imports in field.py",
+        "Note missing evaluate_expr and cached_evaluation functions"
+      ],
+      "solution": null,
+      "status": "OPEN"
+    },
+    {
+      "id": "BUG-004",
+      "timestamp": "2024-02-14T13:45:00Z",
+      "title": "Incomplete type definitions",
+      "description": "Missing type definitions in core/types.py for key classes",
+      "steps_to_reproduce": [
+        "Check type hints in field.py",
+        "Note undefined Energy, FieldConfig types"
+      ],
+      "solution": null,
+      "status": "OPEN"
+    }
+  ]
+} 

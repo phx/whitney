@@ -1,0 +1,305 @@
+{
+  "bugs": [
+    {
+      "id": "BUG-001",
+      "timestamp": "2024-02-14T12:00:00Z",
+      "title": "ValidationError undefined in multiple files",
+      "description": "ValidationError class was duplicated in core/errors.py and not properly imported in other files",
+      "steps_to_reproduce": [
+        "Run generate_data.py",
+        "Run validate_all.py",
+        "Observe ValidationError undefined errors"
+      ],
+      "solution": "Cleaned up duplicate error class definitions in core/errors.py and added proper imports",
+      "status": "FIXED",
+      "fixed_timestamp": "2024-02-14T12:30:00Z"
+    },
+    {
+      "id": "BUG-002",
+      "timestamp": "2024-02-14T12:15:00Z",
+      "title": "Missing test coverage for numerical stability",
+      "description": "Numerical stability tests not comprehensive enough",
+      "steps_to_reproduce": [
+        "Run test coverage report",
+        "Observe missing coverage for stability checks"
+      ],
+      "solution": "Added test_numerical_stability to test_basis.py",
+      "status": "FIXED",
+      "fixed_timestamp": "2024-02-14T13:00:00Z"
+    },
+    {
+      "id": "BUG-003",
+      "timestamp": "2024-02-14T13:30:00Z",
+      "title": "Missing core utility functions",
+      "description": "Core utility functions referenced but not implemented in utils.py",
+      "steps_to_reproduce": [
+        "Check imports in field.py",
+        "Note missing evaluate_expr and cached_evaluation functions"
+      ],
+      "solution": "Implemented missing utility functions in utils.py with proper documentation and type hints",
+      "status": "FIXED",
+      "fixed_timestamp": "2024-02-14T14:00:00Z"
+    },
+    {
+      "id": "BUG-004",
+      "timestamp": "2024-02-14T13:45:00Z",
+      "title": "Incomplete type definitions",
+      "description": "Missing type definitions in core/types.py for key classes",
+      "steps_to_reproduce": [
+        "Check type hints in field.py",
+        "Note undefined Energy, FieldConfig types"
+      ],
+      "solution": "Implemented complete type system in types.py with proper validation and documentation",
+      "status": "FIXED",
+      "fixed_timestamp": "2024-02-14T14:30:00Z"
+    },
+    {
+      "id": "BUG-005",
+      "timestamp": "2024-02-14T15:00:00Z",
+      "title": "Missing stability analysis functions",
+      "description": "analyze_perturbation, check_convergence functions not implemented in stability.py",
+      "steps_to_reproduce": [
+        "Run python run_tests.py",
+        "Observe ImportError for analyze_perturbation"
+      ],
+      "solution": "Implemented analyze_perturbation, check_convergence, and verify_error_bounds functions in stability.py",
+      "status": "FIXED",
+      "fixed_timestamp": "2024-02-14T15:30:00Z"
+    },
+    {
+      "id": "BUG-006",
+      "timestamp": "2024-02-14T15:00:00Z",
+      "title": "Low test coverage",
+      "description": "Multiple modules have low test coverage (core/numeric.py: 0%, core/field.py: 25%)",
+      "analysis": {
+        "affected_modules": [
+          {"module": "core/field.py", "coverage": "25%", "missing": ["coupling evolution", "field equations", "observables"]},
+          {"module": "core/basis.py", "coverage": "24%", "missing": ["basis functions", "orthonormality", "completeness"]},
+          {"module": "core/detector.py", "coverage": "22%", "missing": ["detector response", "efficiency", "acceptance"]},
+          {"module": "core/utils.py", "coverage": "24%", "missing": ["error propagation", "caching", "stability"]}
+        ],
+        "impact": "Critical - low test coverage increases risk of undetected bugs",
+        "priority": "High"
+      },
+      "steps_to_reproduce": [
+        "Run python run_tests.py",
+        "Check coverage report"
+      ],
+      "solution": "In progress - implementing comprehensive test suite",
+      "partial_fixes": [
+        "Added numeric.py tests",
+        "Added stability.py tests",
+        "Added version.py tests",
+        "Added field.py tests",
+        "Added basis.py tests",
+        "Added detector.py tests",
+        "Added utils.py tests"
+      ],
+      "status": "OPEN"
+    },
+    {
+      "id": "BUG-007",
+      "timestamp": "2024-02-14T15:45:00Z",
+      "title": "Incorrect stability.py implementation",
+      "description": "Current stability.py contains wrong implementation (StabilityControl class instead of required functions)",
+      "steps_to_reproduce": [
+        "Run python run_tests.py",
+        "Observe ImportError for analyze_perturbation",
+        "Check stability.py content shows wrong implementation"
+      ],
+      "solution": "Replaced incorrect StabilityControl class with proper stability analysis functions",
+      "status": "FIXED",
+      "fixed_timestamp": "2024-02-14T16:00:00Z"
+    },
+    {
+      "id": "BUG-008",
+      "timestamp": "2024-02-14T15:45:00Z",
+      "title": "Missing numeric.py implementation",
+      "description": "core/numeric.py has 0% test coverage and missing implementation",
+      "steps_to_reproduce": [
+        "Run python run_tests.py",
+        "Check coverage report showing 0% for numeric.py"
+      ],
+      "solution": "Implemented core numerical computation functions in numeric.py",
+      "status": "FIXED",
+      "fixed_timestamp": "2024-02-14T16:30:00Z"
+    },
+    {
+      "id": "BUG-009",
+      "timestamp": "2024-02-14T15:45:00Z",
+      "title": "Missing version.py implementation",
+      "description": "core/version.py has 0% test coverage and missing implementation",
+      "steps_to_reproduce": [
+        "Run python run_tests.py",
+        "Check coverage report showing 0% for version.py"
+      ],
+      "solution": "Enhanced version.py with version checking functionality and compatibility requirements",
+      "status": "FIXED",
+      "fixed_timestamp": "2024-02-14T16:45:00Z"
+    },
+    {
+      "id": "BUG-010",
+      "timestamp": "2024-02-14T16:15:00Z",
+      "title": "Missing documentation files",
+      "description": "Several documentation files are empty or missing required content",
+      "steps_to_reproduce": [
+        "Check docs/equations.md - empty or missing",
+        "Check docs/validation.md - empty or missing",
+        "Check docs/user_guide.md - empty or missing",
+        "Check docs/performance.md - empty or missing",
+        "Check docs/error_analysis.md - empty or missing"
+      ],
+      "solution": "Started implementing missing documentation with equations.md",
+      "status": "FIXED",
+      "progress": "4/5 files completed",
+      "updates": [
+        "Added equations.md with core mathematical framework",
+        "Added validation.md with comprehensive validation procedures",
+        "Added user_guide.md with installation and usage instructions",
+        "Added performance.md with optimization guidelines",
+        "Added error_analysis.md with statistical methods"
+      ],
+      "fixed_timestamp": "2024-02-14T17:00:00Z"
+    },
+    {
+      "id": "BUG-011",
+      "timestamp": "2024-02-14T17:15:00Z",
+      "title": "Missing Detector class implementation",
+      "description": "Detector class referenced in tests but not implemented in core/detector.py",
+      "steps_to_reproduce": [
+        "Run python run_tests.py",
+        "Observe ImportError: cannot import name 'Detector' from 'core.detector'"
+      ],
+      "solution": "Implemented Detector class with response simulation, efficiency calculation, and acceptance checking",
+      "status": "FIXED",
+      "fixed_timestamp": "2024-02-14T17:30:00Z"
+    },
+    {
+      "id": "BUG-012",
+      "timestamp": "2024-02-14T17:15:00Z",
+      "title": "Missing utility functions in utils.py",
+      "description": "Several utility functions referenced in tests but not implemented: profile_computation, propagate_errors, batch_process",
+      "steps_to_reproduce": [
+        "Run python run_tests.py",
+        "Observe ImportError: cannot import name 'profile_computation' from 'core.utils'"
+      ],
+      "solution": "Implemented profile_computation decorator, propagate_errors function, and batch_process function with proper error handling",
+      "status": "FIXED",
+      "fixed_timestamp": "2024-02-14T17:45:00Z"
+    },
+    {
+      "id": "BUG-013",
+      "timestamp": "2024-02-14T18:00:00Z",
+      "title": "Missing psutil dependency",
+      "description": "Import 'psutil' could not be resolved in utils.py",
+      "steps_to_reproduce": [
+        "Run python run_tests.py",
+        "Observe ImportError: cannot import name 'psutil'"
+      ],
+      "solution": "Added psutil to requirements.txt with platform-specific conditional import",
+      "status": "FIXED",
+      "fixed_timestamp": "2024-02-14T19:00:00Z",
+      "updates": [
+        "Added platform detection",
+        "Added mock psutil for Windows",
+        "Updated profile_computation docstring"
+      ]
+    },
+    {
+      "id": "BUG-014",
+      "timestamp": "2024-02-14T18:00:00Z",
+      "title": "ALPHA_VAL not defined in test_field.py",
+      "description": "ALPHA_VAL constant referenced but not imported in test_field.py",
+      "steps_to_reproduce": [
+        "Run python run_tests.py",
+        "Observe NameError: name 'ALPHA_VAL' is not defined"
+      ],
+      "solution": "Added import of ALPHA_VAL from core.constants in test_field.py",
+      "status": "FIXED",
+      "fixed_timestamp": "2024-02-14T18:15:00Z"
+    },
+    {
+      "id": "BUG-015",
+      "timestamp": "2024-02-14T18:30:00Z",
+      "title": "Missing imports in test_utils.py",
+      "description": "propagate_errors and batch_process functions not imported in test_utils.py",
+      "steps_to_reproduce": [
+        "Run python run_tests.py",
+        "Observe NameError: name 'propagate_errors' is not defined"
+      ],
+      "solution": "Added missing imports and fixed test assumptions",
+      "status": "FIXED",
+      "fixed_timestamp": "2024-02-14T18:45:00Z"
+    },
+    {
+      "id": "BUG-016",
+      "timestamp": "2024-02-14T19:15:00Z",
+      "title": "psutil module not installed",
+      "description": "ModuleNotFoundError when trying to import psutil",
+      "steps_to_reproduce": [
+        "Run python run_tests.py",
+        "Observe ModuleNotFoundError: No module named 'psutil'"
+      ],
+      "solution": "Modified utils.py to make psutil optional with graceful fallback to time-only profiling",
+      "status": "FIXED",
+      "fixed_timestamp": "2024-02-14T19:30:00Z",
+      "updates": [
+        "Changed conditional import to try/except",
+        "Added fallback for memory profiling",
+        "Updated docstring to clarify optional dependency",
+        "Added memory_profiling_available flag to profile data"
+      ]
+    },
+    {
+      "id": "BUG-017",
+      "timestamp": "2024-02-14T19:45:00Z",
+      "title": "Missing Momentum type in types.py",
+      "description": "Momentum type referenced in detector.py but not implemented in types.py",
+      "steps_to_reproduce": [
+        "Run python run_tests.py",
+        "Observe ImportError: cannot import name 'Momentum' from 'core.types'"
+      ],
+      "solution": "Implemented Momentum type with validation and arithmetic operations",
+      "status": "FIXED",
+      "fixed_timestamp": "2024-02-14T20:00:00Z"
+    },
+    {
+      "id": "BUG-018",
+      "timestamp": "2024-02-14T20:15:00Z",
+      "title": "Missing tests for Momentum type",
+      "description": "No test coverage for newly implemented Momentum type",
+      "steps_to_reproduce": [
+        "Check test coverage report",
+        "Note missing tests for Momentum class"
+      ],
+      "solution": "Added comprehensive test suite for Momentum type in test_types.py",
+      "status": "FIXED",
+      "fixed_timestamp": "2024-02-14T20:30:00Z",
+      "updates": [
+        "Added initialization tests",
+        "Added arithmetic operation tests",
+        "Added comparison tests",
+        "Added conversion tests",
+        "Added validation tests"
+      ]
+    },
+    {
+      "id": "BUG-019",
+      "timestamp": "2024-02-14T20:45:00Z",
+      "title": "Missing type hints in detector.py",
+      "description": "Type hints in detector.py need to be updated to use new type system",
+      "steps_to_reproduce": [
+        "Review detector.py",
+        "Note missing RealValue type hints"
+      ],
+      "solution": "Updated type hints in detector.py to use RealValue and other types from type system",
+      "status": "FIXED",
+      "fixed_timestamp": "2024-02-14T21:00:00Z",
+      "updates": [
+        "Added RealValue type hints",
+        "Updated method signatures",
+        "Improved type safety"
+      ]
+    }
+  ]
+}

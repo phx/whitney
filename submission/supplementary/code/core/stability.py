@@ -1,122 +1,160 @@
-"""Long-term stability and calibration implementation."""
+"""Numerical stability analysis for fractal field theory."""
 
+from typing import Dict, List, Callable, Any, Union
 import numpy as np
-from typing import Dict, Tuple
-from .constants import ALPHA_REF, Z_MASS
-from .detector import AdvancedDetector
+from .types import NumericValue
+from .errors import StabilityError
 
-class StabilityControl:
-    """Implementation of long-term stability control."""
+def analyze_perturbation(func: Callable[..., NumericValue],
+                        params: Dict[str, float],
+                        n_samples: int = 100,
+                        epsilon: float = 1e-6) -> Dict[str, float]:
+    """
+    Analyze stability under parameter perturbations.
     
-    def __init__(self):
-        self.calibration = CalibrationSystem()
-        self.environment = EnvironmentControl()
-        self.monitoring = QualityMonitoring()
+    Implements perturbation analysis from paper Sec. 3.4:
+    1. Randomly perturb input parameters
+    2. Compute function with perturbed inputs
+    3. Analyze statistical properties of results
     
-    def maintain_stability(self, detector: AdvancedDetector) -> Dict[str, float]:
-        """
-        Maintain long-term detector stability.
+    Args:
+        func: Function to analyze
+        params: Parameter values
+        n_samples: Number of perturbation samples
+        epsilon: Relative perturbation size
         
-        Implements stability control from paper Sec. 5.7:
-        1. Regular calibration
-        2. Environmental regulation
-        3. Quality monitoring
-        """
-        # Run calibration cycle
-        cal_results = self.calibration.run_cycle()
+    Returns:
+        Dict containing:
+        - mean: Mean value
+        - std: Standard deviation
+        - max_dev: Maximum deviation
+        - condition: Condition number estimate
         
-        # Control environment
-        env_status = self.environment.regulate()
-        
-        # Monitor data quality
-        quality_metrics = self.monitoring.check_quality()
-        
-        return {
-            'calibration': cal_results,
-            'environment': env_status,
-            'quality': quality_metrics
-        }
-
-class CalibrationSystem:
-    """Implementation of automated calibration system."""
+    Raises:
+        StabilityError: If function is numerically unstable
+    """
+    results = []
+    nominal = func(**params)
     
-    def run_cycle(self) -> Dict[str, float]:
-        """
-        Run calibration cycle with reference standards.
-        
-        Uses calibration procedure from paper Sec. 5.7.1:
-        1. Standard source measurements
-        2. Linearity checks
-        3. Cross-calibration
-        """
-        # Measure standard sources
-        sources = {
-            'Am241': 5.486,  # MeV
-            'Cs137': 0.662,  # MeV
-            'Co60': [1.173, 1.333]  # MeV
+    for _ in range(n_samples):
+        # Generate perturbed parameters
+        perturbed = {
+            k: v * (1 + np.random.normal(0, epsilon))
+            for k, v in params.items()
         }
         
-        refs = {}
-        for source, energy in sources.items():
-            refs[source] = self._measure_source(source, energy)
-        
-        # Compute calibration factors
-        cal_factors = self._compute_calibration_factors(refs)
-        
-        # Monitor stability
-        drift = self._monitor_drift_rates(refs)
-        
-        return {
-            'reference_values': refs,
-            'calibration_factors': cal_factors,
-            'drift_rates': drift
-        }
-
-class EnvironmentControl:
-    """Implementation of environmental control system."""
+        # Compute with perturbed parameters
+        try:
+            result = func(**perturbed)
+            results.append(result)
+        except Exception as e:
+            raise StabilityError(f"Function unstable under perturbation: {e}")
     
-    def regulate(self) -> Dict[str, float]:
-        """
-        Regulate environmental conditions.
-        
-        Implements controls from paper Sec. 5.7.2:
-        1. Temperature (±0.1K)
-        2. Humidity (±1% RH)
-        3. Pressure (±0.1 mbar)
-        """
-        temp_status = self._regulate_temperature()
-        humid_status = self._regulate_humidity()
-        press_status = self._regulate_pressure()
-        
-        return {
-            'temperature': temp_status,
-            'humidity': humid_status,
-            'pressure': press_status
-        }
-
-class QualityMonitoring:
-    """Implementation of data quality monitoring."""
+    results = np.array(results)
+    mean = np.mean(results)
+    std = np.std(results)
+    max_dev = np.max(np.abs(results - nominal))
     
-    def check_quality(self) -> Dict[str, float]:
-        """
-        Monitor data quality metrics.
+    # Estimate condition number
+    condition = (std/epsilon) / (abs(mean) + 1e-10)
+    
+    return {
+        'mean': float(mean),
+        'std': float(std),
+        'max_dev': float(max_dev),
+        'condition': float(condition)
+    }
+
+def check_convergence(sequence: List[float],
+                     rtol: float = 1e-8,
+                     atol: float = 1e-10,
+                     window: int = 10) -> bool:
+    """
+    Check convergence of numerical sequence.
+    
+    Implements convergence tests from paper Sec. 3.5:
+    1. Relative change between successive terms
+    2. Absolute change between successive terms
+    3. Moving average stability
+    
+    Args:
+        sequence: Numerical sequence to check
+        rtol: Relative tolerance
+        atol: Absolute tolerance
+        window: Window size for moving average
         
-        Implements monitoring from paper Sec. 5.7.3:
-        1. Quality metrics computation
-        2. Automated checks
-        3. Alert generation
-        """
-        # Compute quality metrics
-        metrics = self._compute_metrics()
+    Returns:
+        bool: True if sequence has converged
+    """
+    if len(sequence) < window + 1:
+        return False
         
-        # Run automated checks
-        check_results = self._run_checks()
+    # Check relative change
+    rel_change = np.abs(np.diff(sequence[-window:])) / (np.abs(sequence[-window-1:-1]) + atol)
+    if np.any(rel_change > rtol):
+        return False
         
-        # Generate alerts if needed
-        alerts = self._generate_alerts(check_results)
+    # Check absolute change
+    abs_change = np.abs(np.diff(sequence[-window:]))
+    if np.any(abs_change > atol):
+        return False
         
-        return {
-            'quality_metrics': metrics,
-            'check_results': check_results,
-            'alerts': alerts
-        } 
+    # Check moving average stability
+    ma = np.convolve(sequence[-2*window:], np.ones(window)/window, mode='valid')
+    ma_change = np.abs(np.diff(ma)) / (np.abs(ma[:-1]) + atol)
+    if np.any(ma_change > rtol):
+        return False
+        
+    return True
+
+def verify_error_bounds(nominal: float,
+                       error_est: float,
+                       samples: List[float],
+                       confidence: float = 0.95) -> bool:
+    """
+    Verify error bounds against Monte Carlo samples.
+    
+    Implements error bound verification from paper Sec. 3.6:
+    1. Compute empirical confidence intervals
+    2. Compare with theoretical error bounds
+    3. Verify containment of samples
+    
+    Args:
+        nominal: Nominal value
+        error_est: Estimated error
+        samples: Monte Carlo samples
+        confidence: Confidence level
+        
+    Returns:
+        bool: True if error bounds are valid
+    """
+    samples = np.array(samples)
+    n_samples = len(samples)
+    
+    # Compute empirical confidence interval
+    sorted_samples = np.sort(samples)
+    lower_idx = int(n_samples * (1 - confidence) / 2)
+    upper_idx = int(n_samples * (1 + confidence) / 2)
+    empirical_interval = (
+        sorted_samples[lower_idx],
+        sorted_samples[upper_idx]
+    )
+    
+    # Theoretical bounds
+    z_score = {
+        0.68: 1.0,
+        0.95: 1.96,
+        0.99: 2.58
+    }.get(confidence, 1.96)
+    
+    theoretical_interval = (
+        nominal - z_score * error_est,
+        nominal + z_score * error_est
+    )
+    
+    # Verify containment
+    empirical_width = empirical_interval[1] - empirical_interval[0]
+    theoretical_width = theoretical_interval[1] - theoretical_interval[0]
+    
+    # Error bounds should be conservative
+    return theoretical_width >= empirical_width 

@@ -1,231 +1,197 @@
-# Fractal Field Theory Framework User Guide
-
-## Overview
-
-This framework implements numerical computations for fractal field theory, providing tools for:
-- Computing fractal basis functions
-- Evolving field configurations
-- Analyzing physical observables
-- Computing gauge coupling evolution
+# User Guide
 
 ## Installation
 
+### Requirements
+- Python >= 3.8.0, < 3.11.0
+- CUDA toolkit >= 11.0 (optional, for GPU acceleration)
+- 32GB RAM recommended for large computations
+
+### Quick Start
 ```bash
-# Install from source
-git clone https://github.com/fractalfield/fractal-field-theory
-cd fractal-field-theory
-pip install -e .
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # or venv\Scripts\activate on Windows
 
-# Install with optional dependencies
-pip install -e .[dev,docs,ml,parallel]
+# Install package
+pip install -r requirements.txt
+pip install .
+
+# Verify installation
+python -m pytest tests/
 ```
 
-## Quick Start
+## Basic Usage
 
+### 1. Initialize Framework
 ```python
 from core.field import UnifiedField
-from core.modes import ComputationMode
+from core.constants import ALPHA_VAL
 
-# Initialize the framework
-field = UnifiedField(alpha=0.1, mode=ComputationMode.MIXED)
-
-# Compute basis function
-psi = field.compute_basis_function(n=1, E=100.0)  # n=1 state at 100 GeV
-
-# Compute energy density
-energy = field.compute_energy_density(psi)
-
-# Analyze field configuration
-analysis = field.analyze_field_configuration(psi)
+# Create field instance
+field = UnifiedField(alpha=ALPHA_VAL)
 ```
 
-## Core Components
-
-### 1. Basis Functions (core.basis.FractalBasis)
-
-The FractalBasis class implements the fundamental fractal basis:
-
+### 2. Compute Physical Quantities
 ```python
-from core.basis import FractalBasis
+# Compute gauge couplings
+E = 1000.0  # GeV
+g1 = field.compute_coupling(1, E)  # U(1) coupling
+g2 = field.compute_coupling(2, E)  # SU(2) coupling
+g3 = field.compute_coupling(3, E)  # SU(3) coupling
 
-basis = FractalBasis(alpha=0.1)
-
-# Compute basis function
-psi = basis.compute(n=2, E=91.2)  # n=2 state at Z-boson mass
-
-# Check orthogonality
-overlap = basis.check_orthogonality(n1=1, n2=2)
-
-# Calculate fractal dimension
-dim = basis.calculate_fractal_dimension(E=100.0)
+# Compute observables
+result = field.compute_observable('sin2_theta_W')
+print(f"sin²θW = {result['value']} ± {result['total_uncertainty']}")
 ```
 
-Key methods:
-- `compute(n, E)`: Compute nth basis function at energy E
-- `normalize(psi)`: Normalize wavefunction
-- `check_orthogonality(n1, n2)`: Check basis orthogonality
-- `coupling(gauge_index, E)`: Compute gauge coupling evolution
-
-### 2. Field Evolution (core.field.UnifiedField)
-
-The UnifiedField class handles field dynamics:
-
+### 3. Field Evolution
 ```python
-from core.field import UnifiedField
-import numpy as np
+# Create initial state
+psi_0 = field.compute_basis_function(n=0, E=100.0)
 
-field = UnifiedField()
+# Evolve system
+t_points = np.linspace(0, 10, 100)
+evolution = field.evolve_field(psi_0, t_points)
 
-# Create initial configuration
-psi_initial = field.compute_basis_function(n=0)
-
-# Set up time evolution
-t = np.linspace(0, 10, 1000)
-
-# Evolve field
-evolution = field.evolve_field(
-    psi_initial=psi_initial,
-    t_range=t,
-    yield_every=10
-)
-
-# Access results
-times = evolution['time']
-energies = evolution['energy']
-field_values = evolution['field_values']
-```
-
-Key methods:
-- `compute_field_equation(psi)`: Compute field evolution equation
-- `compute_energy_density(psi)`: Compute energy density
-- `analyze_field_configuration(psi)`: Analyze field properties
-
-### 3. Computation Modes
-
-Three computation modes are available:
-
-```python
-from core.modes import ComputationMode
-
-# Symbolic mode (most precise, slowest)
-field_symbolic = UnifiedField(mode=ComputationMode.SYMBOLIC)
-
-# Numeric mode (fastest, least flexible)
-field_numeric = UnifiedField(mode=ComputationMode.NUMERIC)
-
-# Mixed mode (balanced, uses caching)
-field_mixed = UnifiedField(mode=ComputationMode.MIXED)
-```
-
-### 4. Error Handling
-
-The framework uses custom error types for precise error handling:
-
-```python
-from core.errors import (
-    ValidationError,    # Input validation errors
-    ComputationError,  # Numerical computation errors
-    PhysicsError,      # Physics constraint violations
-    StabilityError     # Numerical stability issues
-)
-
-try:
-    result = field.compute_energy_density(psi)
-except ValidationError as e:
-    print(f"Invalid input: {e}")
-except StabilityError as e:
-    print(f"Numerical instability: {e}")
+# Analyze results
+energies = [field.compute_energy_density(psi) 
+           for psi in evolution['field_values']]
 ```
 
 ## Advanced Features
 
-### 1. Memory Management
-
-The framework implements memory-efficient computations:
-
+### 1. High-Precision Computation
 ```python
-# Use sliding window evolution for large computations
-evolution = field.evolve_field(
-    psi_initial=psi,
-    t_range=large_time_array,
-    yield_every=10  # Store every 10th step
-)
+from core.modes import ComputationMode
+
+# Use symbolic computation for high precision
+field = UnifiedField(mode=ComputationMode.SYMBOLIC)
+
+# Enable extended precision
+import mpmath
+mpmath.mp.dps = 50  # 50 decimal places
 ```
 
-### 2. Performance Optimization
-
+### 2. GPU Acceleration
 ```python
-from core.compute import benchmark_computation
+# Enable GPU computation
+import os
+os.environ['FRACTAL_FIELD_USE_GPU'] = '1'
+os.environ['FRACTAL_FIELD_GPU_MEMORY'] = '4G'
 
-# Benchmark computations
-@benchmark_computation
-def my_calculation():
-    return field.compute_energy_density(psi)
-
-result = my_calculation()
-print(f"Execution time: {result['execution_time']} s")
-print(f"Memory usage: {result['memory_delta']} MB")
+# Use GPU-optimized algorithms
+field = UnifiedField(mode=ComputationMode.NUMERIC)
 ```
 
-### 3. Stability Checks
-
+### 3. Parallel Processing
 ```python
-from core.compute import check_computation_stability
+# Enable parallel processing
+os.environ['FRACTAL_FIELD_NUM_THREADS'] = '8'
 
-# Configure stability thresholds
-thresholds = {
-    'underflow': 1e-10,
-    'overflow': 1e10,
-    'relative_error': 1e-6,
-    'condition_number': 1e8
-}
-
-is_stable = check_computation_stability(result, thresholds=thresholds)
+# Compute with multiple processes
+from multiprocessing import Pool
+with Pool(8) as p:
+    results = p.map(field.compute_coupling, range(1, 4))
 ```
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Memory Errors**
+```python
+# Reduce memory usage
+os.environ['FRACTAL_FIELD_MEMORY_EFFICIENT'] = '1'
+```
+
+2. **Numerical Instability**
+```python
+# Enable stability checks
+from core.stability import stability_check
+
+@stability_check(threshold=1e-10)
+def my_computation():
+    # Your code here
+    pass
+```
+
+3. **Performance Issues**
+```python
+# Profile computation
+from core.utils import profile_computation
+
+@profile_computation
+def slow_function():
+    # Your code here
+    pass
+```
+
+### Error Messages
+
+1. **ValidationError**
+   - Check input ranges
+   - Verify physical constraints
+   - Ensure proper units
+
+2. **StabilityError**
+   - Reduce step size
+   - Use higher precision
+   - Check for singular points
+
+3. **ComputationError**
+   - Verify input parameters
+   - Check resource availability
+   - Enable debug logging
 
 ## Best Practices
 
-1. **Memory Efficiency**
-   - Use generators for large datasets
-   - Implement cleanup in destructors
-   - Release memory explicitly when possible
+### 1. Resource Management
+```python
+# Use context managers
+with field.computation_context():
+    result = field.compute_complex_observable()
+```
 
-2. **Numerical Stability**
-   - Monitor condition numbers
-   - Use stable algorithms
-   - Implement error checking
+### 2. Error Handling
+```python
+from core.errors import PhysicsError
 
-3. **Performance**
-   - Choose appropriate computation mode
-   - Use caching for expensive calculations
-   - Implement parallel processing for large computations
+try:
+    result = field.compute_observable('complex_quantity')
+except PhysicsError as e:
+    logger.error(f"Physics constraint violated: {e}")
+```
 
-## Common Issues and Solutions
+### 3. Validation
+```python
+# Validate results
+from core.validation import validate_predictions
 
-1. **Memory Issues**
-   ```python
-   # Use sliding window evolution
-   field.evolve_field(psi, t_range, yield_every=10)
-   ```
+validate_predictions(predictions, experimental_data)
+```
 
-2. **Numerical Instability**
-   ```python
-   # Use log-space normalization for large n
-   basis.compute(n=large_n, E=E)
-   ```
+## Examples
 
-3. **Performance Bottlenecks**
-   ```python
-   # Cache expensive computations
-   @memoize_computation(maxsize=1024)
-   def expensive_calculation(x):
-       return field.compute_field_equation(x)
-   ```
+### 1. Coupling Unification
+```python
+# Compute couplings at GUT scale
+E_gut = 2.0e16  # GeV
+couplings = [field.compute_coupling(i, E_gut) for i in range(1, 4)]
+print(f"Unified coupling: {np.mean(couplings):.6f}")
+```
 
-## API Reference
+### 2. B-Physics Analysis
+```python
+# Compute B-physics observables
+BR = field.compute_branching_ratio('Bs_to_mumu')
+print(f"BR(Bs→μμ) = ({BR['value']:.2e} ± {BR['error']:.2e})")
+```
 
-See [API Documentation](api.md) for detailed reference.
-
-## Contributing
-
-See [Contributing Guidelines](contributing.md) for information on contributing to the project. 
+### 3. Field Configuration
+```python
+# Create and analyze field configuration
+psi = field.compute_basis_function(n=0)
+energy = field.compute_energy_density(psi)
+charges = field.compute_conserved_charges(psi)
+``` 

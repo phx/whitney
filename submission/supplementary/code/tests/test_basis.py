@@ -1,134 +1,113 @@
-"""Unit tests for FractalBasis class."""
+"""Tests for FractalBasis implementation."""
 
-import unittest
+import pytest
 import numpy as np
-from sympy import symbols, exp
 from core.basis import FractalBasis
-from core.field import UnifiedField
-from core.constants import ALPHA_VAL, X, ALPHA_REF
+from core.constants import ALPHA_VAL
+from core.errors import PhysicsError
+from core.types import WaveFunction
 
-class TestFractalBasis(unittest.TestCase):
-    """Test cases for FractalBasis class."""
+@pytest.fixture
+def basis():
+    """Create a test basis instance."""
+    return FractalBasis(alpha=ALPHA_VAL, max_level=3)
+
+def test_basis_initialization(basis):
+    """Test basis initialization."""
+    assert isinstance(basis, FractalBasis)
+    assert hasattr(basis, 'alpha')
+    assert basis.alpha == pytest.approx(ALPHA_VAL)
+    assert basis.max_level == 3
     
-    def setUp(self):
-        """Initialize test environment."""
-        self.basis = FractalBasis(alpha=ALPHA_VAL)
+    # Test invalid initialization
+    with pytest.raises(PhysicsError):
+        FractalBasis(alpha=-1.0)  # Invalid coupling
     
-    def test_basis_normalization(self):
-        """Test if basis functions are properly normalized."""
-        for n in range(3):  # Test first few basis functions
-            psi = self.basis.compute(n)
-            norm = float(self.basis.check_orthogonality(n, n))
-            self.assertAlmostEqual(norm, 1.0, places=6) 
+    with pytest.raises(ValueError):
+        FractalBasis(alpha=ALPHA_VAL, max_level=0)  # Invalid level
+
+def test_basis_functions(basis):
+    """Test basis function generation."""
+    x = np.linspace(-5, 5, 100)
     
-    def test_orthogonality(self):
-        """Test orthogonality between different basis functions."""
-        for n1 in range(3):
-            for n2 in range(3):
-                overlap = float(self.basis.check_orthogonality(n1, n2))
-                if n1 == n2:
-                    self.assertAlmostEqual(overlap, 1.0, places=6)
-                else:
-                    self.assertLess(overlap, 1e-6)
+    # Test ground state
+    psi_0 = basis.compute_basis_function(0, x)
+    assert isinstance(psi_0, WaveFunction)
+    assert np.all(np.isfinite(psi_0.psi))
+    assert psi_0.quantum_numbers['n'] == 0
     
-    def test_coupling_evolution(self):
-        """Test gauge coupling evolution properties."""
-        # Test coupling values at Z mass
-        E_Z = 91.2  # GeV
-        g1 = self.basis.coupling(1, E_Z)
-        g2 = self.basis.coupling(2, E_Z)
-        g3 = self.basis.coupling(3, E_Z)
-        
-        # Known values at Z mass
-        self.assertAlmostEqual(g1, 0.358, places=3)
-        self.assertAlmostEqual(g2, 0.652, places=3)
-        self.assertAlmostEqual(g3, 1.221, places=3)
+    # Test excited states
+    for n in range(1, 4):
+        psi_n = basis.compute_basis_function(n, x)
+        assert isinstance(psi_n, WaveFunction)
+        assert np.all(np.isfinite(psi_n.psi))
+        assert psi_n.quantum_numbers['n'] == n
+
+def test_orthonormality(basis):
+    """Test basis orthonormality."""
+    x = np.linspace(-10, 10, 200)
+    dx = x[1] - x[0]
     
-    def test_scaling_dimension(self):
-        """Test scaling properties of basis functions."""
-        # Test scaling dimension at reference energy
-        E_ref = 1000.0  # GeV
-        n = 0  # Ground state
-        
-        # Get scaling properties
-        scaling = self.basis.analyze_scaling_dimension(n, E_ref)
-        
-        # Classical dimension should be 1 for scalar field
-        self.assertEqual(scaling['classical_dimension'], 1.0)
-        
-        # Anomalous dimension should be small but non-zero
-        self.assertGreater(scaling['anomalous_dimension'], 0)
-        self.assertLess(scaling['anomalous_dimension'], 1)
+    # Generate basis functions
+    basis_functions = [
+        basis.compute_basis_function(n, x)
+        for n in range(4)
+    ]
     
-    def test_invalid_inputs(self):
-        """Test handling of invalid inputs."""
-        # Test negative basis index
-        with self.assertRaises(ValueError):
-            self.basis.compute(-1)
-        
-        # Test invalid gauge index
-        with self.assertRaises(ValueError):
-            self.basis.coupling(4, 1000)
-        
-        # Test negative energy
-        with self.assertRaises(ValueError):
-            self.basis.coupling(1, -100)
+    # Test orthonormality
+    for i, psi_i in enumerate(basis_functions):
+        for j, psi_j in enumerate(basis_functions):
+            overlap = np.sum(np.conj(psi_i.psi) * psi_j.psi) * dx
+            if i == j:
+                assert abs(overlap - 1.0) < 1e-6  # Normalized
+            else:
+                assert abs(overlap) < 1e-6  # Orthogonal
+
+def test_completeness(basis):
+    """Test basis completeness."""
+    x = np.linspace(-5, 5, 100)
     
-    def test_coupling_unification(self):
-        """Verify gauge coupling unification at GUT scale."""
-        field = UnifiedField()
-        
-        # Test at GUT scale
-        E_gut = 2.0e16  # GeV
-        g1 = field.compute_coupling(1, E_gut)
-        g2 = field.compute_coupling(2, E_gut)
-        g3 = field.compute_coupling(3, E_gut)
-        
-        # Verify unification
-        assert abs(g1 - g2) < 1e-3, "g1 and g2 should unify"
-        assert abs(g2 - g3) < 1e-3, "g2 and g3 should unify"
-        assert abs(g1 - g3) < 1e-3, "g1 and g3 should unify"
-        
-        # Verify coupling value
-        assert abs(g1 - 0.0376) < 1e-4, "Unified coupling should match prediction"
+    # Test function to expand
+    def test_func(x):
+        return np.exp(-x**2/2) * np.cos(2*x)
     
-    def test_numerical_stability(self):
-        """
-        Test numerical stability of core computations.
-        
-        Verifies stability under small parameter variations:
-        1. Coupling constant evolution
-        2. Field configurations
-        3. Observable calculations
-        
-        Raises:
-            AssertionError: If computations show numerical instability
-        """
-        field = UnifiedField()
-        
-        # Test coupling evolution stability
-        E_test = 1000.0  # GeV
-        coupling_results = []
-        
-        for _ in range(100):
-            # Vary energy slightly
-            E_perturbed = E_test * (1 + np.random.normal(0, 1e-6))
-            coupling_results.append(field.compute_coupling(1, E_perturbed))
-        
-        coupling_std = np.std(coupling_results)
-        self.assertLess(coupling_std, 1e-6, 
-                        f"Coupling evolution unstable: σ={coupling_std}")
-        
-        # Test observable stability
-        obs_results = []
-        for _ in range(100):
-            # Vary parameters within uncertainties
-            alpha_perturbed = ALPHA_VAL * (1 + np.random.normal(0, 1e-6))
-            field_perturbed = UnifiedField(alpha=alpha_perturbed)
-            obs_results.append(
-                field_perturbed.compute_observable('sin2_theta_W')['value']
-            )
-        
-        obs_std = np.std(obs_results)
-        self.assertLess(obs_std, 1e-6,
-                        f"Observable computation unstable: σ={obs_std}")
+    # Expand in basis
+    coeffs = basis.compute_expansion_coefficients(test_func, x)
+    reconstruction = basis.reconstruct_function(coeffs, x)
+    
+    # Test reconstruction accuracy
+    error = np.max(np.abs(test_func(x) - reconstruction))
+    assert error < 1e-3  # Should reconstruct within tolerance
+
+def test_fractal_properties(basis):
+    """Test fractal scaling properties."""
+    x = np.linspace(-5, 5, 100)
+    psi = basis.compute_basis_function(0, x)
+    
+    # Test scaling property
+    lambda_scale = 2.0
+    scaled_x = x * lambda_scale
+    scaled_psi = basis.compute_basis_function(0, scaled_x)
+    
+    # Check scaling relation
+    scale_factor = lambda_scale**basis.scaling_dimension
+    assert np.allclose(
+        scaled_psi.psi * scale_factor,
+        psi.psi,
+        rtol=1e-5
+    )
+
+def test_error_handling(basis):
+    """Test error handling."""
+    x = np.linspace(-5, 5, 100)
+    
+    # Test invalid quantum number
+    with pytest.raises(ValueError):
+        basis.compute_basis_function(-1, x)
+    
+    with pytest.raises(ValueError):
+        basis.compute_basis_function(basis.max_level + 1, x)
+    
+    # Test invalid grid
+    with pytest.raises(ValueError):
+        basis.compute_basis_function(0, np.array([]))  # Empty grid

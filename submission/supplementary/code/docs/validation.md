@@ -1,84 +1,168 @@
-# Validation Guide
+# Validation Framework
 
-## Test Suite Overview
+## Overview
 
-### Unit Tests
-```bash
-# Core physics tests
-tests/test_field.py      # Field equations and coupling evolution
-tests/test_basis.py      # Fractal basis functions
-tests/test_integration.py # Framework integration
+The validation framework ensures correctness and reliability of:
+1. Theoretical predictions
+2. Numerical computations
+3. Physical constraints
+4. Experimental comparisons
 
-# Experimental validation
-tests/validation/test_cross_sections.py    # Cross-section predictions
-tests/validation/test_branching_ratios.py  # B-physics observables
-tests/validation/test_weak_mixing.py       # Electroweak precision tests
+## Validation Procedures
+
+### 1. Physical Constraints
+
+#### Conservation Laws
+```python
+def verify_conservation_laws(field: UnifiedField) -> None:
+    """Verify fundamental conservation laws."""
+    # Energy conservation
+    E_initial = field.compute_energy_density(psi)
+    E_final = field.compute_energy_density(evolved_psi)
+    assert abs(E_final - E_initial) < 1e-6
+    
+    # Charge conservation
+    Q_initial = field.compute_charge(psi)
+    Q_final = field.compute_charge(evolved_psi)
+    assert abs(Q_final - Q_initial) < 1e-6
 ```
 
-### Validation Datasets
-```bash
-# Reference data location
-data/validation/
-  ├── lep/               # LEP electroweak data
-  │   ├── z_peak.csv    # Z-pole measurements
-  │   └── high_e.csv    # High-energy running
-  ├── lhc/              # LHC measurements
-  │   ├── atlas/        # ATLAS collaboration
-  │   └── cms/          # CMS collaboration
-  └── b_physics/        # B-physics data
-      ├── lhcb/         # LHCb measurements
-      └── belle2/       # Belle II results
+#### Gauge Invariance
+```python
+def verify_gauge_invariance(field: UnifiedField) -> None:
+    """Verify gauge symmetry preservation."""
+    # U(1) transformation
+    psi_transformed = field.gauge_transform(psi, theta=0.5)
+    assert abs(field.compute_observable(psi) - 
+              field.compute_observable(psi_transformed)) < 1e-6
 ```
 
-### Performance Benchmarks
-```bash
-# Run full benchmark suite
-python benchmarks/run_all.py
+### 2. Numerical Stability
 
-# Key metrics:
-- Numerical precision: < 10⁻¹⁵ relative error
-- Computation speed: < 100ms per coupling
-- Memory usage: < 4GB for standard runs
+#### Convergence Tests
+```python
+def check_convergence(sequence: List[float],
+                     rtol: float = 1e-8) -> bool:
+    """Check numerical convergence."""
+    return all(abs(b-a)/abs(a) < rtol 
+              for a, b in zip(sequence[:-1], sequence[1:]))
 ```
 
-## Validation Procedure
-
-1. Environment Setup
-```bash
-# Create clean test environment
-python -m venv test_env
-source test_env/bin/activate
-pip install -r requirements/test.txt
+#### Error Bounds
+```python
+def verify_error_bounds(nominal: float,
+                       error: float,
+                       samples: List[float],
+                       confidence: float = 0.95) -> bool:
+    """Verify statistical error bounds."""
+    return abs(np.mean(samples) - nominal) < error
 ```
 
-2. Run Test Suite
-```bash
-# Full validation
-pytest --runslow --runexperimental
+### 3. Experimental Validation
 
-# Quick validation
-pytest -m "not slow"
+#### Statistical Tests
+```python
+def validate_predictions(predictions: Dict[str, float],
+                       data: Dict[str, Tuple[float, float]]) -> None:
+    """Validate predictions against experimental data."""
+    chi2 = 0
+    dof = 0
+    
+    for obs, (pred_val, pred_err) in predictions.items():
+        exp_val, exp_err = data[obs]
+        pull = (pred_val - exp_val) / np.sqrt(pred_err**2 + exp_err**2)
+        chi2 += pull**2
+        dof += 1
+    
+    p_value = 1 - stats.chi2.cdf(chi2, dof)
+    assert p_value > 0.05  # 95% confidence level
 ```
 
-3. Verify Results
-```bash
-# Generate validation report
-python scripts/validate_results.py --report
-
-# Key validation criteria:
-- All tests pass
-- Coverage > 95%
-- No performance regressions
+#### Cross-Validation
+```python
+def cross_validate(model: UnifiedField,
+                  data: np.ndarray,
+                  n_folds: int = 5) -> float:
+    """Perform k-fold cross-validation."""
+    scores = []
+    for train_idx, test_idx in KFold(n_folds).split(data):
+        train_score = model.fit_and_validate(data[train_idx])
+        test_score = model.predict(data[test_idx])
+        scores.append(abs(train_score - test_score))
+    return np.mean(scores)
 ```
 
-## Common Issues
+## Test Criteria
 
-### Numerical Stability
-- Use `ComputationMode.SYMBOLIC` for precision tests
-- Verify against analytic results where possible
-- Check condition numbers in matrix operations
+### 1. Unit Tests
+- All functions must have unit tests
+- Coverage must be >90%
+- All edge cases must be tested
 
-### Performance
-- Profile memory usage with `memory_profiler`
-- Use `pytest-benchmark` for performance tests
-- Enable caching for repeated computations 
+### 2. Integration Tests
+- Full computation pipeline
+- Cross-module interactions
+- Resource management
+
+### 3. Physics Tests
+- Conservation laws
+- Gauge invariance
+- Unitarity
+- Causality
+
+### 4. Performance Tests
+- Execution time limits
+- Memory usage bounds
+- Numerical stability
+
+## Example Validations
+
+### 1. Gauge Coupling Evolution
+```python
+def test_coupling_unification():
+    """Verify gauge coupling unification."""
+    field = UnifiedField()
+    
+    # Test at GUT scale
+    E_gut = 2.0e16  # GeV
+    g1 = field.compute_coupling(1, E_gut)
+    g2 = field.compute_coupling(2, E_gut)
+    g3 = field.compute_coupling(3, E_gut)
+    
+    # Verify unification
+    assert abs(g1 - g2) < 1e-3
+    assert abs(g2 - g3) < 1e-3
+```
+
+### 2. B-Physics Predictions
+```python
+def test_b_physics():
+    """Verify B-physics predictions."""
+    field = UnifiedField()
+    
+    # Compute branching ratio
+    BR_Bs = field.compute_branching_ratio('Bs_to_mumu')
+    exp_val = 3.09e-9
+    exp_err = 0.12e-9
+    
+    # Compare with experiment
+    pull = (BR_Bs - exp_val) / exp_err
+    assert abs(pull) < 3.0  # Within 3σ
+```
+
+### 3. Energy Conservation
+```python
+def test_energy_conservation():
+    """Verify energy conservation in evolution."""
+    field = UnifiedField()
+    psi_0 = field.compute_basis_function(n=0)
+    
+    # Evolve system
+    t_points = np.linspace(0, 10, 100)
+    evolution = field.evolve_field(psi_0, t_points)
+    
+    # Check energy conservation
+    E_0 = field.compute_energy_density(psi_0)
+    E_t = field.compute_energy_density(evolution[-1])
+    assert abs(E_t - E_0) < 1e-6
+```

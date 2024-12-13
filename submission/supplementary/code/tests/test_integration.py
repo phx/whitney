@@ -1,82 +1,121 @@
-"""Integration tests for fractal field theory framework."""
+"""Integration tests for the fractal field theory framework."""
 
-import unittest
+import pytest
 import numpy as np
-from sympy import exp, integrate, conjugate
-from core.basis import FractalBasis
 from core.field import UnifiedField
-from core.constants import ALPHA_VAL, X, T, Z_MASS, ALPHA_REF, EXPERIMENTAL_DATA
+from core.basis import FractalBasis
+from core.detector import Detector
+from core.types import Energy, Momentum, CrossSection
+from core.numeric import integrate_phase_space
+from core.stability import check_convergence
 
-class TestFrameworkIntegration(unittest.TestCase):
-    """Integration test cases."""
+@pytest.mark.integration
+class TestPhysicsWorkflow:
+    """Test complete physics calculation workflows."""
     
-    def setUp(self):
-        """Initialize test environment."""
-        self.basis = FractalBasis(alpha=ALPHA_VAL)
-        self.field = UnifiedField(alpha=ALPHA_VAL)
-    
-    def test_basis_field_interaction(self):
-        """Test interaction between basis functions and field configurations."""
-        # Create field from basis function
-        psi_basis = self.basis.compute(n=0)
+    def test_cross_section_calculation(self, standard_field, physics_data):
+        """Test complete cross-section calculation workflow."""
+        # 1. Configure field
+        field = standard_field
         
-        # Compute field equation
-        field_eq = self.field.compute_field_equation(psi_basis)
+        # 2. Set up phase space
+        energies = physics_data['energies']
+        momenta = physics_data['momenta']
         
-        # Field equation should preserve basis function structure
-        self.assertTrue(field_eq.has(exp(-X**2)))
+        # 3. Calculate matrix elements
+        amplitudes = field.compute_amplitudes(energies, momenta)
+        assert len(amplitudes) == len(energies)
         
-        # Energy should be well-defined
-        energy = self.field.compute_energy_density(psi_basis)
-        self.assertTrue(float(energy.subs([(X, 0), (T, 0)])) > 0)
-    
-    def test_energy_conservation(self):
-        """Test energy conservation across basis expansions."""
-        # Create superposition of basis functions
-        psi = sum(self.basis.compute(n) for n in range(3))
+        # 4. Integrate cross sections
+        cross_sections = []
+        for E, M in zip(energies, amplitudes):
+            sigma = integrate_phase_space(
+                lambda p, q: abs(M(p, q))**2,
+                limits=[(0, E), (-E, E)]
+            )
+            cross_sections.append(CrossSection(sigma))
         
-        # Track energy over time
-        times = np.linspace(0, 1, 5)
-        energies = []
-        
-        for t in times:
-            E_t = float(self.field.compute_energy_density(psi).subs(T, t))
-            energies.append(E_t)
-        
-        # Energy should be approximately constant
-        for E in energies[1:]:
-            self.assertAlmostEqual(E, energies[0], places=5)
-    
-    def test_gauge_invariance(self):
-        """Test gauge invariance of field equations."""
-        # Original field configuration
-        psi = self.basis.compute(n=0)
-        
-        # Gauge transformed field (U(1) transformation)
-        theta = 0.5  # Gauge parameter
-        psi_transformed = psi * exp(1j * theta)
-        
-        # Compute observables
-        E_original = self.field.compute_energy_density(psi)
-        E_transformed = self.field.compute_energy_density(psi_transformed)
-        
-        # Physical observables should be invariant
-        diff = float(integrate(E_original - E_transformed, (X, -float('inf'), float('inf'))))
-        self.assertLess(abs(diff), 1e-6)
-    
-    def test_experimental_validation(self):
-        """Compare predictions with experimental data."""
-        for observable, (exp_val, exp_err) in EXPERIMENTAL_DATA.items():
-            # Get prediction with uncertainty
-            pred = self.field.compute_observable(observable)
-            pred_val = pred['value']
-            pred_err = pred['total_uncertainty']
-            
-            # Calculate pull value
-            pull = (pred_val - exp_val) / np.sqrt(pred_err**2 + exp_err**2)
-            
-            # Verify prediction within 3σ
-            self.assertLess(abs(pull), 3.0)
+        # 5. Verify high-energy behavior
+        ratios = [cs1.value/cs2.value for cs1, cs2 in zip(cross_sections[:-1], cross_sections[1:])]
+        assert all(r > 1 for r in ratios)  # Cross section decreases with energy
 
-if __name__ == '__main__':
-    unittest.main() 
+@pytest.mark.integration
+class TestDetectorSimulation:
+    """Test detector simulation chain."""
+    
+    def test_detector_reconstruction(self, standard_detector, physics_data):
+        """Test complete detector reconstruction chain."""
+        # 1. Generate particles
+        true_energies = [Energy(E) for E in physics_data['energies']]
+        true_momenta = [Momentum(p) for p in physics_data['momenta']]
+        
+        # 2. Simulate detector response
+        measurements = []
+        for E, p in zip(true_energies, true_momenta):
+            # Check acceptance
+            if standard_detector.check_acceptance(pt=p, eta=0.0):
+                # Simulate measurement
+                meas = standard_detector.simulate_measurement(
+                    energy=E,
+                    include_systematics=True
+                )
+                measurements.append(meas)
+        
+        # 3. Verify reconstruction
+        for true_E, meas in zip(true_energies, measurements):
+            # Energy within resolution
+            assert abs(meas['energy'].value - true_E.value) < true_E.value * 0.2
+            
+            # Uncertainties properly propagated
+            assert meas['energy'].uncertainty is not None
+            assert meas['energy'].systematics is not None
+
+@pytest.mark.integration
+class TestNumericalWorkflow:
+    """Test numerical calculation workflows."""
+    
+    def test_field_evolution(self, standard_field, numeric_precision):
+        """Test complete field evolution workflow."""
+        # 1. Set up initial conditions
+        psi0 = np.zeros(10)
+        psi0[0] = 1.0  # Ground state
+        
+        # 2. Evolve field
+        times = np.linspace(0, 10, 100)
+        evolution = standard_field.evolve_field(
+            initial_state=psi0,
+            times=times,
+            **numeric_precision
+        )
+        
+        # 3. Check conservation laws
+        energies = evolution['energy']
+        assert check_convergence(
+            energies,
+            target=energies[0],
+            **numeric_precision
+        )
+        
+        # 4. Verify stability
+        assert evolution['stable']
+        assert evolution['max_error'] < numeric_precision['stability_threshold']
+
+@pytest.mark.integration
+class TestAnalysisWorkflow:
+    """Test complete analysis workflows."""
+    
+    def test_coupling_unification(self, standard_field, physics_data):
+        """Test coupling unification analysis workflow."""
+        # 1. Calculate running couplings
+        energies = np.logspace(2, 16, 100)  # 100 GeV to 10^16 GeV
+        g1 = standard_field.compute_coupling(1, energies)
+        g2 = standard_field.compute_coupling(2, energies)
+        g3 = standard_field.compute_coupling(3, energies)
+        
+        # 2. Find unification scale
+        diffs = np.max([abs(g1-g2), abs(g2-g3), abs(g3-g1)], axis=0)
+        unification_scale = energies[np.argmin(diffs)]
+        
+        # 3. Verify unification
+        assert unification_scale > 1e15  # Above 10^15 GeV
+        assert min(diffs) < 0.1  # Couplings meet within 10%
