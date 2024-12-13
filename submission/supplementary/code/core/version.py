@@ -1,116 +1,153 @@
-"""Version information for the fractal field theory framework."""
+"""Version control and compatibility management."""
 
-import pkg_resources
-import datetime
-import re
-from packaging import version
-from typing import Optional
-from .errors import VersionError
+from dataclasses import dataclass
+from typing import Dict, List, Optional, Tuple
+import json
+import os
+from pathlib import Path
+from .errors import VersionError, ValidationError
 
-# Version information
-VERSION_MAJOR = 0
-VERSION_MINOR = 1
-VERSION_PATCH = 0
-VERSION_SUFFIX = 'alpha'
+@dataclass
+class Version:
+    """Version information for code components."""
+    major: int
+    minor: int
+    patch: int
+    pre_release: Optional[str] = None
+    build: Optional[str] = None
 
-# Build version string
-VERSION = f"{VERSION_MAJOR}.{VERSION_MINOR}.{VERSION_PATCH}"
-if VERSION_SUFFIX:
-    VERSION += f"-{VERSION_SUFFIX}"
+    def __str__(self) -> str:
+        """Convert to string format."""
+        version = f"{self.major}.{self.minor}.{self.patch}"
+        if self.pre_release:
+            version += f"-{self.pre_release}"
+        if self.build:
+            version += f"+{self.build}"
+        return version
 
-# Build timestamp
-BUILD_TIMESTAMP = datetime.datetime.now().isoformat()
-
-VERSION_PATTERN = r'^\d+\.\d+\.\d+$'
-
-def get_version() -> str:
-    """Get current version string."""
-    return VERSION
-
-def get_build_info():
-    """Get build information."""
-    return {
-        'version': VERSION,
-        'build_timestamp': BUILD_TIMESTAMP,
-        'python_version': pkg_resources.get_distribution('python').version,
-        'numpy_version': pkg_resources.get_distribution('numpy').version,
-        'scipy_version': pkg_resources.get_distribution('scipy').version,
-        'sympy_version': pkg_resources.get_distribution('sympy').version
-    }
-
-def check_version_compatibility(min_version):
-    """
-    Check if current version meets minimum requirement.
-    
-    Args:
-        min_version (str): Minimum required version (e.g. "0.1.0")
-        
-    Returns:
-        bool: True if current version is compatible
-        
-    Raises:
-        ValueError: If version string is invalid
-    """
-    def parse_version(v):
+    @classmethod
+    def from_string(cls, version_str: str) -> "Version":
+        """Create Version from string."""
         try:
-            parts = v.split('-')[0].split('.')
-            return tuple(map(int, parts))
-        except:
-            raise ValueError(f"Invalid version format: {v}")
-    
-    current = parse_version(VERSION)
-    required = parse_version(min_version)
-    
-    return current >= required 
+            # Parse version string (e.g. "1.2.3-alpha+001")
+            version_parts = version_str.split("+")
+            version_base = version_parts[0]
+            build = version_parts[1] if len(version_parts) > 1 else None
+            
+            base_parts = version_base.split("-")
+            version_nums = base_parts[0]
+            pre_release = base_parts[1] if len(base_parts) > 1 else None
+            
+            major, minor, patch = map(int, version_nums.split("."))
+            
+            return cls(
+                major=major,
+                minor=minor,
+                patch=patch,
+                pre_release=pre_release,
+                build=build
+            )
+        except (ValueError, IndexError) as e:
+            raise VersionError(f"Invalid version string: {e}")
 
-def parse_version_string(version_str: str) -> version.Version:
-    """
-    Parse version string into Version object.
-    
-    Args:
-        version_str: Version string in X.Y.Z format
-        
-    Returns:
-        Version object
-        
-    Raises:
-        VersionError: If version string is invalid
-    """
-    if not re.match(VERSION_PATTERN, version_str):
-        raise VersionError(f"Invalid version format: {version_str}")
-    return version.parse(version_str)
+    def __lt__(self, other: "Version") -> bool:
+        """Compare versions."""
+        return (self.major, self.minor, self.patch) < (other.major, other.minor, other.patch)
 
-def check_compatibility(
-    v1: str,
-    v2: str,
-    *,
-    min_version: Optional[str] = None
-) -> bool:
-    """
-    Check version compatibility.
+    def __eq__(self, other: "Version") -> bool:
+        """Check version equality."""
+        return (self.major, self.minor, self.patch) == (other.major, other.minor, other.patch)
+
+class VersionManager:
+    """Manage version compatibility and validation."""
     
-    Args:
-        v1: First version string
-        v2: Second version string
-        min_version: Optional minimum required version
+    VERSION_FILE = "version.json"
+    COMPATIBILITY_FILE = "compatibility.json"
+    
+    def __init__(self, root_dir: Optional[Path] = None):
+        """Initialize version manager."""
+        self.root_dir = root_dir or Path(__file__).parent.parent
+        self.versions = self._load_versions()
+        self.compatibility = self._load_compatibility()
         
-    Returns:
-        bool: True if versions are compatible
+    def _load_versions(self) -> Dict[str, Version]:
+        """Load component versions from version.json."""
+        version_path = self.root_dir / self.VERSION_FILE
+        if not version_path.exists():
+            raise VersionError(f"Version file not found: {version_path}")
+            
+        with open(version_path) as f:
+            version_data = json.load(f)
+            
+        return {
+            component: Version.from_string(ver_str)
+            for component, ver_str in version_data.items()
+        }
         
-    Raises:
-        VersionError: If any version string is invalid
-    """
-    try:
-        ver1 = parse_version_string(v1)
-        ver2 = parse_version_string(v2)
+    def _load_compatibility(self) -> Dict[str, List[str]]:
+        """Load compatibility requirements."""
+        compat_path = self.root_dir / self.COMPATIBILITY_FILE
+        if not compat_path.exists():
+            raise VersionError(f"Compatibility file not found: {compat_path}")
+            
+        with open(compat_path) as f:
+            return json.load(f)
+            
+    def validate_component(self, component: str, version: str) -> bool:
+        """
+        Validate component version against compatibility requirements.
         
-        if min_version:
-            min_ver = parse_version_string(min_version)
-            if ver1 < min_ver or ver2 < min_ver:
+        Args:
+            component: Component name
+            version: Version string to validate
+            
+        Returns:
+            bool: True if version is compatible
+            
+        Raises:
+            VersionError: If version is incompatible
+        """
+        if component not in self.versions:
+            raise VersionError(f"Unknown component: {component}")
+            
+        try:
+            current = Version.from_string(version)
+            required = self.versions[component]
+            
+            # Check major version compatibility
+            if current.major != required.major:
+                raise VersionError(
+                    f"Incompatible major version for {component}. "
+                    f"Required: {required}, Found: {current}"
+                )
+                
+            # Check minimum minor version
+            if current.minor < required.minor:
+                raise VersionError(
+                    f"Incompatible minor version for {component}. "
+                    f"Minimum required: {required}, Found: {current}"
+                )
+                
+            return True
+            
+        except ValueError as e:
+            raise VersionError(f"Invalid version format: {e}")
+            
+    def check_compatibility(self, component: str) -> bool:
+        """
+        Check compatibility requirements for component.
+        
+        Args:
+            component: Component to check
+            
+        Returns:
+            bool: True if all dependencies are compatible
+        """
+        if component not in self.compatibility:
+            raise VersionError(f"No compatibility info for: {component}")
+            
+        for dep in self.compatibility[component]:
+            if not self.validate_component(dep, str(self.versions[dep])):
                 return False
-        
-        # Major version must match
-        return ver1.major == ver2.major
-        
-    except Exception as e:
-        raise VersionError(f"Version comparison failed: {e}")
+                
+        return True

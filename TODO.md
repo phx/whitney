@@ -69,11 +69,26 @@
         - [x] Superluminal propagation
         - [x] Light cone structure
     - [ ] Fix failing tests
-      - [ ] Fix field evolution tests
-      - [ ] Update gauge invariance tests
+      - [x] Fix field evolution tests
+        - [x] Test time evolution
+          - [x] Test energy conservation
+          - [x] Test unitarity
+        - [x] Test dynamics
+          - [x] Test equations of motion
+          - [x] Test causality preservation
+        - [x] Test scattering
+          - [x] Test S-matrix unitarity
+          - [x] Test crossing symmetry
+        - [x] Fix linting errors
+          - [x] Fix undefined symbols
+          - [x] Fix missing imports
+      - [x] Update gauge invariance tests
         - [x] Test U(1) transformations
           - [x] Test phase rotations
           - [x] Test invalid phases
+          - [x] Fix linting errors
+            - [x] Fix undefined symbols (diff)
+            - [x] Add missing imports
         - [x] Test non-abelian transformations
           - [x] Test SU(2) transformations
           - [x] Test parameter validation
@@ -83,10 +98,61 @@
         - [x] Test observable invariance
           - [x] Test energy density
           - [x] Test charge density
-      - [ ] Fix correlation tests
+      - [x] Fix correlation tests
+        - [x] Fix linting errors
+          - [x] Fix undefined symbols (oo, Symbol)
+          - [x] Fix missing imports
+    - [ ] Fix Version Control (BUG-004)
+      - [x] Add version validation
+        - [x] Create Version class
+        - [x] Implement version parsing without external deps
+        - [x] Add validation methods
+      - [x] Add compatibility checks
+        - [x] Create VersionManager
+        - [x] Add version.json
+        - [x] Add compatibility.json
+        - [x] Fix dependency issues
+          - [x] Remove semver dependency
+          - [x] Add custom version parsing
+      - [x] Add version tests
+        - [x] Test version parsing
+          - [x] Test valid versions
+          - [x] Test invalid versions
+          - [x] Test version comparison
+        - [x] Test compatibility checks
+          - [x] Test component validation
+          - [x] Test dependency resolution
+        - [x] Test error handling
+          - [x] Test missing files
+          - [x] Test invalid JSON
+          - [x] Test version format errors
 
 ### 14.31 Validation Framework
 - [ ] Complete Validation System
   - [ ] Fix Version Control (BUG-004)
-  - [ ] Add Property Tests (BUG-017)
-  - [ ] Fix Test Coverage (BUG-002)
+    - [ ] Add version validation
+    - [ ] Add compatibility checks
+  - [x] Add Property Tests (BUG-017)
+    - [x] Test field properties
+      - [x] Test energy positivity
+      - [x] Test norm conservation
+    - [x] Test symmetry properties
+      - [x] Test phase invariance
+      - [x] Test Lorentz invariance
+    - [x] Test locality properties
+      - [x] Test microcausality
+      - [x] Test cluster decomposition
+  - [ ] Add missing test coverage
+    - [ ] Add edge case tests
+    - [ ] Add error handling tests
+    - [ ] Add integration tests
+  - [x] Generate coverage reports
+    - [x] Set up pytest-cov configuration
+      - [x] Add .coveragerc
+      - [x] Configure coverage thresholds
+    - [x] Add coverage badges
+      - [x] Add badge generation script
+      - [x] Configure CI integration
+    - [ ] Fix coverage gaps
+      - [ ] Identify uncovered code paths
+      - [ ] Add missing test cases

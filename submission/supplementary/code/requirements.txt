@@ -1,7 +1,7 @@
 # Core numerical and scientific libraries
 numpy>=1.21.0  # Required for core computations
 scipy>=1.7.0   # Required for numerical integration
-sympy>=1.8     # Required for symbolic computations
+sympy>=1.9     # Required for symbolic computations
 mpmath>=1.2.0  # Required for high-precision arithmetic
 
 # Optional: Performance monitoring
@@ -17,7 +17,7 @@ pandas>=1.3.0     # Required for data analysis
 # Testing
 pytest>=6.0.0       # Required for unit testing
 pytest-cov>=2.12.0  # Required for coverage reporting
-hypothesis>=6.0   # Required for property-based testing
+hypothesis>=6.0.0   # Required for property-based testing
 
 # Optional: Machine Learning support
 scikit-learn>=0.24  # Optional: ML algorithms
@@ -39,3 +39,6 @@ flake8>=3.9          # Required for linting
 mypy>=0.900          # Required for type checking
 pylint>=2.8          # Required for code analysis
 isort>=5.9           # Required for import sorting
+
+# Optional: Version control
+semver>=3.0.0

@@ -1,0 +1,10 @@
+{
+    "core": "1.0.0",
+    "field": "1.0.0",
+    "basis": "1.0.0",
+    "compute": "1.0.0",
+    "numeric": "1.0.0",
+    "physics_constants": "1.0.0",
+    "utils": "1.0.0",
+    "validation": "1.0.0"
+}

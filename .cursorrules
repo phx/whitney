@@ -51,6 +51,7 @@ Follow every instruction precisely in TODO.md, making sure to check all the boxe
   - submission/supplementary/code/core/validation.py
   - submission/supplementary/code/tests (recursively - this is the test suite for the codebase)
   - submission/supplementary/code/tests/conftest.py
+  - submission/supplementary/code/tests/pytest.ini
   - submission/supplementary/code/tests/generate_badges.py
   - submission/supplementary/code/tests/test_basis.py
   - submission/supplementary/code/tests/test_field.py
@@ -62,15 +63,18 @@ Follow every instruction precisely in TODO.md, making sure to check all the boxe
   - submission/supplementary/code/tests/test_coordinates.py
   - submission/supplementary/code/tests/test_correlations.py
   - submission/supplementary/code/tests/test_detector.py
+  - submission/supplementary/code/tests/test_evolution.py
   - submission/supplementary/code/tests/test_numeric_value.py
   - submission/supplementary/code/tests/test_numeric.py
   - submission/supplementary/code/tests/test_predictions.py
   - submission/supplementary/code/tests/test_precision.py
+  - submission/supplementary/code/tests/test_properties.py
   - submission/supplementary/code/tests/test_theorems.py
   - submission/supplementary/code/tests/test_stability.py
-  - submission/supplementary/code/core/tests/test_stability.py
-  - submission/supplementary/code/core/tests/test_errors.py
-  - submission/supplementary/code/core/tests/test_core.py
+  - submission/supplementary/code/tests/test_errors.py
+  - submission/supplementary/code/tests/test_utils.py
+  - submission/supplementary/code/tests/test_validation.py
+  - submission/supplementary/code/tests/test_version.py
   - submission/supplementary/code/docs (recursively - this is the documentation for the codebase)
   - submission/supplementary/code/docs/index.md
   - submission/supplementary/code/docs/installation.md

@@ -1,86 +1,112 @@
-"""Tests for version handling and compatibility."""
+"""Tests for version control and compatibility."""
 
 import pytest
-import re
-from packaging import version
-from core.version import (
-    get_version,
-    check_compatibility,
-    parse_version_string,
-    VERSION_PATTERN
-)
+from pathlib import Path
+from core.version import Version, VersionManager
 from core.errors import VersionError
 
-@pytest.mark.version
-class TestVersionHandling:
-    """Test version string handling."""
+@pytest.fixture
+def version_manager(tmp_path):
+    """Create test version manager with temporary files."""
+    # Create test version.json
+    version_json = tmp_path / "version.json"
+    version_json.write_text("""{
+        "core": "1.0.0",
+        "field": "1.0.0-beta+001",
+        "test": "2.1.3"
+    }""")
     
-    def test_version_format(self):
-        """Test version string format."""
-        version_str = get_version()
-        assert re.match(VERSION_PATTERN, version_str)
-        
-        # Should be in format X.Y.Z
-        major, minor, patch = version_str.split('.')
-        assert all(x.isdigit() for x in [major, minor, patch])
+    # Create test compatibility.json
+    compat_json = tmp_path / "compatibility.json"
+    compat_json.write_text("""{
+        "field": ["core"],
+        "test": ["core", "field"]
+    }""")
+    
+    return VersionManager(root_dir=tmp_path)
+
+class TestVersion:
+    """Test Version class functionality."""
     
     def test_version_parsing(self):
-        """Test version string parsing."""
-        test_versions = [
-            "1.0.0",
-            "2.1.3",
-            "0.9.5"
-        ]
+        """Test parsing version strings."""
+        v1 = Version.from_string("1.2.3")
+        assert v1.major == 1
+        assert v1.minor == 2
+        assert v1.patch == 3
+        assert v1.pre_release is None
+        assert v1.build is None
         
-        for ver_str in test_versions:
-            result = parse_version_string(ver_str)
-            assert isinstance(result, version.Version)
-            assert str(result) == ver_str
+        v2 = Version.from_string("2.0.0-alpha+001")
+        assert v2.major == 2
+        assert v2.minor == 0
+        assert v2.patch == 0
+        assert v2.pre_release == "alpha"
+        assert v2.build == "001"
     
     def test_invalid_version(self):
         """Test handling of invalid version strings."""
-        invalid_versions = [
-            "1.0",  # Missing patch
-            "1.a.0",  # Non-numeric
-            "1.0.0-alpha",  # No pre-release support
-            ""  # Empty string
-        ]
+        with pytest.raises(VersionError):
+            Version.from_string("invalid")
+        with pytest.raises(VersionError):
+            Version.from_string("1.2")
+        with pytest.raises(VersionError):
+            Version.from_string("1.2.3.4")
+    
+    def test_version_comparison(self):
+        """Test version comparison operations."""
+        v1 = Version.from_string("1.0.0")
+        v2 = Version.from_string("2.0.0")
+        v3 = Version.from_string("2.1.0")
         
-        for ver_str in invalid_versions:
-            with pytest.raises(VersionError):
-                parse_version_string(ver_str)
+        assert v1 < v2
+        assert v2 < v3
+        assert not v3 < v2
+        assert v1 == Version.from_string("1.0.0")
 
-@pytest.mark.version
-class TestCompatibility:
-    """Test version compatibility checking."""
+class TestVersionManager:
+    """Test VersionManager functionality."""
     
-    def test_basic_compatibility(self):
-        """Test basic version compatibility."""
-        assert check_compatibility("1.0.0", "1.0.0")
-        assert check_compatibility("1.0.0", "1.0.1")
-        assert check_compatibility("1.0.0", "1.1.0")
-        assert not check_compatibility("1.0.0", "2.0.0")
+    def test_load_versions(self, version_manager):
+        """Test loading version information."""
+        assert "core" in version_manager.versions
+        assert "field" in version_manager.versions
+        assert version_manager.versions["core"].major == 1
     
-    def test_minimum_version(self):
-        """Test minimum version requirements."""
-        assert check_compatibility("1.0.0", "1.2.0", min_version="1.0.0")
-        assert not check_compatibility("0.9.0", "1.0.0", min_version="1.0.0")
-    
-    @pytest.mark.parametrize('v1,v2,expected', [
-        ("1.0.0", "1.0.1", True),
-        ("1.0.0", "1.1.0", True),
-        ("1.0.0", "2.0.0", False),
-        ("2.0.0", "1.0.0", False),
-        ("1.2.3", "1.2.3", True),
-    ])
-    def test_version_combinations(self, v1, v2, expected):
-        """Test various version combinations."""
-        assert check_compatibility(v1, v2) == expected
-    
-    def test_invalid_comparison(self):
-        """Test error handling for invalid comparisons."""
+    def test_validate_component(self, version_manager):
+        """Test component version validation."""
+        # Valid version
+        assert version_manager.validate_component("core", "1.0.0")
+        
+        # Invalid major version
         with pytest.raises(VersionError):
-            check_compatibility("invalid", "1.0.0")
+            version_manager.validate_component("core", "2.0.0")
+        
+        # Invalid minor version
+        with pytest.raises(VersionError):
+            version_manager.validate_component("test", "2.0.0")
+    
+    def test_check_compatibility(self, version_manager):
+        """Test compatibility checking."""
+        assert version_manager.check_compatibility("field")
+        
+        # Test with missing dependency
+        with pytest.raises(VersionError):
+            version_manager.check_compatibility("missing")
+    
+    def test_missing_files(self, tmp_path):
+        """Test handling of missing configuration files."""
+        with pytest.raises(VersionError):
+            VersionManager(root_dir=tmp_path)
+    
+    def test_invalid_json(self, tmp_path):
+        """Test handling of invalid JSON files."""
+        # Create invalid version.json
+        version_json = tmp_path / "version.json"
+        version_json.write_text("invalid json")
+        
+        compat_json = tmp_path / "compatibility.json"
+        compat_json.write_text("{}")
         
         with pytest.raises(VersionError):
-            check_compatibility("1.0.0", "invalid") 
+            VersionManager(root_dir=tmp_path) 

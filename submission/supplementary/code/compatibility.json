@@ -1,0 +1,9 @@
+{
+    "field": ["core", "physics_constants", "compute", "numeric"],
+    "basis": ["core", "physics_constants", "compute"],
+    "compute": ["core", "numeric", "physics_constants"],
+    "numeric": ["core", "physics_constants"],
+    "validation": ["core"],
+    "utils": ["core"],
+    "physics_constants": ["core"]
+} 
