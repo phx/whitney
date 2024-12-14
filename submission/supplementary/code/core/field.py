@@ -4,7 +4,7 @@ from typing import Dict, Optional, Union, List
 import numpy as np
 from sympy import (
     Symbol, exp, integrate, conjugate, sqrt,
-    oo, I, pi, Matrix, diff, solve, Eq, Function
+    oo, I, pi, Matrix, diff, solve, Eq, Function, M_PLANCK
 )
 from .physics_constants import (
     ALPHA_VAL, X, T, P, Z_MASS,
@@ -395,3 +395,151 @@ class UnifiedField:
         v_g = abs(d_x / d_t) if d_t != 0 else 0
         
         return v_g <= C
+
+    def compute_field(self, E: float) -> WaveFunction:
+        """Compute field configuration at given energy.
+        
+        Args:
+            E: Energy scale in GeV
+            
+        Returns:
+            Field configuration at specified energy
+        """
+        # Compute basis function at energy E
+        psi = self.compute_basis_function(n=0, E=E)
+        
+        # Apply energy-dependent phase
+        phase = exp(-I * E * T / HBAR)
+        
+        # Ensure proper normalization
+        norm = self.compute_norm(psi)
+        
+        return psi * phase / sqrt(norm)
+
+    def evolve_field(
+        self, 
+        psi: WaveFunction,
+        times: np.ndarray,
+        dt: float = 0.01
+    ) -> Dict[str, np.ndarray]:
+        """Evolve field configuration in time.
+        
+        Args:
+            psi: Initial field configuration
+            times: Array of time points to evolve to
+            dt: Time step for evolution
+            
+        Returns:
+            Dictionary containing:
+            - 'psi': Evolved field configurations
+            - 'norm': Field normalization at each time
+            - 'energy': Energy expectation value
+        """
+        results = {
+            'psi': np.zeros((len(times),) + psi.shape, dtype=complex),
+            'norm': np.zeros(len(times)),
+            'energy': np.zeros(len(times))
+        }
+        
+        # Initial conditions
+        current_psi = psi
+        results['psi'][0] = current_psi
+        results['norm'][0] = self.compute_norm(current_psi)
+        results['energy'][0] = self.compute_energy(current_psi)
+        
+        # Time evolution using symplectic integrator
+        for i, t in enumerate(times[1:], 1):
+            # Kinetic evolution
+            k_evolved = self._evolve_kinetic(current_psi, dt/2)
+            
+            # Potential evolution
+            v_evolved = self._evolve_potential(k_evolved, dt)
+            
+            # Final kinetic evolution
+            current_psi = self._evolve_kinetic(v_evolved, dt/2)
+            
+            # Store results
+            results['psi'][i] = current_psi
+            results['norm'][i] = self.compute_norm(current_psi)
+            results['energy'][i] = self.compute_energy(current_psi)
+        
+        return results
+
+    def _evolve_kinetic(self, psi: WaveFunction, dt: float) -> WaveFunction:
+        """Evolve field under kinetic Hamiltonian.
+        
+        Args:
+            psi: Field configuration
+            dt: Time step
+            
+        Returns:
+            Evolved field configuration
+        """
+        # Kinetic evolution operator: exp(-i*T*dt/2ℏ)
+        k = -HBAR**2 / (2 * M_PLANCK)  # Kinetic coefficient
+        d2_x = diff(psi, X, 2)
+        
+        return psi + (k * d2_x * dt / HBAR) * I
+        
+    def _evolve_potential(self, psi: WaveFunction, dt: float) -> WaveFunction:
+        """Evolve field under potential terms.
+        
+        Args:
+            psi: Field configuration
+            dt: Time step
+            
+        Returns:
+            Evolved field configuration
+        """
+        # Compute potential terms from fractal structure
+        V = self._compute_effective_potential(psi)
+        
+        # Potential evolution operator: exp(-i*V*dt/ℏ)
+        return psi * exp(-I * V * dt / HBAR)
+        
+    def _compute_effective_potential(self, psi: WaveFunction) -> WaveFunction:
+        """Compute effective potential including fractal corrections.
+        
+        Args:
+            psi: Field configuration
+            
+        Returns:
+            Effective potential
+        """
+        # Base potential
+        V0 = self.alpha * abs(psi)**2
+        
+        # Fractal corrections from appendix_j
+        fractal_term = self._compute_fractal_correction(psi)
+        
+        return V0 + fractal_term
+        
+    def _compute_fractal_correction(self, psi: WaveFunction) -> WaveFunction:
+        """Compute fractal correction terms to potential.
+        
+        Args:
+            psi: Field configuration
+            
+        Returns:
+            Fractal correction to potential
+        """
+        # Compute derivatives needed for correction terms
+        d_x = diff(psi, X)
+        d2_x = diff(psi, X, 2)
+        d_t = diff(psi, T)
+        d2_t = diff(psi, T, 2)
+        
+        # Kinetic correction from fractal structure
+        K_frac = (HBAR**2 / (2*M_PLANCK)) * (
+            self.alpha * abs(d_x)**2 +
+            (1/C**2) * abs(d_t)**2
+        )
+        
+        # Potential correction from fractal iterations
+        V_frac = self.alpha**2 * (
+            abs(psi)**4 / 4 +
+            abs(d2_x)**2 / (4*M_PLANCK**2) +
+            abs(d2_t)**2 / (4*M_PLANCK**2 * C**4)
+        )
+        
+        return K_frac + V_frac

@@ -1,0 +1,31 @@
+## Test Coverage
+- [x] Add basic theorem tests
+- [ ] Add scale invariance tests
+  - [ ] Test scaling at different energy levels
+  - [ ] Verify fractal dimension consistency
+- [ ] Add gauge coupling tests
+  - [ ] Test running coupling convergence
+  - [ ] Verify unification point stability
+- [ ] Add fermion mass tests
+  - [ ] Test mass ratio predictions
+  - [ ] Verify generational structure 
+
+## Implementation Status
+- [x] Fix linter errors
+  - [x] Add target_precision to generate_weights.py
+  - [x] Add learning_rate to generate_weights.py 
+  - [x] Import GUT_SCALE in test_predictions.py
+- [ ] Check UnifiedField implementation
+  - [x] Review all method calls from tests
+  - [x] Document missing methods
+  - [ ] Implement missing core methods:
+    - [x] compute_field()
+    - [x] evolve_field() and helpers
+    - [ ] compute_field_equation()
+    - [ ] compute_beta_functions()
+    - [ ] compute_gut_scale()
+    - [ ] apply_cpt_transform()
+    - [ ] scale_transform()
+    - [ ] compute_dark_matter_density()
+    - [ ] compute_dm_cross_section()
+- [ ] Run and fix tests

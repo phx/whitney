@@ -1,39 +1,43 @@
 #!/usr/bin/env python3
 """Run performance benchmarks."""
 
-import json
-import argparse
-from datetime import datetime
+import sys
 from pathlib import Path
-from benchmark import PerformanceBenchmark
+import pytest
+
+def setup_python_path():
+    """Set up Python path to include project root and core modules."""
+    # Get absolute path to project root (parent of benchmarks directory)
+    project_root = Path(__file__).parent.parent.absolute()
+    
+    # Add project root to Python path if not already there
+    if str(project_root) not in sys.path:
+        sys.path.insert(0, str(project_root))
+    
+    # Add core module directory
+    core_dir = project_root / "core"
+    if str(core_dir) not in sys.path:
+        sys.path.insert(0, str(core_dir))
 
 def main():
-    parser = argparse.ArgumentParser(description='Run performance benchmarks')
-    parser.add_argument('--output', type=str, default='benchmark_results',
-                       help='Output directory for results')
-    args = parser.parse_args()
+    """Run all benchmarks with proper configuration."""
+    # Set up paths
+    setup_python_path()
     
-    # Run benchmarks
-    benchmark = PerformanceBenchmark()
-    results = benchmark.run_all_benchmarks()
+    # Import pytest only after path is set up
+    import pytest
     
-    # Save results
-    output_dir = Path(args.output)
-    output_dir.mkdir(exist_ok=True)
-    
-    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-    output_file = output_dir / f'benchmark_results_{timestamp}.json'
-    
-    with open(output_file, 'w') as f:
-        json.dump([{
-            'name': r.name,
-            'execution_time': r.execution_time,
-            'memory_usage': r.memory_usage,
-            'throughput': r.throughput,
-            'parameters': r.parameters
-        } for r in results], f, indent=2)
-    
-    print(f'Benchmark results saved to {output_file}')
+    # Run pytest with benchmark configuration
+    return pytest.main([
+        "benchmarks",
+        "-v",
+        "--benchmark-only",
+        "--benchmark-group-by=func",
+        "--benchmark-min-rounds=100",
+        "--benchmark-warmup=on",
+        "--import-mode=importlib",
+        "--pythonpath", ".",
+    ])
 
-if __name__ == '__main__':
-    main() 
+if __name__ == "__main__":
+    sys.exit(main()) 

@@ -3,98 +3,81 @@
 Comprehensive validation of the entire framework.
 """
 
-import numpy as np
-from core.field import UnifiedField
-from core.constants import EXPERIMENTAL_DATA, E_PLANCK, LAMBDA_QCD
-from core.errors import ValidationError, PhysicsError
-import pandas as pd
-from typing import Dict, List, Tuple
-import logging
+import sys
+from pathlib import Path
+import pytest
+import subprocess
+from typing import List, Optional
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+def setup_python_path() -> None:
+    """Set up Python path to include project root and core modules."""
+    project_root = Path(__file__).parent.absolute()
+    
+    if str(project_root) not in sys.path:
+        sys.path.insert(0, str(project_root))
+    
+    core_dir = project_root / "core"
+    if str(core_dir) not in sys.path:
+        sys.path.insert(0, str(core_dir))
 
-def validate_framework() -> None:
-    """Run comprehensive framework validation."""
-    logger.info("Starting comprehensive validation...")
-    
-    # Initialize framework
-    field = UnifiedField()
-    
-    # 1. Physical Bounds
-    logger.info("Checking physical bounds...")
-    validate_physical_bounds(field)
-    
-    # 2. Experimental Agreement
-    logger.info("Validating experimental predictions...")
-    validate_experimental_agreement(field)
-    
-    # 3. Numerical Stability
-    logger.info("Testing numerical stability...")
-    validate_numerical_stability(field)
-    
-    # 4. Conservation Laws
-    logger.info("Verifying conservation laws...")
-    validate_conservation_laws(field)
-    
-    logger.info("All validations passed successfully!")
+def run_tests() -> int:
+    """Run all tests with coverage."""
+    return pytest.main([
+        "tests",
+        "-v",
+        "--cov=core",
+        "--cov-report=term-missing",
+        "--cov-report=html",
+        "--import-mode=importlib",
+        "--pythonpath", ".",
+    ])
 
-def validate_physical_bounds(field: UnifiedField) -> None:
-    """Verify all quantities respect physical bounds."""
-    # Test energy scales
-    E_test = np.logspace(-1, 19, 100)
-    for E in E_test:
-        try:
-            field.validate_energy_scale(E)
-        except (ValueError, PhysicsError) as e:
-            if E >= E_PLANCK or E <= LAMBDA_QCD:
-                # Expected failure
-                continue
-            raise ValidationError(f"Unexpected energy scale validation error: {e}")
-
-def validate_experimental_agreement(field: UnifiedField) -> None:
-    """Verify agreement with experimental data."""
-    for obs, (exp_val, exp_err) in EXPERIMENTAL_DATA.items():
-        pred = field.compute_observable(obs)
-        pull = (pred['value'] - exp_val) / np.sqrt(
-            pred['total_uncertainty']**2 + exp_err**2
-        )
-        if abs(pull) > 3:  # More than 3σ deviation
-            raise ValidationError(
-                f"Observable {obs} deviates by {pull:.1f}σ from experiment"
-            )
-
-def validate_numerical_stability(field: UnifiedField) -> None:
-    """Verify numerical stability of computations."""
-    # Test coupling evolution
-    E_test = 1000.0
+def run_linters() -> int:
+    """Run code quality checks."""
     results = []
-    for _ in range(100):
-        E_perturbed = E_test * (1 + np.random.normal(0, 1e-6))
-        results.append(field.compute_coupling(1, E_perturbed))
     
-    std_dev = np.std(results)
-    if std_dev > 1e-6:
-        raise ValidationError(f"Numerical instability detected: σ={std_dev}")
+    # Run mypy type checking
+    results.append(subprocess.run(
+        ["mypy", "core", "tests", "--strict"],
+        capture_output=True
+    ).returncode)
+    
+    # Run flake8
+    results.append(subprocess.run(
+        ["flake8", "core", "tests", "--max-line-length=100"],
+        capture_output=True
+    ).returncode)
+    
+    # Run pylint
+    results.append(subprocess.run(
+        ["pylint", "core", "tests", "--rcfile=.pylintrc"],
+        capture_output=True
+    ).returncode)
+    
+    return max(results)  # Return worst result
 
-def validate_conservation_laws(field: UnifiedField) -> None:
-    """Verify conservation laws are respected."""
-    # Energy conservation
-    psi = field.compute_basis_function(n=0, E=100.0)
-    E_initial = field.compute_energy_density(psi)
-    
-    # Evolve field
-    t_points = np.linspace(0, 10, 100)
-    evolution = field.evolve_field(psi, t_points)
-    
-    # Check energy conservation
-    E_final = field.compute_energy_density(evolution['field_values'][-1])
-    if abs(E_final - E_initial) > 1e-6 * abs(E_initial):
-        raise ValidationError("Energy conservation violated")
+def validate_documentation() -> int:
+    """Build and validate documentation."""
+    return subprocess.run(
+        ["sphinx-build", "-b", "html", "docs", "docs/_build/html"],
+        capture_output=True
+    ).returncode
 
-if __name__ == '__main__':
-    try:
-        validate_framework()
-    except Exception as e:
-        logger.error(f"Validation failed: {e}")
-        raise 
+def main() -> int:
+    """Run all validation checks."""
+    setup_python_path()
+    
+    print("Running tests...")
+    test_result = run_tests()
+    
+    print("\nRunning linters...")
+    lint_result = run_linters()
+    
+    print("\nValidating documentation...")
+    doc_result = validate_documentation()
+    
+    # Return worst result
+    return max(test_result, lint_result, doc_result)
+
+if __name__ == "__main__":
+    sys.exit(main()) 

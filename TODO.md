@@ -24,6 +24,19 @@
       - [x] Update import statements in core/field.py
       - [ ] Update import statements in core/basis.py
       - [ ] Adjust tests/conftest.py to prevent indirect imports
+  - [ ] Fix Test Runner (BUG-021)
+    - [ ] Fix Python Path Setup
+      - [ ] Update run_tests.py path handling
+      - [ ] Add proper sys.path modification
+      - [ ] Verify module resolution
+    - [ ] Fix Test Import Structure
+      - [ ] Update conftest.py import handling
+      - [ ] Fix relative imports in test files
+      - [ ] Add proper __init__.py files
+    - [ ] Add Import Validation
+      - [ ] Add import verification to run_tests.py
+      - [ ] Add module resolution checks
+      - [ ] Add error reporting for import failures
   - [ ] Fix Coordinate System (BUG-008, BUG-012)
     - [ ] Consolidate symbol definitions in constants.py
       - [x] Fix X symbol usage
@@ -155,7 +168,7 @@
     - [x] Test locality properties
       - [x] Test microcausality
       - [x] Test cluster decomposition
-  - [ ] Add missing test coverage
+  - [ ] Add missing test coverage (BUG-002)
     - [ ] Add edge case tests
     - [ ] Add error handling tests
     - [ ] Add integration tests

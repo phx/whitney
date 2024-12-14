@@ -295,6 +295,29 @@
       ],
       "analysis": "Separated physics constants into a dedicated module to eliminate circular imports",
       "solution": "Moved common constants to physics_constants.py and updated imports in field.py and basis.py"
+    },
+    {
+      "id": "BUG-021",
+      "timestamp": "2024-03-14T10:45:00Z",
+      "title": "Test Import Resolution Error",
+      "description": "Import errors in test files when running tests through run_tests.py",
+      "steps_to_reproduce": [
+        "1. Run 'python run_tests.py' from code directory",
+        "2. Observe import errors for X, T, C, HBAR in test_coordinates.py"
+      ],
+      "root_cause": "Python path not properly set up for test imports",
+      "status": "IN_PROGRESS",
+      "solution_steps": [
+        "1. Fix run_tests.py to properly set Python path",
+        "2. Update conftest.py to handle imports correctly",
+        "3. Verify import paths in test files"
+      ],
+      "related_files": [
+        "run_tests.py",
+        "tests/conftest.py",
+        "tests/test_coordinates.py"
+      ],
+      "dependencies": ["BUG-009", "BUG-018"]
     }
   ]
 } 
