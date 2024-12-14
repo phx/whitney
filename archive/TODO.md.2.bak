@@ -1,0 +1,184 @@
+## Critical Path (Paper Submission Blockers)
+
+### 14.30 Core Theory Implementation
+- [ ] Fix Critical Theoretical Components
+  - [ ] Fix Import Dependencies (BUG-009)
+    - [ ] Move common constants to physics_constants.py
+      - [x] Add E symbol to physics_constants.py
+      - [x] Update imports in conftest.py
+      - [x] Move transformations to separate module
+        - [x] Create transforms.py
+        - [x] Move lorentz_boost function
+        - [x] Move gauge_transform function
+        - [x] Update field.py imports
+      - [x] Add missing error classes
+        - [x] Add EnergyConditionError
+        - [x] Add CausalityError
+        - [x] Add GaugeError
+        - [x] Fix duplicate error definitions
+        - [x] Consolidate error hierarchy
+    - [x] Update import hierarchy in field.py and basis.py
+    - [ ] Fix circular dependencies in test fixtures
+    - [ ] Refactor imports to resolve circular dependencies (BUG-018)
+      - [ ] Move common constants to physics_constants.py
+      - [x] Update import statements in core/field.py
+      - [ ] Update import statements in core/basis.py
+      - [ ] Adjust tests/conftest.py to prevent indirect imports
+  - [ ] Fix Test Runner (BUG-021)
+    - [ ] Fix Python Path Setup
+      - [ ] Update run_tests.py path handling
+      - [ ] Add proper sys.path modification
+      - [ ] Verify module resolution
+    - [ ] Fix Test Import Structure
+      - [ ] Update conftest.py import handling
+      - [ ] Fix relative imports in test files
+      - [ ] Add proper __init__.py files
+    - [ ] Add Import Validation
+      - [ ] Add import verification to run_tests.py
+      - [ ] Add module resolution checks
+      - [ ] Add error reporting for import failures
+  - [ ] Fix Coordinate System (BUG-008, BUG-012)
+    - [ ] Consolidate symbol definitions in constants.py
+      - [x] Fix X symbol usage
+      - [x] Verify T symbol implementation
+      - [x] Add P symbol documentation
+      - [x] Add coordinate transformations
+    - [ ] Update field calculations to use consistent coordinates
+      - [x] Update UnifiedField to use new coordinates
+        - [x] Update energy density calculation
+        - [x] Update causality check
+        - [x] Add Lorentz transformation
+        - [x] Add gauge transformation
+      - [x] Update FractalBasis to use new coordinates
+        - [x] Update field equations with light-cone coordinates
+        - [x] Update generator function for Lorentz invariance
+        - [x] Update modulation factor with relativistic corrections
+        - [x] Update evolution operator with proper dispersion
+    - [ ] Add coordinate system tests
+      - [x] Test Lorentz invariance
+        - [x] Test energy density invariance
+        - [x] Test causality preservation
+        - [x] Test invalid boosts
+      - [x] Test gauge invariance
+        - [x] Test observable invariance
+        - [x] Test phase transformations
+      - [x] Test coordinate transformations
+        - [x] Test basis covariance
+        - [x] Test orthogonality preservation
+      - [x] Test near-lightspeed boosts
+      - [x] Test large gauge transformations
+      - [x] Test coordinate singularities
+      - [x] Test numerical stability
+        - [x] Test high boost stability
+        - [x] Test large coordinate values
+  - [ ] Fix UnifiedField Implementation (BUG-010)
+    - [ ] Implement UnifiedField class
+      - [x] Add field equations
+        - [x] Implement Klein-Gordon operator
+        - [x] Add interaction terms
+        - [x] Add solution verification
+      - [x] Add evolution methods
+        - [x] Add Hamiltonian computation
+        - [x] Add evolution operator
+      - [x] Add gauge transformations
+        - [x] Add U(1) gauge transformations
+        - [x] Add non-abelian gauge transformations
+        - [x] Add gauge current computation
+        - [x] Add gauge invariance checks
+    - [ ] Add validation and constraints
+      - [x] Add energy conditions
+        - [x] Weak energy condition
+        - [x] Strong energy condition
+        - [x] Dominant energy condition
+      - [x] Add causality checks
+        - [x] Microcausality
+        - [x] Superluminal propagation
+        - [x] Light cone structure
+    - [ ] Fix failing tests
+      - [x] Fix field evolution tests
+        - [x] Test time evolution
+          - [x] Test energy conservation
+          - [x] Test unitarity
+        - [x] Test dynamics
+          - [x] Test equations of motion
+          - [x] Test causality preservation
+        - [x] Test scattering
+          - [x] Test S-matrix unitarity
+          - [x] Test crossing symmetry
+        - [x] Fix linting errors
+          - [x] Fix undefined symbols
+          - [x] Fix missing imports
+      - [x] Update gauge invariance tests
+        - [x] Test U(1) transformations
+          - [x] Test phase rotations
+          - [x] Test invalid phases
+          - [x] Fix linting errors
+            - [x] Fix undefined symbols (diff)
+            - [x] Add missing imports
+        - [x] Test non-abelian transformations
+          - [x] Test SU(2) transformations
+          - [x] Test parameter validation
+        - [x] Test current conservation
+          - [x] Test current divergence
+          - [x] Test gauge covariance
+        - [x] Test observable invariance
+          - [x] Test energy density
+          - [x] Test charge density
+      - [x] Fix correlation tests
+        - [x] Fix linting errors
+          - [x] Fix undefined symbols (oo, Symbol)
+          - [x] Fix missing imports
+    - [ ] Fix Version Control (BUG-004)
+      - [x] Add version validation
+        - [x] Create Version class
+        - [x] Implement version parsing without external deps
+        - [x] Add validation methods
+      - [x] Add compatibility checks
+        - [x] Create VersionManager
+        - [x] Add version.json
+        - [x] Add compatibility.json
+        - [x] Fix dependency issues
+          - [x] Remove semver dependency
+          - [x] Add custom version parsing
+      - [x] Add version tests
+        - [x] Test version parsing
+          - [x] Test valid versions
+          - [x] Test invalid versions
+          - [x] Test version comparison
+        - [x] Test compatibility checks
+          - [x] Test component validation
+          - [x] Test dependency resolution
+        - [x] Test error handling
+          - [x] Test missing files
+          - [x] Test invalid JSON
+          - [x] Test version format errors
+
+### 14.31 Validation Framework
+- [ ] Complete Validation System
+  - [ ] Fix Version Control (BUG-004)
+    - [ ] Add version validation
+    - [ ] Add compatibility checks
+  - [x] Add Property Tests (BUG-017)
+    - [x] Test field properties
+      - [x] Test energy positivity
+      - [x] Test norm conservation
+    - [x] Test symmetry properties
+      - [x] Test phase invariance
+      - [x] Test Lorentz invariance
+    - [x] Test locality properties
+      - [x] Test microcausality
+      - [x] Test cluster decomposition
+  - [ ] Add missing test coverage (BUG-002)
+    - [ ] Add edge case tests
+    - [ ] Add error handling tests
+    - [ ] Add integration tests
+  - [x] Generate coverage reports
+    - [x] Set up pytest-cov configuration
+      - [x] Add .coveragerc
+      - [x] Configure coverage thresholds
+    - [x] Add coverage badges
+      - [x] Add badge generation script
+      - [x] Configure CI integration
+    - [ ] Fix coverage gaps
+      - [ ] Identify uncovered code paths
+      - [ ] Add missing test cases

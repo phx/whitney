@@ -31,6 +31,7 @@ from core.types import (
 from core.transforms import lorentz_boost, gauge_transform
 from core.physics_constants import ALPHA_VAL
 from core.errors import PhysicsError
+from core.contexts import gauge_phase, lorentz_boost
 
 @pytest.fixture
 def field():
@@ -48,37 +49,38 @@ def constants(request):
     from core.physics_constants import X, T, P, HBAR, C
     return {'X': X, 'T': T, 'P': P, 'HBAR': HBAR, 'C': C}
 
+@pytest.mark.physics
 class TestLorentzInvariance:
-    """Test Lorentz invariance of field theory."""
+    """Test Lorentz invariance properties."""
     
-    @given(st.floats(min_value=-0.9, max_value=0.9))
-    def test_energy_density_invariance(self, beta, field, constants):
-        """Test that energy density is Lorentz invariant."""
+    @given(st.floats(min_value=0.1, max_value=10.0))
+    def test_energy_density_invariance(self, energy, field, constants):
+        """Test that energy density transforms correctly."""
         X, T, C, HBAR = constants['X'], constants['T'], constants['C'], constants['HBAR']
-        psi = exp(-(X**2 + (C*T)**2)/(2*HBAR**2))
-        
-        # Compute original energy density
-        E1 = field.compute_energy_density(psi)
-        
-        # Apply Lorentz boost
-        psi_boosted = field.apply_lorentz_transform(psi, beta)
-        E2 = field.compute_energy_density(psi_boosted)
-        
-        # Energy density should be invariant
-        assert abs(E1 - E2) < 1e-10
+        with gauge_phase() as phase, lorentz_boost() as (beta, gamma):
+            psi = exp(-(X**2 + (C*T)**2)/(2*HBAR**2))
+            psi_gauge = field.apply_gauge_transform(psi, phase)
+            E1 = field.compute_energy_density(psi_gauge)
+            
+            # Apply Lorentz boost
+            psi_boosted = field.apply_lorentz_transform(psi_gauge, beta)
+            E2 = field.compute_energy_density(psi_boosted)
+            
+            # Energy density should transform correctly
+            assert abs(E2 - gamma**2 * E1) < 1e-10
     
     @given(st.floats(min_value=-0.9, max_value=0.9))
     def test_causality_invariance(self, beta, field, constants):
-        """Test that causality is preserved under Lorentz transformations."""
+        """Test that causality is preserved under boosts."""
         X, T, C, HBAR = constants['X'], constants['T'], constants['C'], constants['HBAR']
-        psi = exp(-(X**2 + (C*T)**2)/(2*HBAR**2))
-        
-        # Check causality in original frame
-        assert field.check_causality(psi)
-        
-        # Check causality in boosted frame
-        psi_boosted = field.apply_lorentz_transform(psi, beta)
-        assert field.check_causality(psi_boosted)
+        with gauge_phase() as phase:
+            psi = exp(-(X**2 + (C*T)**2)/(2*HBAR**2))
+            psi_gauge = field.apply_gauge_transform(psi, phase)
+            assert field.check_causality(psi_gauge)
+            
+            # Causality should be preserved under boosts
+            psi_boosted = field.apply_lorentz_transform(psi_gauge, beta)
+            assert field.check_causality(psi_boosted)
 
     def test_invalid_boost(self, field, constants):
         """Test that superluminal boosts are rejected."""

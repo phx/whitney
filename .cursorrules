@@ -15,6 +15,7 @@ Make sure everything is in order for the submission of the paper main.tex locate
 # Your instructions:
 
 Follow every instruction precisely in TODO.md, making sure to check all the boxes as you go. TODO.md, BUGLOG.json, and .cursorrules are the only sources of instructions. They should be updated constantly to always reflect the current state of the submission process. Make sure to check the TODO.md file for any tasks that need to be completed. Always stay perfectly in sync with the TODO.md file.
+You have to remember that whenever you show me a diff, anything with a minus sign ("-") next to it WILL BE REMOVED. Our goal for code modification is to MAKE IT WORK by ADDING code and MODIFYING and/or RECONFIGURING existing code, but we MUST NEVER REMOVE code that takes ANYTHING away from allowing the code to function or make sense or relate to the whole. These are BREAKING CHANGES, and we MUST NEVER introduce breaking changes by removing crucial and critical code. We have to understand how the code we are working with integrates with all of the other code and the mathematics and physics in the paper as a whole
 
 ## Helpful tips:
 
@@ -25,63 +26,133 @@ Follow every instruction precisely in TODO.md, making sure to check all the boxe
 
 ## Keep updated on the project structure and the content of the paper and every aspect of the codebase.
 
-- Main files and directoriesto constantly stay aware of besides .cursorrules, TODO.md, and BUGLOG.json are:
-  - README.md
-  - submission/main.tex
-  - submission/README.md
-  - submission/supplementary/code (recursively)
-  - submission/supplementary/code/generate_data.py
-  - submission/supplementary/code/generate_figures.py
-  - submission/supplementary/code/core (recursively - this is the core module of the codebase)
-  - submission/supplementary/code/core/basis.py
-  - submission/supplementary/code/core/field.py - this is a very important file, as it contains the field theory part of the codebase
-  - submission/supplementary/code/core/modes.py
-  - submission/supplementary/code/core/numeric.py
-  - submission/supplementary/code/core/compute.py
-  - submission/supplementary/code/core/constants.py - this is a very important file, as it contains the constants for the codebase
-  - submission/supplementary/code/core/physics_constants.py - similar to constants.py, but contains the physics constants for the codebase
-  - submission/supplementary/code/core/precision.py
-  - submission/supplementary/code/core/stability.py
-  - submission/supplementary/code/core/errors.py
-  - submission/supplementary/code/core/utils.py
-  - submission/supplementary/code/core/types.py
-  - submission/supplementary/code/core/utils.py
-  - submission/supplementary/code/core/types.py
-  - submission/supplementary/code/core/errors.py
-  - submission/supplementary/code/core/validation.py
-  - submission/supplementary/code/tests (recursively - this is the test suite for the codebase)
-  - submission/supplementary/code/tests/conftest.py
-  - submission/supplementary/code/tests/pytest.ini
-  - submission/supplementary/code/tests/generate_badges.py
-  - submission/supplementary/code/tests/test_basis.py
-  - submission/supplementary/code/tests/test_field.py
-  - submission/supplementary/code/tests/test_gauge.py
-  - submission/supplementary/code/tests/test_modes.py
-  - submission/supplementary/code/tests/test_numeric.py
-  - submission/supplementary/code/tests/test_compute.py
-  - submission/supplementary/code/tests/test_consistency.py
-  - submission/supplementary/code/tests/test_coordinates.py
-  - submission/supplementary/code/tests/test_correlations.py
-  - submission/supplementary/code/tests/test_detector.py
-  - submission/supplementary/code/tests/test_evolution.py
-  - submission/supplementary/code/tests/test_numeric_value.py
-  - submission/supplementary/code/tests/test_numeric.py
-  - submission/supplementary/code/tests/test_predictions.py
-  - submission/supplementary/code/tests/test_precision.py
-  - submission/supplementary/code/tests/test_properties.py
-  - submission/supplementary/code/tests/test_theorems.py
-  - submission/supplementary/code/tests/test_stability.py
-  - submission/supplementary/code/tests/test_errors.py
-  - submission/supplementary/code/tests/test_utils.py
-  - submission/supplementary/code/tests/test_validation.py
-  - submission/supplementary/code/tests/test_version.py
-  - submission/supplementary/code/docs (recursively - this is the documentation for the codebase)
-  - submission/supplementary/code/docs/index.md
-  - submission/supplementary/code/docs/installation.md
-  - submission/supplementary/code/docs/usage.md
-  - submission/supplementary/code/docs/api.md
-  - submission/supplementary/code/docs/examples.md
-  - submission/supplementary/code/docs/faq.md
-  - submission/supplementary/code/docs/changelog.md
-  - submission/submit.sh
-  - submission/supplementary/code/.github/workflows/ci.yml
+### Main files and directories to constantly stay aware of:
+
+.
+├── .cursorrules
+├── BUGLOG.json
+├── README.md (scoped to the project)
+├── TODO.md (scoped to the project)
+├── archive (IGNORE COMPLETELY)
+└── submission (recursively)
+
+./submission (recursively)
+├── README.md (scoped to the submission)
+├── TODO.md (scoped to the submission)
+├── appendices (recursively - appendices referenced in the submission)
+├── figures (figures referenced in the submission)
+├── main.tex (the main paper, the most important file in the submission, the most CRUCIAL file that should be referenced but never modified)
+├── manifest.yml (to be run to submit the paper)
+├── submit.sh (to be run to submit the paper)
+└── supplementary (recursively - ALL CODE and DATA referenced in the submission)
+
+./submission/appendices (recursively - these files contain CRUCIAL content for the submission and should be referenced but never modified)
+Soak up and analyze the content of these files for reference and inspiration.
+├── appendix_a_convergence.tex
+├── appendix_b_gauge.tex
+├── appendix_c_gravity.tex
+├── appendix_d_scale.tex
+├── appendix_e_predictions.tex
+├── appendix_f_falsifiability.tex
+├── appendix_g_holographic.tex
+├── appendix_h_rgflow.tex
+├── appendix_i_sm_features.tex
+├── appendix_j_math_details.tex
+├── appendix_k_io_distinction.tex
+└── appendix_l_simplification.tex
+
+./submission/supplementary (recursively - ALL CODE and DATA referenced in the submission)
+├── code (recursively - ALL CODE referenced in the submission - IMPORTANT!)
+└── data (recursively - ALL DATA referenced in the submission)
+
+./submission/supplementary/code (recursively - ALL CODE referenced in the submission)
+├── .coveragerc
+├── .github
+├── .hypothesis
+├── .pytest_cache
+├── BUGLOG.json
+├── analysis
+├── benchmarks
+├── compatibility.json
+├── core (recursively - ALL CODE referenced in the core module)
+├── docs (recursively - ALL CODE DOCUMENTATION)
+├── generate_data.py (important file that generates the data referenced in the submission)
+├── generate_figures.py (important file that generates the figures referenced in the submission)
+├── htmlcov
+├── models
+├── pytest.ini
+├── requirements.txt
+├── run_tests.py
+├── setup.py
+├── tests (recursively - ALL CODE TESTS)
+├── validate_all.py (important file that validates the code referenced in the submission)
+└── version.json
+
+./submission/supplementary/code/core (recursively - ALL CODE referenced in the core module - IMPORTANT!)
+├── __init__.py
+├── __pycache__
+├── basis.py
+├── compute.py
+├── constants.py
+├── detector.py
+├── enums.py
+├── errors.py
+├── field.py
+├── modes.py
+├── numeric.py
+├── physics_constants.py
+├── precision.py
+├── stability.py
+├── transforms.py
+├── types.py
+├── utils.py
+├── validation.py
+└── version.py
+
+./submission/supplementary/code/tests (recursively - ALL CODE TESTS - IMPORTANT!)
+├── .coveragerc
+├── .pytest_cache
+├── __init__.py
+├── __pycache__
+├── conftest.py
+├── generate_badges.py
+├── test_basis.py
+├── test_compute.py
+├── test_consistency.py
+├── test_coordinates.py
+├── test_correlations.py
+├── test_detector.py
+├── test_evolution.py
+├── test_field.py
+├── test_gauge.py
+├── test_integration.py
+├── test_numeric.py
+├── test_numeric_value.py
+├── test_performance.py
+├── test_physics.py
+├── test_precision.py
+├── test_predictions.py
+├── test_properties.py
+├── test_stability.py
+├── test_theorems.py
+├── test_types.py
+├── test_utils.py
+├── test_validation.py
+└── test_version.py
+
+./submission/supplementary/code/docs (recursively - ALL CODE DOCUMENTATION - IMPORTANT!)
+├── api.md
+├── equations.md
+├── error_analysis.md
+├── installation.md
+├── performance.md
+├── scientific.md
+├── testing.md
+├── testing_guide.md
+├── user_guide.md
+└── validation.md
+
+# MOST CRITICAL AND CRUCIAL RULE TO ALWAYS REMEMBER:
+
+- You have to remember that whenever you show me a diff, anything with a minus sign ("-") next to it WILL BE REMOVED. Our goal for code modification is to MAKE IT WORK by ADDING code and MODIFYING and/or RECONFIGURING existing code, but we MUST NEVER REMOVE code that takes ANYTHING away from allowing the code to function or make sense or relate to the whole. These are BREAKING CHANGES, and we MUST NEVER introduce breaking changes by removing crucial and critical code. We have to understand how the code we are working with integrates with all of the other code and the mathematics and physics in the paper as a whole.
+- Our overal goal is to publish the perfect research paper with the perfect codebase to back it up.

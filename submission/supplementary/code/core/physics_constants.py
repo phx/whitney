@@ -6,6 +6,7 @@ from sympy import Symbol, I, pi
 HBAR = 1.0545718e-34  # Reduced Planck constant (J⋅s)
 C = 2.99792458e8      # Speed of light (m/s)
 G = 6.67430e-11       # Gravitational constant (m³/kg⁻¹/s⁻²)
+M_PLANCK = 1.22089e19    # Planck mass (GeV)
 
 # Coordinates and fields
 X = Symbol('x')       # Spatial coordinate

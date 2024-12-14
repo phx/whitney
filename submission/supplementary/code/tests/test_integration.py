@@ -12,7 +12,7 @@ from core.errors import ComputationError
 
 @pytest.mark.integration
 class TestPhysicsWorkflow:
-    """Test complete physics calculation workflows."""
+    """Test complete physics workflow."""
     
     def test_cross_section_calculation(self, standard_field, physics_data):
         """Test complete cross-section calculation workflow."""
@@ -42,10 +42,10 @@ class TestPhysicsWorkflow:
 
 @pytest.mark.integration
 class TestDetectorSimulation:
-    """Test detector simulation chain."""
+    """Test detector simulation workflow."""
     
     def test_detector_reconstruction(self, standard_detector, physics_data):
-        """Test complete detector reconstruction chain."""
+        """Test detector reconstruction pipeline."""
         # 1. Generate particles
         true_energies = [Energy(E) for E in physics_data['energies']]
         true_momenta = [Momentum(p) for p in physics_data['momenta']]
@@ -73,7 +73,7 @@ class TestDetectorSimulation:
 
 @pytest.mark.integration
 class TestNumericalWorkflow:
-    """Test numerical calculation workflows."""
+    """Test numerical computation workflow."""
     
     def test_field_evolution(self, standard_field, numeric_precision):
         """Test complete field evolution workflow."""
@@ -103,10 +103,10 @@ class TestNumericalWorkflow:
 
 @pytest.mark.integration
 class TestAnalysisWorkflow:
-    """Test complete analysis workflows."""
+    """Test analysis workflow."""
     
     def test_coupling_unification(self, standard_field, physics_data):
-        """Test coupling unification analysis workflow."""
+        """Test coupling unification analysis."""
         # 1. Calculate running couplings
         energies = np.logspace(2, 16, 100)  # 100 GeV to 10^16 GeV
         g1 = standard_field.compute_coupling(1, energies)

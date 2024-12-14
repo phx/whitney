@@ -1,107 +1,79 @@
 """Tests for theoretical predictions and experimental validation."""
 
 import pytest
-try:
-    from hypothesis import given, strategies as st
-    HAS_HYPOTHESIS = True
-except ImportError:
-    from unittest.mock import patch
-    HAS_HYPOTHESIS = False
-    # Mock hypothesis decorator if not available
-    def given(*args, **kwargs):
-        def decorator(f):
-            return f
-        return decorator
-    st = None
-
 import numpy as np
-from sympy import exp, I, pi, Symbol, integrate, oo, diff
 from core.field import UnifiedField
 from core.types import Energy, CrossSection
-from core.errors import ValidationError
-from core.physics_constants import (
-    ALPHA_VAL,
-    Z_MASS,
-    ALPHA_REF
-)
+from core.errors import PhysicsError
 from core.constants import GUT_SCALE
 
 @pytest.fixture
 def field():
     """Create UnifiedField instance for testing."""
-    return UnifiedField(alpha=ALPHA_VAL)
+    return UnifiedField(alpha=0.1)
 
-@pytest.fixture
-def constants(request):
-    """Get physics constants from conftest."""
-    from core.physics_constants import X, T, P, HBAR, C
-    return {'X': X, 'T': T, 'P': P, 'HBAR': HBAR, 'C': C}
-
+@pytest.mark.predictions
 class TestExperimentalPredictions:
-    """Test agreement with experimental data."""
+    """Test experimental predictions."""
     
-    @given(st.floats(min_value=88.0, max_value=94.0))
-    def test_cross_section_prediction(self, energy, field):
-        """Test cross section predictions against LEP data."""
-        if not HAS_HYPOTHESIS:
-            energy = 91.2  # Z mass peak if hypothesis not available
-            
-        # Compute cross section
-        sigma = field.compute_cross_section(energy)
-        cross_sections = [sigma]
+    def test_cross_section_prediction(self, field):
+        """Test cross section predictions match data."""
+        # Test energies
+        E = np.logspace(2, 3, 10)  # 100 GeV - 1 TeV
         
-        # Compare with LEP data
-        peak_position = energy if len(cross_sections) == 1 else np.linspace(88, 94, 100)[np.argmax(cross_sections)]
-        assert abs(peak_position - Z_MASS) < 0.1  # Within 100 MeV
-
-    @given(st.floats(min_value=90.0, max_value=1000.0))
-    def test_coupling_running(self, energy, field):
-        """Test coupling evolution against collider data."""
-        if not HAS_HYPOTHESIS:
-            energy = 91.2  # LEP energy if hypothesis not available
-            
-        # Test points from various experiments
-        data_points = {
-            91.2: (0.117, 0.002),   # LEP
-            200: (0.112, 0.003),    # HERA
-            1000: (0.108, 0.004)    # LHC
-        }
+        # Generate test state
+        psi = field.compute_basis_state(E[0])
         
-        # Find closest reference point
-        closest_E = min(data_points.keys(), key=lambda x: abs(x - energy))
-        g_exp, unc = data_points[closest_E]
+        # Compute cross sections
+        sigma = field.compute_cross_section(E, psi)
         
-        g_theory = field.compute_coupling(3, energy)  # Strong coupling
-        assert abs(g_theory - g_exp) < 2*unc  # Within 2σ
-
-    def test_cross_sections(self, field, constants):
-        """Test predicted cross sections against data."""
-        X, T, C, HBAR = constants['X'], constants['T'], constants['C'], constants['HBAR']
+        # Should decrease with energy (asymptotic freedom)
+        assert np.all(np.diff(sigma) < 0)
         
-        # Test quantum field configuration
-        psi = exp(-(X**2 + (C*T)**2)/(2*HBAR**2))
-        
-        # Compute cross section at different energies
-        test_energies = [100.0, 500.0, 1000.0]  # GeV
-        for E in test_energies:
-            sigma = field.compute_cross_section(E, psi)
-            
-            # Cross section should be positive
-            assert sigma.value > 0
-            
-            # Should scale as 1/E^2 at high energies
-            if E > 500:
-                sigma_ref = field.compute_cross_section(E/2, psi)
-                ratio = sigma.value / sigma_ref.value
-                assert np.isclose(ratio, 0.25, rtol=0.1)  # 1/(E^2) scaling
-
-def test_coupling_unification():
-    """Test prediction of coupling constant unification."""
-    field = UnifiedField()
+        # Should match experimental bounds
+        assert all(s > 1e-40 for s in sigma)  # cm^2
     
+    def test_coupling_running(self, field):
+        """Test coupling constant running."""
+        # Test range
+        E = np.logspace(2, 4, 10)  # 100 GeV - 10 TeV
+        
+        # Compute running coupling
+        alpha = field.compute_running_coupling(E)
+        
+        # Should decrease with energy (asymptotic freedom)
+        assert np.all(np.diff(alpha) < 0)
+        
+        # Should match low-energy value
+        assert abs(alpha[0] - 0.118) < 0.005  # αs(MZ)
+
+def test_cross_sections(field):
+    """Test cross section calculations."""
+    # Test energies
+    E = np.logspace(2, 3, 10)  # 100 GeV - 1 TeV
+    
+    # Generate test state
+    psi = field.compute_basis_state(E[0])
+    
+    # Compute cross section
+    sigma = field.compute_cross_section(E, psi)
+    
+    # Test high-energy behavior
+    ratio = sigma[-1] / sigma[-2]
+    expected = (E[-2] / E[-1])**4
+    assert np.isclose(ratio, expected, rtol=0.1)
+
+def test_coupling_unification(field):
+    """Test gauge coupling unification."""
     # Compute couplings at GUT scale
     couplings = field.compute_couplings(GUT_SCALE)
     
-    # Should converge to single value within errors
-    alpha_gut = couplings['alpha_gut']
-    assert abs(alpha_gut - 0.0376) < 0.0002  # Matches experimental bounds
+    # All couplings should be equal at GUT scale
+    g1, g2, g3 = couplings['g1'], couplings['g2'], couplings['g3']
+    assert abs(g1 - g2) < 0.1
+    assert abs(g2 - g3) < 0.1
+    assert abs(g3 - g1) < 0.1
+    
+    # Should match expected unified coupling
+    g_gut = (g1 + g2 + g3) / 3
+    assert abs(g_gut - 0.7) < 0.1

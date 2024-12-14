@@ -13,7 +13,7 @@ if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
 from core.detector import Detector
-from core.types import Energy, Momentum, CrossSection, FieldConfig
+from core.types import Energy, Momentum, CrossSection, FieldConfig, NumericValue
 from core.modes import ComputationMode
 from core.physics_constants import (
     ALPHA_VAL, Z_MASS,
@@ -137,3 +137,37 @@ def field_config() -> FieldConfig:
         coupling=0.1,
         dimension=4
     )
+
+@pytest.fixture
+def standard_field():
+    """Create standard model field configuration."""
+    return UnifiedField(
+        alpha=ALPHA_VAL,
+        mode='standard_model'
+    )
+
+@pytest.fixture
+def physics_data():
+    """Create standard physics test data."""
+    return {
+        'energies': np.logspace(2, 4, 10),  # 100 GeV - 10 TeV
+        'momenta': np.array([
+            [100.0, 0.0, 0.0, 0.0],
+            [0.0, 100.0, 0.0, 0.0]
+        ]),
+        'masses': {
+            'higgs': 125.1,
+            'top': 173.0,
+            'z': Z_MASS
+        }
+    }
+
+@pytest.fixture
+def test_state():
+    """Create test quantum state."""
+    return np.exp(-(X**2 + (C*T)**2)/(2*HBAR**2))
+
+@pytest.fixture
+def phase():
+    """Create test gauge phase."""
+    return np.pi/4  # 45 degrees

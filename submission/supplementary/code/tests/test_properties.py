@@ -43,20 +43,19 @@ class TestFieldProperties:
         assert abs(norm2 - norm1) < 1e-10
 
 class TestSymmetryProperties:
-    """Test symmetry properties of the theory."""
+    """Test symmetry properties of the field theory."""
     
-    @given(st.floats(min_value=0, max_value=2*pi))
-    def test_phase_invariance(self, phase, field):
-        """Test U(1) phase invariance of observables."""
-        psi = exp(-(X**2 + (C*T)**2)/(2*HBAR**2))
-        
-        # Apply phase transformation
-        psi_transformed = psi * exp(I * phase)
-        
-        # Energy should be invariant
-        E1 = field.compute_energy_density(psi)
-        E2 = field.compute_energy_density(psi_transformed)
-        assert abs(E2 - E1) < 1e-10
+    @given(st.floats(min_value=0.1, max_value=10.0))
+    def test_phase_invariance(self, energy, field):
+        """Test U(1) phase invariance."""
+        with gauge_phase() as phase:
+            psi = field.compute_basis_state(energy=1.0)
+            psi_transformed = field.apply_gauge_transform(psi, phase)
+            
+            # Observable quantities should be invariant
+            E1 = field.compute_energy_density(psi)
+            E2 = field.compute_energy_density(psi_transformed)
+            assert abs(E1 - E2) < 1e-10
     
     @given(st.floats(min_value=-0.99, max_value=0.99))
     def test_lorentz_invariance(self, velocity, field):

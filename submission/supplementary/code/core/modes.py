@@ -1,22 +1,15 @@
 """Computation mode definitions."""
 
-from enum import Enum, auto
 from typing import List, Optional, Tuple, Union, Dict
 import numpy as np
 from sympy import exp, I, pi, sqrt
 from dataclasses import dataclass
 
 from .types import Energy, WaveFunction
-from .basis import FractalBasis
 from .field import UnifiedField
 from .constants import ALPHA_VAL
 from .physics_constants import HBAR, C
-
-class ComputationMode(Enum):
-    """Defines computation modes for framework."""
-    SYMBOLIC = auto()  # Fully symbolic computation
-    NUMERIC = auto()   # Numerical computation
-    MIXED = auto()     # Mixed symbolic/numeric (cached evaluation) 
+from .enums import ComputationMode
 
 @dataclass
 class ModeCoefficient:
@@ -36,7 +29,6 @@ class ModeExpansion:
             alpha: Fine structure constant
         """
         self.field = UnifiedField(alpha=alpha)
-        self.basis = FractalBasis(alpha=alpha)
     
     def compute_mode_coefficients(self, psi: WaveFunction, 
                                 n_max: int = 100) -> List[ModeCoefficient]:

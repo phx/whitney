@@ -1,19 +1,19 @@
 """Unified field theory implementation."""
 
-from typing import Dict, Optional, Union, List
+from typing import Dict, Optional, Union, List, Tuple
 import numpy as np
 from sympy import (
     Symbol, exp, integrate, conjugate, sqrt,
-    oo, I, pi, Matrix, diff, solve, Eq, Function, M_PLANCK
+    oo, I, pi, Matrix, diff, solve, Eq, Function
 )
 from .physics_constants import (
     ALPHA_VAL, X, T, P, Z_MASS,
     g1_REF, g2_REF, g3_REF,
     ALPHA_REF, GAMMA_1, GAMMA_2, GAMMA_3,
-    HBAR, C, G, E
+    HBAR, C, G, E, M_PLANCK
 )
-from .types import Energy, FieldConfig, WaveFunction
-from .modes import ComputationMode
+from .types import Energy, FieldConfig, WaveFunction, NumericValue
+from .enums import ComputationMode
 from .errors import (
     PhysicsError, ValidationError, ComputationError,
     EnergyConditionError, CausalityError, GaugeError
@@ -543,3 +543,160 @@ class UnifiedField:
         )
         
         return K_frac + V_frac
+        
+    def compute_field_equation(self, psi: WaveFunction) -> WaveFunction:
+        """Compute field equation including fractal corrections.
+        
+        Args:
+            psi: Field configuration
+            
+        Returns:
+            Result of field equation operator
+        """
+        # Standard Klein-Gordon operator
+        d2_t = diff(psi, T, 2)
+        d2_x = diff(psi, X, 2)
+        kg_term = d2_t/C**2 - d2_x + (self.alpha/HBAR**2) * psi
+        
+        # Fractal corrections from appendix_j
+        fractal_term = self._compute_fractal_field_terms(psi)
+        
+        return kg_term + fractal_term
+        
+    def _compute_fractal_field_terms(self, psi: WaveFunction) -> WaveFunction:
+        """Compute fractal correction terms for field equation.
+        
+        Args:
+            psi: Field configuration
+            
+        Returns:
+            Fractal corrections to field equation
+        """
+        # Higher derivative terms from fractal structure
+        d3_x = diff(psi, X, 3)
+        d3_t = diff(psi, T, 3)
+        d4_x = diff(psi, X, 4)
+        d4_t = diff(psi, T, 4)
+        
+        # Mixed derivatives
+        d2t_d2x = diff(diff(psi, T, 2), X, 2)
+        
+        # Fractal corrections from appendix_j eq. J.2.3
+        corrections = (
+            self.alpha**2 * (
+                d4_x/(4*M_PLANCK**2) + 
+                d4_t/(4*M_PLANCK**2 * C**4)
+            ) +
+            self.alpha * (
+                d2t_d2x/(2*M_PLANCK * C**2) +
+                abs(psi)**2 * psi
+            )
+        )
+        
+        return corrections
+
+    # Neutrino Physics Methods
+    def compute_neutrino_angles(self) -> Tuple[float, float, float]:
+        """
+        Compute neutrino mixing angles from fractal structure.
+        
+        Returns:
+            Tuple[float, float, float]: (theta_12, theta_23, theta_13)
+        """
+        # Implementation will use fractal recursion to generate mixing angles
+        raise NotImplementedError
+    
+    def compute_neutrino_masses(self) -> List[float]:
+        """
+        Compute neutrino mass spectrum.
+        
+        Returns:
+            List[float]: [m1, m2, m3] in eV
+        """
+        raise NotImplementedError
+    
+    # CP Violation Methods
+    def compute_ckm_matrix(self) -> np.ndarray:
+        """
+        Compute CKM mixing matrix.
+        
+        Returns:
+            np.ndarray: 3x3 complex CKM matrix
+        """
+        raise NotImplementedError
+    
+    def extract_cp_phase(self, V: np.ndarray) -> float:
+        """
+        Extract CP-violating phase from CKM matrix.
+        
+        Args:
+            V: CKM matrix
+            
+        Returns:
+            float: CP phase in radians
+        """
+        raise NotImplementedError
+    
+    def compute_jarlskog(self) -> float:
+        """
+        Compute Jarlskog CP-violation invariant.
+        
+        Returns:
+            float: J_CP value
+        """
+        raise NotImplementedError
+    
+    def compute_cp_violation(self) -> float:
+        """
+        Compute CP violation parameter epsilon.
+        
+        Returns:
+            float: CP violation strength
+        """
+        raise NotImplementedError
+    
+    def compute_baryon_asymmetry(self) -> float:
+        """
+        Compute baryon asymmetry eta_B.
+        
+        Returns:
+            float: n_B/n_gamma ratio
+        """
+        raise NotImplementedError
+    
+    # Mass Generation Methods
+    def compute_higgs_vev(self) -> float:
+        """
+        Compute Higgs vacuum expectation value.
+        
+        Returns:
+            float: vev in GeV
+        """
+        raise NotImplementedError
+    
+    def compute_higgs_mass(self) -> float:
+        """
+        Compute physical Higgs boson mass.
+        
+        Returns:
+            float: mass in GeV
+        """
+        raise NotImplementedError
+    
+    def compute_fermion_masses(self) -> Dict[str, float]:
+        """
+        Compute fermion mass spectrum.
+        
+        Returns:
+            Dict[str, float]: Masses in GeV keyed by particle name
+        """
+        raise NotImplementedError
+    
+    def compute_mass_ratios(self) -> Dict[str, float]:
+        """
+        Compute key mass ratios between particles.
+        
+        Returns:
+            Dict[str, float]: Mass ratios keyed by ratio name
+        """
+        raise NotImplementedError

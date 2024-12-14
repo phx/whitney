@@ -30,3 +30,10 @@ python -m pytest test_*.py
 ## Authors
 - James Robert Austin
 - Keatron Leviticus Evans 
+
+## Documentation
+
+- [Installation Guide](supplementary/code/docs/installation.md)
+- [API Reference](supplementary/code/docs/api.md)
+- [Scientific Documentation](supplementary/code/docs/scientific.md)
+- [Testing Guide](supplementary/code/docs/testing_guide.md)

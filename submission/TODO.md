@@ -3,29 +3,40 @@
 - [ ] Add scale invariance tests
   - [ ] Test scaling at different energy levels
   - [ ] Verify fractal dimension consistency
-- [ ] Add gauge coupling tests
-  - [ ] Test running coupling convergence
-  - [ ] Verify unification point stability
-- [ ] Add fermion mass tests
-  - [ ] Test mass ratio predictions
-  - [ ] Verify generational structure 
 
-## Implementation Status
-- [x] Fix linter errors
-  - [x] Add target_precision to generate_weights.py
-  - [x] Add learning_rate to generate_weights.py 
-  - [x] Import GUT_SCALE in test_predictions.py
-- [ ] Check UnifiedField implementation
-  - [x] Review all method calls from tests
-  - [x] Document missing methods
-  - [ ] Implement missing core methods:
-    - [x] compute_field()
-    - [x] evolve_field() and helpers
-    - [ ] compute_field_equation()
-    - [ ] compute_beta_functions()
-    - [ ] compute_gut_scale()
-    - [ ] apply_cpt_transform()
-    - [ ] scale_transform()
-    - [ ] compute_dark_matter_density()
-    - [ ] compute_dm_cross_section()
-- [ ] Run and fix tests
+## Test Infrastructure Fixes
+- [ ] Fix Missing Fixtures
+  - [x] Add standard_field fixture
+  - [x] Add physics_data fixture
+  - [x] Add phase fixture for gauge tests
+  - [x] Add test_state fixture
+  - [x] Add numeric_precision fixture
+- [ ] Fix Hypothesis Integration Issues
+  - [ ] Fix function-scoped fixture issues with @given decorator
+  - [x] Add gauge_phase context manager
+  - [x] Add lorentz_boost context manager
+  - [ ] Add quantum_state context manager
+  - [ ] Add field_config context manager
+  - [ ] Add numeric_precision context manager
+  - [ ] Update tests to use new context managers:
+    - [x] test_coordinates.py
+    - [ ] test_physics.py
+    - [ ] test_theorems.py
+    - [ ] test_properties.py
+    - [ ] test_integration.py
+- [ ] Fix Detector Test Issues
+  - [ ] Fix Detector.__init__() argument issues
+  - [ ] Add missing resolution and acceptance parameters
+  - [ ] Handle systematics keyword argument
+- [ ] Fix Type System Issues
+  - [ ] Fix NumericValue arithmetic operations
+  - [ ] Add missing grid and quantum_numbers to WaveFunction
+  - [ ] Fix FieldConfig initialization
+- [ ] Fix Mathematical/Physics Issues
+  - [ ] Fix derivative calculations with light-cone coordinates
+  - [ ] Fix gauge transformations phase validation
+  - [ ] Fix field evolution with negative energies
+- [ ] Fix Coverage Issues
+  - [ ] Implement missing UnifiedField methods
+  - [ ] Add missing FractalBasis methods
+  - [ ] Fix validation and error handling

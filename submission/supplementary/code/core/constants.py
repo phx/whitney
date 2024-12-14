@@ -13,3 +13,6 @@ DEBUG = False
 MAX_WORKERS = 4
 CACHE_SIZE = 1000
 LOG_LEVEL = "INFO"
+
+# Physics scales
+GUT_SCALE = 2.1e16  # GeV - Grand unification scale
