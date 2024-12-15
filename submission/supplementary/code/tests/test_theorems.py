@@ -3,17 +3,23 @@
 import pytest
 import numpy as np
 from hypothesis import given, strategies as st
-from sympy import exp, I, pi, sqrt, integrate, conjugate, oo
+from sympy import exp, I, pi, sqrt, integrate, conjugate, oo, Matrix, diff
 from core.field import UnifiedField
 from core.basis import FractalBasis
 from core.types import Energy
-from core.errors import PhysicsError
+from core.errors import PhysicsError, GaugeError
 from core.contexts import (
     gauge_phase,
     quantum_state,
     field_config,
     numeric_precision,
     lorentz_boost
+)
+from core.physics_constants import (
+    ALPHA_VAL,
+    Z_MASS,
+    X, T, C, HBAR,
+    g1_REF, g2_REF, g3_REF
 )
 
 @pytest.fixture
@@ -187,110 +193,156 @@ class TestFieldTheorems:
         """Test holographic entropy scaling."""
         field = UnifiedField()
         
-        # Test entropy scaling with area
-        areas = [1.0, 2.0, 4.0, 8.0]  # Planck units
-        entropies = [field.compute_entropy(A) for A in areas]
-        
-        # Should scale linearly with area
-        ratios = [S/A for S, A in zip(entropies, areas)]
-        assert np.allclose(ratios, ratios[0], rtol=1e-8)
-        
-        # Check coefficient matches holographic bound
-        assert all(S <= A/4 for S, A in zip(entropies, areas))
+        with field_config(dimension=4) as config, numeric_precision(rtol=1e-8) as prec:
+            # Test entropy scaling with area
+            areas = [1.0, 2.0, 4.0, 8.0]  # Planck units
+            entropies = [field.compute_entropy(A) for A in areas]
+            
+            # Should scale linearly with area
+            ratios = [S/A for S, A in zip(entropies, areas)]
+            assert np.allclose(ratios, ratios[0], **prec)
+            
+            # Check coefficient matches holographic bound
+            assert all(S <= A/4 for S, A in zip(entropies, areas))
+            
+            # Additional holographic principle verifications
+            assert field.verify_area_law(areas, entropies, **prec)
+            assert field.check_holographic_bound(areas, entropies, **prec)
+            assert field.verify_fractal_entropy_scaling(areas, entropies, **prec)
     
     def test_rg_fixed_points(self):
         """Test RG fixed points."""
         field = UnifiedField()
         
-        # Compute beta functions near fixed points
-        E_gut = field.compute_gut_scale()
-        beta_funcs = field.compute_beta_functions(E_gut)
-        
-        # Should vanish at fixed point
-        assert all(abs(beta) < 1e-8 for beta in beta_funcs.values())
+        with field_config(dimension=4) as config, numeric_precision(rtol=1e-8) as prec:
+            # Compute beta functions near fixed points
+            E_gut = field.compute_gut_scale()
+            beta_funcs = field.compute_beta_functions(E_gut)
+            
+            # Should vanish at fixed point
+            assert all(abs(beta) < prec['rtol'] for beta in beta_funcs.values())
+            
+            # Additional RG flow verifications
+            assert field.verify_rg_consistency(E_gut, **prec)
+            assert field.check_fixed_point_stability(beta_funcs, **prec)
+            assert field.verify_fractal_rg_structure(E_gut, **prec)
     
     def test_cp_violation(self):
         """Test CP violation mechanism."""
         field = UnifiedField()
         
-        # Compute Jarlskog invariant
-        J = field.compute_jarlskog()
-        
-        # Should match experimental value
-        assert abs(J - 3.2e-5) < 0.3e-5
+        with field_config(dimension=4) as config, numeric_precision(rtol=1e-5) as prec:
+            # Compute Jarlskog invariant
+            J = field.compute_jarlskog()
+            
+            # Should match experimental value
+            assert abs(J - 3.2e-5) < 0.3e-5
+            
+            # Additional CP violation verifications
+            assert field.verify_cp_violation_mechanism(J, **prec)
+            assert field.check_baryon_asymmetry_consistency(J, **prec)
+            assert field.verify_ckm_unitarity(**prec)
+            assert field.check_cp_phase_origin(**prec)
 
     def test_gravitational_wave_spectrum(self):
         """Test gravitational wave spectrum."""
         field = UnifiedField()
         
-        # Test frequencies
-        freqs = np.logspace(-3, 3, 10)  # Hz
-        
-        # Compute spectrum
-        Omega_gw = field.compute_gw_spectrum(freqs)
-        
-        # Check fractal structure
-        for i in range(len(freqs)-1):
-            ratio = Omega_gw[i+1] / Omega_gw[i]
-            # Should follow fractal scaling
-            assert abs(ratio - field.compute_fractal_ratio()) < 1e-6
+        with field_config(dimension=4) as config, numeric_precision(rtol=1e-6) as prec:
+            # Test frequencies
+            freqs = np.logspace(-3, 3, 10)  # Hz
+            
+            # Compute spectrum
+            Omega_gw = field.compute_gw_spectrum(freqs)
+            
+            # Check fractal structure
+            for i in range(len(freqs)-1):
+                ratio = Omega_gw[i+1] / Omega_gw[i]
+                # Should follow fractal scaling
+                assert abs(ratio - field.compute_fractal_ratio()) < 1e-6
+                
+            # Additional gravitational wave verifications
+            assert field.verify_spectrum_consistency(freqs, Omega_gw, **prec)
+            assert field.check_fractal_spectrum_structure(Omega_gw, **prec)
+            assert field.verify_energy_scale_dependence(freqs, Omega_gw, **prec)
     
     def test_quantum_measurement(self):
         """Test quantum measurement process."""
         field = UnifiedField()
         
-        # Prepare superposition state
-        psi = field.create_superposition([0, 1], [1/np.sqrt(2), 1/np.sqrt(2)])
-        
-        # Perform measurement
-        outcomes, probs = field.compute_measurement_probabilities(psi)
-        
-        # Check Born rule
-        assert np.allclose(probs, [0.5, 0.5], rtol=1e-8)
-        
-        # Verify decoherence
-        rho_final = field.evolve_with_environment(psi)
-        coherence = field.compute_coherence(rho_final)
-        assert coherence < 1e-8
+        with field_config(dimension=4) as config, numeric_precision(rtol=1e-8) as prec:
+            with quantum_state(energy=1.0) as (psi_base, _):
+                # Prepare superposition state
+                psi = field.create_superposition([0, 1], [1/np.sqrt(2), 1/np.sqrt(2)])
+                
+                # Perform measurement
+                outcomes, probs = field.compute_measurement_probabilities(psi)
+                
+                # Check Born rule
+                assert np.allclose(probs, [0.5, 0.5], **prec)
+                
+                # Verify decoherence
+                rho_final = field.evolve_with_environment(psi)
+                coherence = field.compute_coherence(rho_final)
+                assert coherence < prec['rtol']
+                
+                # Additional quantum measurement verifications
+                assert field.verify_measurement_consistency(outcomes, probs, **prec)
+                assert field.check_decoherence_timescale(rho_final, **prec)
+                assert field.verify_quantum_classical_transition(psi, rho_final, **prec)
+                assert field.check_measurement_basis_independence(psi, **prec)
 
     def test_scale_invariance(self):
         """Test scale invariance."""
         field = UnifiedField()
         
-        # Test energies
-        E1, E2 = 100.0, 1000.0  # GeV
-        
-        # Compute field at different scales
-        psi1 = field.compute_field(E1)
-        psi2 = field.compute_field(E2)
-        
-        # Check scaling relation
-        ratio = E2/E1
-        scaled = field.scale_transform(psi1, ratio)
-        assert field.check_equivalence(scaled, psi2)
+        with field_config(dimension=4) as config, numeric_precision(rtol=1e-6) as prec:
+            # Test energies
+            E1, E2 = 100.0, 1000.0  # GeV
+            
+            # Compute field at different scales
+            psi1 = field.compute_field(E1)
+            psi2 = field.compute_field(E2)
+            
+            # Check scaling relation
+            ratio = E2/E1
+            scaled = field.scale_transform(psi1, ratio)
+            assert field.check_equivalence(scaled, psi2, **prec)
+            
+            # Additional scale invariance verifications
+            assert field.verify_scaling_consistency(psi1, psi2, ratio, **prec)
+            assert field.check_fractal_scale_invariance(psi1, E1, **prec)
+            assert field.verify_scale_dependent_coupling(E1, E2, **prec)
 
     def test_gauge_coupling_unification(self):
         """Test gauge coupling unification."""
         field = UnifiedField()
         
-        # Test range of energies approaching GUT scale
-        E_range = np.logspace(2, 16, 10)  # GeV
-        
-        # Compute couplings
-        alphas = {E: field.compute_couplings(E) for E in E_range}
-        
-        # Verify convergence at GUT scale
-        final_couplings = alphas[E_range[-1]]
-        assert all(abs(final_couplings[i] - final_couplings[j]) < 1e-3 
-                  for i in range(3) for j in range(i))
-        
-        # Check running matches beta functions
-        for E1, E2 in zip(E_range[:-1], E_range[1:]):
-            beta_predicted = field.compute_beta_functions(E1)
-            actual_change = {k: (alphas[E2][k] - alphas[E1][k])/np.log(E2/E1)
-                           for k in alphas[E1]}
-            assert all(abs(beta_predicted[k] - actual_change[k]) < 1e-6 
-                      for k in beta_predicted)
+        with field_config(dimension=4) as config, numeric_precision(rtol=1e-6) as prec:
+            # Test range of energies approaching GUT scale
+            E_range = np.logspace(2, 16, 10)  # GeV
+            
+            # Compute couplings
+            alphas = {E: field.compute_couplings(E) for E in E_range}
+            
+            # Verify convergence at GUT scale
+            final_couplings = alphas[E_range[-1]]
+            assert all(abs(final_couplings[i] - final_couplings[j]) < prec['rtol']
+                      for i in range(3) for j in range(i))
+            
+            # Check running matches beta functions
+            for E1, E2 in zip(E_range[:-1], E_range[1:]):
+                beta_predicted = field.compute_beta_functions(E1)
+                actual_change = {k: (alphas[E2][k] - alphas[E1][k])/np.log(E2/E1)
+                               for k in alphas[E1]}
+                assert all(abs(beta_predicted[k] - actual_change[k]) < prec['rtol']
+                          for k in beta_predicted)
+                
+                # Additional unification verifications
+                assert field.verify_coupling_convergence(E1, E2, **prec)
+                assert field.check_beta_function_consistency(beta_predicted, actual_change, **prec)
+                assert field.verify_gut_scale_emergence(E_range, alphas, **prec)
+                assert field.check_threshold_corrections(E1, E2, **prec)
 
     def test_fermion_mass_hierarchy(self):
         """Test fermion mass hierarchy."""

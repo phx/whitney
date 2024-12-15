@@ -3,10 +3,25 @@
 import pytest
 import numpy as np
 from hypothesis import given, strategies as st
-from sympy import exp, I, pi
+from sympy import exp, I, pi, sqrt, integrate, conjugate, oo, Matrix, diff
 from core.field import UnifiedField
-from core.errors import PhysicsError
-from core.contexts import gauge_phase
+from core.basis import FractalBasis
+from core.types import Energy
+from core.errors import PhysicsError, GaugeError
+from core.contexts import gauge_phase, lorentz_boost
+from core.physics_constants import (
+    X, T, C, HBAR,
+    ALPHA_VAL,
+    Z_MASS
+)
+
+@pytest.fixture
+def su2_generators():
+    """Create SU(2) generators."""
+    sigma_x = Matrix([[0, 1], [1, 0]])
+    sigma_y = Matrix([[0, -I], [I, 0]])
+    sigma_z = Matrix([[1, 0], [0, -1]])
+    return [sigma_x/2, sigma_y/2, sigma_z/2]
 
 @pytest.fixture
 def field():
@@ -34,14 +49,6 @@ class TestU1GaugeTransformations:
 
 class TestNonAbelianTransformations:
     """Test non-abelian gauge transformations."""
-    
-    @pytest.fixture
-    def su2_generators(self):
-        """Create SU(2) generators."""
-        sigma_x = Matrix([[0, 1], [1, 0]])
-        sigma_y = Matrix([[0, -I], [I, 0]])
-        sigma_z = Matrix([[1, 0], [0, -1]])
-        return [sigma_x/2, sigma_y/2, sigma_z/2]
     
     def test_su2_transformation(self, field, test_state, su2_generators):
         """Test SU(2) gauge transformation."""
