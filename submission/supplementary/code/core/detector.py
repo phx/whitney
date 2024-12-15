@@ -1,7 +1,7 @@
 """Detector simulation and response modeling."""
 
 import numpy as np
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Dict, Optional, Union, Tuple
 
 from .types import Energy, Momentum, RealValue
@@ -20,12 +20,28 @@ class Detector:
         acceptance (Dict[str, Union[float, Tuple[float, float]]]): Acceptance cuts
             - 'eta': (min, max) pseudorapidity range
             - 'pt': Minimum transverse momentum (GeV)
+        threshold (float): Threshold for detection
+        efficiency (float): Detection efficiency
+        systematics (Dict[str, float]): Systematic uncertainties
+            - 'energy_scale': Energy scale uncertainty
+            - 'position_scale': Position scale uncertainty
+            - 'efficiency': Efficiency uncertainty
     """
-    resolution: Dict[str, float]
-    acceptance: Dict[str, Union[float, Tuple[float, float]]]
-    threshold: float
-    efficiency: float
-    systematics: Dict[str, float]
+    resolution: Dict[str, float] = field(default_factory=lambda: {
+        'energy': 0.01,
+        'position': 0.001
+    })
+    acceptance: Dict[str, Union[float, Tuple[float, float]]] = field(default_factory=lambda: {
+        'eta': (-2.5, 2.5),
+        'pt': 10.0
+    })
+    threshold: float = 10.0
+    efficiency: float = 0.9
+    systematics: Dict[str, float] = field(default_factory=lambda: {
+        'energy_scale': 0.01,
+        'position_scale': 0.005,
+        'efficiency': 0.02
+    })
     
     def __post_init__(self):
         """Validate detector parameters."""

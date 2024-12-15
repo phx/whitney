@@ -6,6 +6,7 @@ from typing import Dict, Any, List, Tuple, Optional
 
 import pytest
 import numpy as np
+import pytest_benchmark
 
 # Add project root to Python path
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -201,3 +202,25 @@ def test_quantum_numbers():
         'j': 0.5,
         'sz': 0.5
     }
+
+@pytest.fixture
+def velocity(request):
+    """Create test velocity for Lorentz transformations."""
+    return 0.5
+
+@pytest.fixture(params=[0.1, 1.0, 5.0])
+def separation(request):
+    """Create test spacetime separation."""
+    return request.param
+
+@pytest.fixture(params=[0.1, 1.0, 10.0])
+def distance(request):
+    """Create test spatial distance."""
+    return request.param
+
+@pytest.fixture
+def benchmark(request):
+    """Create benchmark fixture."""
+    if pytest_benchmark is None:
+        pytest.skip("pytest-benchmark not installed")
+    return request.getfixturevalue('benchmark')

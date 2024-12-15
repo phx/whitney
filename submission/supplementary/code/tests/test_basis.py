@@ -4,7 +4,7 @@ import pytest
 from sympy import exp, I, pi
 import numpy as np
 from core.basis import FractalBasis
-from core.types import Energy, FieldConfig
+from core.types import Energy, FieldConfig, WaveFunction
 from core.modes import ComputationMode
 from core.errors import PhysicsError
 
@@ -30,11 +30,11 @@ def test_basis_computation():
         basis.compute(n=-1)
 
 def test_field_equations():
-    """Test field equation solution in basis."""
+    """Test field equation solutions."""
+    config = FieldConfig(mass=1.0, dimension=1, coupling=0.1)
     basis = FractalBasis()
-    config = FieldConfig(mass=1.0, dimension=0, coupling=0.1)
     psi = basis._solve_field_equations(config)
-    assert psi is not None
+    assert isinstance(psi, WaveFunction)
     
     # Should satisfy field equations
     density = basis.compute_energy_density(psi)

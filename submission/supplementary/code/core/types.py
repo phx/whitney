@@ -3,7 +3,9 @@
 from typing import Any, Dict, List, Union, Optional, Tuple
 from dataclasses import dataclass
 import numpy as np
+from sympy import Expr, Symbol
 from .errors import ValidationError, PhysicsError
+from .physics_constants import X
 
 __all__ = [
     'RealValue',
@@ -435,6 +437,14 @@ class WaveFunction:
         norm = np.sqrt(np.sum(np.abs(self.psi)**2))
         if norm > 0:
             self.psi /= norm
+
+    @classmethod
+    def from_expression(cls, expr: Expr, grid: Optional[np.ndarray] = None):
+        """Create WaveFunction from symbolic expression."""
+        if grid is None:
+            grid = np.linspace(-10, 10, 100)
+        psi = np.array([complex(expr.subs(X, x)) for x in grid])
+        return cls(psi=psi, grid=grid, quantum_numbers={'n': 0})
 
 @dataclass
 class AnalysisResult:

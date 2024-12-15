@@ -37,7 +37,8 @@ from core.contexts import (
 )
 from core.physics_constants import (
     X, T, C, HBAR,
-    ALPHA_VAL
+    ALPHA_VAL,
+    P
 )
 
 @pytest.fixture

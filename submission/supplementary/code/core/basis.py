@@ -137,3 +137,19 @@ class FractalBasis(UnifiedField):
         """Validate energy parameter."""
         if not isinstance(E, (int, float)) or E <= 0:
             raise PhysicsError("Energy must be positive")
+
+    def _validate_inputs(self, n: int, E: float) -> None:
+        """
+        Validate basis function inputs.
+        
+        Args:
+            n: Level number
+            E: Energy value
+            
+        Raises:
+            PhysicsError: If inputs are invalid
+        """
+        if not isinstance(n, int) or n < 0:
+            raise PhysicsError("Level n must be non-negative integer")
+        if not isinstance(E, (int, float)) or E <= 0:
+            raise PhysicsError("Energy must be positive")

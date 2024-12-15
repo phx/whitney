@@ -46,23 +46,26 @@ def validate_momentum(momentum: Union[float, Momentum]) -> Momentum:
     except Exception as e:
         raise ValidationError(f"Invalid momentum value: {e}")
 
-def validate_wavefunction(psi: Union[Expr, WaveFunction]) -> WaveFunction:
-    """
-    Validate wavefunction.
-    
-    Args:
-        psi: Wavefunction to validate
-        
-    Returns:
-        WaveFunction: Validated wavefunction
-        
-    Raises:
-        ValidationError: If wavefunction is invalid
-    """
-    if isinstance(psi, WaveFunction):
-        return psi
+def validate_wavefunction(psi: Union[Expr, np.ndarray]) -> WaveFunction:
+    """Validate and convert to WaveFunction."""
     try:
-        return WaveFunction(psi)
+        if isinstance(psi, Expr):
+            grid = np.linspace(-10, 10, 100)
+            values = np.array([complex(psi.subs(X, x)) for x in grid])
+            return WaveFunction(
+                psi=values,
+                grid=grid,
+                quantum_numbers={'n': 0}
+            )
+        elif isinstance(psi, np.ndarray):
+            grid = np.linspace(-10, 10, len(psi))
+            return WaveFunction(
+                psi=psi,
+                grid=grid,
+                quantum_numbers={'n': 0}
+            )
+        else:
+            raise ValidationError("Input must be symbolic expression or numpy array")
     except Exception as e:
         raise ValidationError(f"Invalid wavefunction: {e}")
 
