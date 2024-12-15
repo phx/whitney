@@ -28,10 +28,17 @@ from core.types import (
     FieldConfig, 
     WaveFunction
 )
-from core.transforms import lorentz_boost, gauge_transform
-from core.physics_constants import ALPHA_VAL
 from core.errors import PhysicsError
-from core.contexts import gauge_phase, lorentz_boost
+from core.contexts import (
+    gauge_phase,
+    lorentz_boost,
+    quantum_state,
+    numeric_precision
+)
+from core.physics_constants import (
+    X, T, C, HBAR,
+    ALPHA_VAL
+)
 
 @pytest.fixture
 def field():
@@ -46,19 +53,19 @@ def basis():
 @pytest.fixture
 def constants(request):
     """Get physics constants from conftest."""
-    from core.physics_constants import X, T, P, HBAR, C
     return {'X': X, 'T': T, 'P': P, 'HBAR': HBAR, 'C': C}
 
 @pytest.mark.physics
 class TestLorentzInvariance:
     """Test Lorentz invariance properties."""
     
-    @given(st.floats(min_value=0.1, max_value=10.0))
-    def test_energy_density_invariance(self, energy, field, constants):
+    @given(st.floats(min_value=-0.9, max_value=0.9))
+    def test_energy_density_invariance(self, beta):
         """Test that energy density transforms correctly."""
-        X, T, C, HBAR = constants['X'], constants['T'], constants['C'], constants['HBAR']
-        with gauge_phase() as phase, lorentz_boost() as (beta, gamma):
-            psi = exp(-(X**2 + (C*T)**2)/(2*HBAR**2))
+        field = UnifiedField(alpha=ALPHA_VAL)
+        with gauge_phase() as phase, \
+             quantum_state(energy=1.0) as (psi, _), \
+             numeric_precision(rtol=1e-10) as prec:
             psi_gauge = field.apply_gauge_transform(psi, phase)
             E1 = field.compute_energy_density(psi_gauge)
             
@@ -67,14 +74,16 @@ class TestLorentzInvariance:
             E2 = field.compute_energy_density(psi_boosted)
             
             # Energy density should transform correctly
-            assert abs(E2 - gamma**2 * E1) < 1e-10
+            gamma = 1/sqrt(1 - beta**2)
+            assert abs(E2 - gamma**2 * E1) < prec['rtol']
     
     @given(st.floats(min_value=-0.9, max_value=0.9))
-    def test_causality_invariance(self, beta, field, constants):
+    def test_causality_invariance(self, beta):
         """Test that causality is preserved under boosts."""
-        X, T, C, HBAR = constants['X'], constants['T'], constants['C'], constants['HBAR']
-        with gauge_phase() as phase:
-            psi = exp(-(X**2 + (C*T)**2)/(2*HBAR**2))
+        field = UnifiedField(alpha=ALPHA_VAL)
+        with gauge_phase() as phase, \
+             quantum_state(energy=1.0) as (psi, _), \
+             numeric_precision(rtol=1e-10) as prec:
             psi_gauge = field.apply_gauge_transform(psi, phase)
             assert field.check_causality(psi_gauge)
             

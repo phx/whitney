@@ -8,7 +8,12 @@ from core.field import UnifiedField
 from core.basis import FractalBasis
 from core.types import Energy
 from core.errors import PhysicsError, GaugeError
-from core.contexts import gauge_phase, lorentz_boost
+from core.contexts import (
+    gauge_phase,
+    lorentz_boost,
+    quantum_state,
+    numeric_precision
+)
 from core.physics_constants import (
     X, T, C, HBAR,
     ALPHA_VAL,
@@ -38,8 +43,9 @@ class TestU1GaugeTransformations:
     """Test U(1) gauge transformations."""
     
     @given(st.floats(min_value=0.1, max_value=10.0))
-    def test_phase_rotation(self, energy, field):
+    def test_phase_rotation(self, energy):
         """Test phase rotation of wavefunction."""
+        field = UnifiedField(alpha=ALPHA_VAL)
         with gauge_phase() as phase:
             psi = exp(-(field.X**2 + field.T**2))
             psi_transformed = field.apply_gauge_transform(psi, phase)
@@ -81,8 +87,10 @@ class TestGaugeCurrents:
         assert abs(divergence) < 1e-10
     
     @given(st.floats(min_value=0.1, max_value=10.0))
-    def test_current_gauge_covariance(self, energy, field, test_state):
+    def test_current_gauge_covariance(self, energy):
         """Test gauge covariance of current."""
+        field = UnifiedField(alpha=ALPHA_VAL)
+        test_state = exp(-(X**2 + (C*T)**2)/(2*HBAR**2))
         with gauge_phase() as phase:
             # Original currents
             j0, j1 = field.compute_gauge_current(test_state)

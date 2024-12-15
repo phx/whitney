@@ -19,6 +19,7 @@ pytest>=6.0.0       # Required for unit testing
 pytest-cov>=2.10.0  # Required for coverage reporting
 pytest-benchmark>=3.2.0
 hypothesis>=6.0.0   # Required for property-based testing
+pytest-timeout>=2.0.0
 
 # Optional: Machine Learning support
 scikit-learn>=0.24  # Optional: ML algorithms

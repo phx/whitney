@@ -19,6 +19,7 @@ from .transforms import lorentz_boost, gauge_transform
 from .types import Energy, FieldConfig, WaveFunction
 from .modes import ComputationMode
 from .field import UnifiedField
+from .errors import PhysicsError, ValidationError
 
 class FractalBasis(UnifiedField):
     """
@@ -126,3 +127,13 @@ class FractalBasis(UnifiedField):
     # - compute_inner_product
     # - apply_gauge_transformation
     # - compute_basis_function (replaced by compute)
+
+    def validate_level(self, n: int) -> None:
+        """Validate basis function level."""
+        if not isinstance(n, int) or n < 0:
+            raise PhysicsError("Level n must be non-negative integer")
+
+    def validate_energy(self, E: float) -> None:
+        """Validate energy parameter."""
+        if not isinstance(E, (int, float)) or E <= 0:
+            raise PhysicsError("Energy must be positive")

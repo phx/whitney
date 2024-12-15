@@ -22,33 +22,43 @@ class TestFieldProperties:
     """Test fundamental properties of quantum fields."""
     
     @given(st.floats(min_value=0.1, max_value=10.0))
-    def test_energy_positivity(self, mass, field):
+    def test_energy_positivity(self, mass):
         """Test that energy is always positive."""
+        field = UnifiedField(alpha=0.1)
         config = FieldConfig(mass=mass, coupling=0.1, dimension=1)
         psi = field.compute_field(config)
         E = field.compute_energy_density(psi)
         assert E >= 0
     
     @given(st.floats(min_value=-10.0, max_value=10.0))
-    def test_norm_conservation(self, time, field):
+    @pytest.mark.timeout(5)  # 5 second timeout
+    def test_norm_conservation(self, time):
         """Test that norm is conserved under time evolution."""
+        field = UnifiedField(alpha=ALPHA_VAL)
         psi = exp(-(X**2 + (C*T)**2)/(2*HBAR**2))
         field.state = psi
         
         # Evolve to given time
         evolved = field.evolve(Energy(time))
         
-        # Check norm conservation
+        # Check norm conservation with infinite limits
         norm1 = integrate(conjugate(psi) * psi, (X, -oo, oo))
         norm2 = integrate(conjugate(evolved) * evolved, (X, -oo, oo))
         assert abs(norm2 - norm1) < 1e-10
+        
+        # Also verify with finite limits as numerical check
+        LIMIT = 10.0
+        finite_norm1 = integrate(conjugate(psi) * psi, (X, -LIMIT, LIMIT))
+        finite_norm2 = integrate(conjugate(evolved) * evolved, (X, -LIMIT, LIMIT))
+        assert abs(finite_norm2 - finite_norm1) < 1e-10
 
 class TestSymmetryProperties:
     """Test symmetry properties of the field theory."""
     
     @given(st.floats(min_value=0.1, max_value=10.0))
-    def test_phase_invariance(self, energy, field):
+    def test_phase_invariance(self, energy):
         """Test U(1) phase invariance."""
+        field = UnifiedField(alpha=0.1)
         with gauge_phase() as phase:
             psi = field.compute_basis_state(energy=1.0)
             psi_transformed = field.apply_gauge_transform(psi, phase)

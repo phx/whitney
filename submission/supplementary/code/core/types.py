@@ -3,7 +3,7 @@
 from typing import Any, Dict, List, Union, Optional, Tuple
 from dataclasses import dataclass
 import numpy as np
-from .errors import PhysicsError
+from .errors import ValidationError, PhysicsError
 
 __all__ = [
     'RealValue',
@@ -423,6 +423,13 @@ class WaveFunction:
     grid: np.ndarray
     quantum_numbers: Dict[str, int]
     
+    def validate(self) -> None:
+        """Additional validation of wavefunction."""
+        if not isinstance(self.grid, np.ndarray):
+            raise ValidationError("Grid must be numpy array")
+        if not isinstance(self.quantum_numbers, dict):
+            raise ValidationError("Quantum numbers must be dictionary")
+
     def normalize(self) -> None:
         """Normalize wavefunction."""
         norm = np.sqrt(np.sum(np.abs(self.psi)**2))

@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from typing import Dict, Optional, Union, Tuple
 
 from .types import Energy, Momentum, RealValue
-from .errors import PhysicsError
+from .errors import PhysicsError, ValidationError
 from .utils import propagate_errors
 
 @dataclass
@@ -23,11 +23,17 @@ class Detector:
     """
     resolution: Dict[str, float]
     acceptance: Dict[str, Union[float, Tuple[float, float]]]
+    threshold: float
+    efficiency: float
+    systematics: Dict[str, float]
     
     def __post_init__(self):
         """Validate detector parameters."""
         self._validate_resolution()
         self._validate_acceptance()
+        self.validate_threshold()
+        self.validate_efficiency()
+        self._validate_systematics()
     
     def _validate_resolution(self):
         """Validate resolution parameters."""
@@ -135,3 +141,27 @@ class Detector:
         eta_min, eta_max = self.acceptance['eta']
         return (pt >= self.acceptance['pt'] and 
                 eta_min <= eta <= eta_max)
+    
+    def validate_threshold(self) -> None:
+        """Validate threshold parameter."""
+        if not isinstance(self.threshold, (int, float)):
+            raise ValidationError("Threshold must be numeric")
+        if self.threshold <= 0:
+            raise ValidationError("Threshold must be positive")
+    
+    def validate_efficiency(self) -> None:
+        """Validate efficiency parameter."""
+        if not isinstance(self.efficiency, (int, float)):
+            raise ValidationError("Efficiency must be numeric")
+        if not 0 <= self.efficiency <= 1:
+            raise ValidationError("Efficiency must be between 0 and 1")
+    
+    def _validate_systematics(self) -> None:
+        """Validate systematics dictionary."""
+        if not isinstance(self.systematics, dict):
+            raise ValidationError("Systematics must be a dictionary")
+        for key, value in self.systematics.items():
+            if not isinstance(value, (int, float)):
+                raise ValidationError(f"Systematic {key} value must be numeric")
+            if value < 0:
+                raise ValidationError(f"Systematic {key} value must be non-negative")

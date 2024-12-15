@@ -13,29 +13,37 @@
   - [x] Add numeric_precision fixture
 - [ ] Fix Hypothesis Integration Issues
   - [ ] Fix function-scoped fixture issues with @given decorator
-  - [x] Add gauge_phase context manager
-  - [x] Add lorentz_boost context manager
-  - [ ] Add quantum_state context manager
-  - [ ] Add field_config context manager
-  - [ ] Add numeric_precision context manager
-  - [ ] Update tests to use new context managers:
-    - [x] test_coordinates.py
+    - [x] test_properties.py
     - [ ] test_physics.py
+    - [ ] test_gauge.py
+    - [ ] test_coordinates.py
     - [ ] test_theorems.py
-    - [ ] test_properties.py
-    - [ ] test_integration.py
-- [ ] Fix Detector Test Issues
-  - [ ] Fix Detector.__init__() argument issues
-  - [ ] Add missing resolution and acceptance parameters
-  - [ ] Handle systematics keyword argument
+    - [ ] test_predictions.py
+  - [ ] Fix energy/mass/time/velocity/separation/distance parameter handling
+  - [ ] Add HealthCheck suppression for function-scoped fixtures
+- [ ] Fix Detector Class Issues
+  - [ ] Fix Detector.__init__() arguments
+  - [ ] Add required resolution and acceptance parameters
+  - [ ] Handle threshold, efficiency, systematics kwargs properly
 - [ ] Fix Type System Issues
+  - [ ] Fix WaveFunction initialization (grid and quantum_numbers)
   - [ ] Fix NumericValue arithmetic operations
-  - [ ] Add missing grid and quantum_numbers to WaveFunction
-  - [ ] Fix FieldConfig initialization
+  - [ ] Fix FieldConfig initialization (alpha parameter)
+  - [ ] Fix type validation in field methods
 - [ ] Fix Mathematical/Physics Issues
   - [ ] Fix derivative calculations with light-cone coordinates
   - [ ] Fix gauge transformations phase validation
   - [ ] Fix field evolution with negative energies
+  - [ ] Fix matrix size mismatch in SU(2) transformations
+- [ ] Fix Missing UnifiedField Methods
+  - [ ] Add compute_basis_function()
+  - [ ] Add compute_basis_state()
+  - [ ] Add compute_correlator()
+  - [ ] Add compute_coupling()
+  - [ ] Add compute_s_matrix()
+  - [ ] Add compute_neutrino_angles()
+  - [ ] Add compute_dark_matter_density()
+  - [ ] Add other missing methods from test failures
 - [ ] Fix Coverage Issues
   - [ ] Implement missing UnifiedField methods
   - [ ] Add missing FractalBasis methods

@@ -171,3 +171,33 @@ def test_state():
 def phase():
     """Create test gauge phase."""
     return np.pi/4  # 45 degrees
+
+@pytest.fixture
+def standard_detector(detector):
+    """Create standard detector configuration."""
+    return Detector(
+        resolution={'energy': 0.01, 'position': 0.001},
+        acceptance={'eta': (-2.5, 2.5), 'pt': 10.0},
+        threshold=10.0,
+        efficiency=0.9,
+        systematics={'energy_scale': 0.01}
+    )
+
+@pytest.fixture
+def test_covariance_matrix():
+    """Create standard covariance matrix for testing."""
+    return np.array([
+        [1.0, 0.2, 0.1],
+        [0.2, 1.0, 0.3],
+        [0.1, 0.3, 1.0]
+    ])
+
+@pytest.fixture
+def test_quantum_numbers():
+    """Create standard quantum numbers for testing."""
+    return {
+        'n': 0,
+        'l': 0,
+        'j': 0.5,
+        'sz': 0.5
+    }

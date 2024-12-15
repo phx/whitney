@@ -13,19 +13,24 @@ from core.contexts import (
     field_config,
     numeric_precision
 )
+from core.physics_constants import (
+    X, T, C, HBAR,
+    ALPHA_VAL
+)
 
 @pytest.fixture
 def field():
     """Create UnifiedField instance for testing."""
-    return UnifiedField(alpha=0.1)
+    return UnifiedField(alpha=ALPHA_VAL)
 
 @pytest.mark.physics
 class TestPhysicsCalculations:
     """Test physics calculations and predictions."""
     
     @given(st.floats(min_value=0.1, max_value=10.0))
-    def test_coupling_evolution(self, energy, field):
+    def test_coupling_evolution(self, energy):
         """Test coupling constant evolution."""
+        field = UnifiedField(alpha=ALPHA_VAL)
         with numeric_precision() as prec:
             energies = np.logspace(2, 4, 10)
             couplings = field.evolve_coupling(energies, **prec)
@@ -54,10 +59,12 @@ class TestPhysicsCalculations:
 class TestTheorems:
     """Test theoretical consistency and theorems."""
     
-    def test_unitarity(self, field):
+    @given(st.floats(min_value=0.1, max_value=10.0))
+    def test_unitarity(self, energy):
         """Test unitarity constraints."""
-        with quantum_state(energy=100.0) as (psi1, _), \
-             quantum_state(energy=100.0) as (psi2, _), \
+        field = UnifiedField(alpha=ALPHA_VAL)
+        with quantum_state(energy=energy) as (psi1, _), \
+             quantum_state(energy=energy) as (psi2, _), \
              numeric_precision() as prec:
             
             states = [psi1, psi2]

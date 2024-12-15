@@ -700,3 +700,74 @@ class UnifiedField:
             Dict[str, float]: Mass ratios keyed by ratio name
         """
         raise NotImplementedError
+    
+    def compute_basis_state(self, energy: Energy) -> WaveFunction:
+        """
+        Compute basis state at given energy.
+        
+        Args:
+            energy: Energy scale
+            
+        Returns:
+            WaveFunction: Basis state
+        """
+        grid = np.linspace(-10, 10, 100)
+        psi = exp(-(X**2 + (C*T)**2)/(2*HBAR**2))
+        return WaveFunction(
+            psi=psi,
+            grid=grid,
+            quantum_numbers={'n': 0, 'E': energy.value}
+        )
+    
+    def compute_correlator(
+        self,
+        state: WaveFunction,
+        points: List[Tuple[Symbol, Symbol]]
+    ) -> float:
+        """
+        Compute correlation function.
+        
+        Args:
+            state: Quantum state
+            points: List of spacetime points
+            
+        Returns:
+            float: Correlation value
+        """
+        result = 1.0
+        for x1, x2 in points:
+            result *= state.psi.subs([(X, x1), (T, x2)])
+        return float(result)
+    
+    def compute_coupling(self, gauge_index: int, energy: Energy) -> float:
+        """
+        Compute gauge coupling at given energy scale.
+        
+        Args:
+            gauge_index: Index of gauge group (1=U(1), 2=SU(2), 3=SU(3))
+            energy: Energy scale
+            
+        Returns:
+            float: Gauge coupling value
+        """
+        g_ref = {1: g1_REF, 2: g2_REF, 3: g3_REF}[gauge_index]
+        gamma = {1: GAMMA_1, 2: GAMMA_2, 3: GAMMA_3}[gauge_index]
+        return g_ref * (1 + self.alpha * np.log(energy.value/Z_MASS))**(-gamma)
+        
+    def compute_amplitudes(self, energies: np.ndarray, momenta: np.ndarray) -> np.ndarray:
+        """
+        Compute scattering amplitudes.
+        
+        Args:
+            energies: Array of energy values
+            momenta: Array of momentum values
+            
+        Returns:
+            np.ndarray: Scattering amplitudes
+        """
+        amplitudes = []
+        for E, p in zip(energies, momenta):
+            psi = self.compute_basis_state(Energy(E))
+            M = self._compute_matrix_element(psi, p)
+            amplitudes.append(M)
+        return np.array(amplitudes)
