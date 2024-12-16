@@ -408,25 +408,17 @@ class FieldConfig:
 
 @dataclass
 class WaveFunction:
-    """
-    Quantum wavefunction with metadata.
+    """Quantum wavefunction."""
+    psi: Union[np.ndarray, Symbol]
+    grid: Optional[np.ndarray] = None
+    quantum_numbers: Optional[Dict[str, Any]] = None
     
-    Attributes:
-        psi (Union[np.ndarray, Expr]): Complex wavefunction values or symbolic expression
-        grid (np.ndarray): Spatial/momentum grid points
-        quantum_numbers (Dict): Quantum numbers
-        
-    Examples:
-        >>> psi = np.array([1+0j, 0j, 0j, 0j]) / np.sqrt(2)
-        >>> wf = WaveFunction(psi, np.linspace(-1,1,4), {'n':0, 'l':0})
-        >>> wf.normalize()  # Ensure normalization
-        
-        >>> expr = exp(-X**2/(2*HBAR))  # Symbolic expression
-        >>> wf = WaveFunction.from_expression(expr)  # Convert to numerical
-    """
-    psi: Union[np.ndarray, Expr]
-    grid: np.ndarray
-    quantum_numbers: Dict[str, int]
+    def __post_init__(self):
+        """Initialize after construction."""
+        if self.grid is None:
+            self.grid = np.linspace(-10, 10, 1000)
+        if self.quantum_numbers is None:
+            self.quantum_numbers = {}
 
     def __post_init__(self):
         """
@@ -744,9 +736,29 @@ class ErrorEstimate:
 
 @dataclass
 class NumericValue:
-    """Value with optional uncertainty and validation."""
-    value: Union[int, float, complex, np.number]
-    uncertainty: Optional[float] = None
+    """Numeric value with uncertainty."""
+    _value: Union[float, complex]
+    _uncertainty: Optional[float] = None
+    
+    @property
+    def value(self) -> Union[float, complex]:
+        """Get the value."""
+        return self._value
+        
+    @value.setter
+    def value(self, val: Union[float, complex]):
+        """Set the value."""
+        self._value = val
+        
+    @property
+    def uncertainty(self) -> Optional[float]:
+        """Get the uncertainty."""
+        return self._uncertainty
+        
+    @uncertainty.setter
+    def uncertainty(self, val: Optional[float]):
+        """Set the uncertainty."""
+        self._uncertainty = val
 
     def __post_init__(self):
         """Validate and initialize value."""
@@ -755,38 +767,38 @@ class NumericValue:
     def _validate(self):
         """Validate value and uncertainty."""
         # Validate value
-        if isinstance(self.value, (int, float, np.number)):
-            if not np.isfinite(float(self.value)):
+        if isinstance(self._value, (int, float, np.number)):
+            if not np.isfinite(float(self._value)):
                 raise ValueError("Value must be finite")
-        elif isinstance(self.value, complex):
-            if not (np.isfinite(self.value.real) and np.isfinite(self.value.imag)):
+        elif isinstance(self._value, complex):
+            if not (np.isfinite(self._value.real) and np.isfinite(self._value.imag)):
                 raise ValueError("Complex value must be finite")
         else:
-            raise TypeError(f"Invalid value type: {type(self.value)}")
+            raise TypeError(f"Invalid value type: {type(self._value)}")
 
         # Validate uncertainty
-        if self.uncertainty is not None:
-            if not isinstance(self.uncertainty, (int, float)):
+        if self._uncertainty is not None:
+            if not isinstance(self._uncertainty, (int, float)):
                 raise TypeError("Uncertainty must be real number")
-            if self.uncertainty < 0:
+            if self._uncertainty < 0:
                 raise ValueError("Uncertainty must be non-negative")
-            if not np.isfinite(float(self.uncertainty)):
+            if not np.isfinite(float(self._uncertainty)):
                 raise ValueError("Uncertainty must be finite")
 
     @property
     def real(self) -> float:
         """Real part of the value."""
-        return float(self.value.real if isinstance(self.value, complex) else self.value)
+        return float(self._value.real if isinstance(self._value, complex) else self._value)
 
     @property 
     def imag(self) -> float:
         """Imaginary part of the value."""
-        return float(self.value.imag if isinstance(self.value, complex) else 0.0)
+        return float(self._value.imag if isinstance(self._value, complex) else 0.0)
 
     def conjugate(self) -> 'NumericValue':
         """Complex conjugate."""
-        if isinstance(self.value, complex):
-            return NumericValue(self.value.conjugate(), self.uncertainty)
+        if isinstance(self._value, complex):
+            return NumericValue(self._value.conjugate(), self._uncertainty)
         return self
 
     @classmethod
@@ -797,11 +809,6 @@ class NumericValue:
         if isinstance(value, (int, float, np.number)):
             return cls(float(value))
         raise TypeError(f"Cannot convert {type(value)} to NumericValue")
-
-    @property
-    def value(self) -> Union[float, complex]:
-        """Get numeric value."""
-        return self._value
 
     @property
     def magnitude(self) -> float:
@@ -833,11 +840,11 @@ class NumericValue:
         value = self._value + other._value
         
         # Keep existing uncertainty propagation
-        if self.uncertainty is None and other.uncertainty is None:
+        if self._uncertainty is None and other._uncertainty is None:
             return NumericValue(value)
             
-        unc1 = self.uncertainty or 0
-        unc2 = other.uncertainty or 0
+        unc1 = self._uncertainty or 0
+        unc2 = other._uncertainty or 0
         uncertainty = np.sqrt(unc1**2 + unc2**2)
         
         # Handle complex uncertainty propagation
@@ -848,15 +855,15 @@ class NumericValue:
 
     def __mul__(self, other: 'NumericValue') -> 'NumericValue':
         """Multiply values with uncertainty propagation."""
-        value = self.value * other.value
+        value = self._value * other._value
         
-        if self.uncertainty is None or other.uncertainty is None:
+        if self._uncertainty is None or other._uncertainty is None:
             uncertainty = None
         else:
             # Relative uncertainties add in quadrature for multiplication
             rel_unc = np.sqrt(
-                (self.uncertainty/abs(self.value))**2 +
-                (other.uncertainty/abs(other.value))**2
+                (self._uncertainty/abs(self._value))**2 +
+                (other._uncertainty/abs(other._value))**2
             )
             uncertainty = abs(value) * rel_unc
             
@@ -864,31 +871,31 @@ class NumericValue:
     
     def __abs__(self) -> float:
         """Get absolute value/magnitude."""
-        return abs(self.value)
+        return abs(self._value)
     
     def __str__(self) -> str:
         """String representation with uncertainty."""
-        if self.uncertainty is None:
-            return f"{self.value}"
-        return f"{self.value} ± {self.uncertainty}"
+        if self._uncertainty is None:
+            return f"{self._value}"
+        return f"{self._value} ± {self._uncertainty}"
     
     def __repr__(self) -> str:
         """Detailed string representation."""
-        return f"NumericValue(value={self.value}, uncertainty={self.uncertainty})"
+        return f"NumericValue(value={self._value}, uncertainty={self._uncertainty})"
     
     def __truediv__(self, other: Union[int, float, 'NumericValue']) -> 'NumericValue':
         """Implement division with uncertainty propagation."""
         if isinstance(other, (int, float)):
-            value = self.value / other
-            uncertainty = self.uncertainty / abs(other) if self.uncertainty is not None else None
+            value = self._value / other
+            uncertainty = self._uncertainty / abs(other) if self._uncertainty is not None else None
             return NumericValue(value, uncertainty)
         elif isinstance(other, NumericValue):
-            value = self.value / other.value
-            if self.uncertainty is None and other.uncertainty is None:
+            value = self._value / other._value
+            if self._uncertainty is None and other._uncertainty is None:
                 return NumericValue(value)
             # Propagate uncertainties using quadrature
-            rel_unc1 = (self.uncertainty / abs(self.value)) if self.uncertainty is not None else 0
-            rel_unc2 = (other.uncertainty / abs(other.value)) if other.uncertainty is not None else 0
+            rel_unc1 = (self._uncertainty / abs(self._value)) if self._uncertainty is not None else 0
+            rel_unc2 = (other._uncertainty / abs(other._value)) if other._uncertainty is not None else 0
             uncertainty = abs(value) * np.sqrt(rel_unc1**2 + rel_unc2**2)
             return NumericValue(value, uncertainty)
         return NotImplemented
@@ -897,17 +904,17 @@ class NumericValue:
         """Subtract two values with uncertainty propagation."""
         if not isinstance(other, NumericValue):
             other = NumericValue(float(other))
-        value = self.value - other.value
-        if self.uncertainty is None and other.uncertainty is None:
+        value = self._value - other._value
+        if self._uncertainty is None and other._uncertainty is None:
             return NumericValue(value)
-        unc1 = self.uncertainty or 0
-        unc2 = other.uncertainty or 0
+        unc1 = self._uncertainty or 0
+        unc2 = other._uncertainty or 0
         uncertainty = np.sqrt(unc1**2 + unc2**2)
         return NumericValue(value, uncertainty)
     
     def __array__(self) -> np.ndarray:
         """Convert to numpy array (for numpy compatibility)."""
-        return np.array(self.value)
+        return np.array(self._value)
 
     @classmethod
     def from_complex(cls, value: complex, uncertainty: Optional[float] = None) -> 'NumericValue':
@@ -918,6 +925,6 @@ class NumericValue:
 
     def to_complex(self) -> complex:
         """Convert value to complex number."""
-        if isinstance(self.value, complex):
-            return self.value
-        return complex(self.value)
+        if isinstance(self._value, complex):
+            return self._value
+        return complex(self._value)

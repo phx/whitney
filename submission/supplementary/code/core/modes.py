@@ -1,15 +1,17 @@
-"""Computation mode definitions."""
+"""Mode expansion implementation."""
 
-from typing import List, Optional, Tuple, Union, Dict
+from typing import List, Optional, Tuple, Union, Dict, TYPE_CHECKING
 import numpy as np
 from sympy import exp, I, pi, sqrt
 from dataclasses import dataclass
 
 from .types import Energy, WaveFunction
-from .field import UnifiedField
 from .constants import ALPHA_VAL
 from .physics_constants import HBAR, C
 from .enums import ComputationMode
+
+if TYPE_CHECKING:
+    from .field import UnifiedField
 
 @dataclass
 class ModeCoefficient:
@@ -28,7 +30,8 @@ class ModeExpansion:
         Args:
             alpha: Fine structure constant
         """
-        self.field = UnifiedField(alpha=alpha)
+        self.alpha = alpha
+        self.field: 'UnifiedField' = None  # Type hint with forward reference
     
     def compute_mode_coefficients(self, psi: WaveFunction, 
                                 n_max: int = 100) -> List[ModeCoefficient]:

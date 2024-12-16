@@ -1,7 +1,6 @@
 """Core implementation of fractal basis functions."""
 
-from typing import Dict, List, Optional, Tuple, Union
-from dataclasses import dataclass
+from typing import Dict, List, Optional, Tuple, Union, TYPE_CHECKING
 import numpy as np
 from sympy import (
     Symbol, symbols, exp, integrate, conjugate, sqrt,
@@ -17,13 +16,13 @@ from .physics_constants import (
 )
 from .transforms import lorentz_boost, gauge_transform
 from .types import Energy, FieldConfig, WaveFunction
-from .modes import ComputationMode
-from .field import UnifiedField
-from .errors import PhysicsError, ValidationError
-from .mode_expansion import ModeExpansion
 from .enums import ComputationMode
+from .errors import PhysicsError, ValidationError
 
-class FractalBasis(UnifiedField):
+if TYPE_CHECKING:
+    from .field import UnifiedField
+
+class FractalBasis:
     """
     Implements recursive fractal basis functions.
     
@@ -48,7 +47,8 @@ class FractalBasis(UnifiedField):
     
     def __init__(self, alpha: float = ALPHA_VAL, mode: ComputationMode = ComputationMode.MIXED):
         """Initialize fractal basis with scaling parameter."""
-        super().__init__(alpha=alpha, mode=mode)
+        self.alpha = alpha
+        self.mode = mode
         self.scaling_dimension = 1.0
     
     # Core implementation methods (overriding UnifiedField)

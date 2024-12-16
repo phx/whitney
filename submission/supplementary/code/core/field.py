@@ -599,15 +599,39 @@ class UnifiedField:
         return corrections
 
     # Neutrino Physics Methods
-    def compute_neutrino_angles(self) -> Tuple[float, float, float]:
-        """
-        Compute neutrino mixing angles from fractal structure.
+    def compute_neutrino_angles(self, energy: Energy = None) -> Dict[str, NumericValue]:
+        """Compute neutrino mixing angles.
         
+        Implements mixing from appendix_i_sm_features.tex Eq. I.2.
+        
+        Args:
+            energy: Optional energy scale (default: Z_MASS)
+            
         Returns:
-            Tuple[float, float, float]: (theta_12, theta_23, theta_13)
+            Dict containing mixing angles with uncertainties
         """
-        # Implementation will use fractal recursion to generate mixing angles
-        raise NotImplementedError
+        if energy is None:
+            energy = Energy(Z_MASS)
+            
+        # Base mixing angles
+        theta_12 = pi/6  # Solar angle
+        theta_23 = pi/4  # Atmospheric angle
+        theta_13 = 0.15  # Reactor angle
+        
+        # Apply fractal corrections
+        corrections = sum(
+            self.alpha**n * self._compute_mixing_correction(n)
+            for n in range(int(-log(self.precision)/log(self.alpha)))
+        )
+        
+        # Compute angles with corrections
+        angles = {
+            'theta_12': NumericValue(theta_12 + corrections, abs(corrections)/10),
+            'theta_23': NumericValue(theta_23 + corrections/2, abs(corrections)/20),
+            'theta_13': NumericValue(theta_13 + corrections/3, abs(corrections)/30)
+        }
+        
+        return angles
     
     def compute_neutrino_masses(self) -> List[float]:
         """
@@ -790,8 +814,12 @@ class UnifiedField:
         if energy is None:
             energy = Energy(Z_MASS)
             
-        # Scale parameter from fractal recursion
-        scale = energy.value * exp(-sum(self.alpha**k * GAMMA_k for k in range(1, n+1)))
+        # Scale parameter from fractal recursion using defined gamma values
+        scale = energy.value * exp(-(
+            GAMMA_1 * self.alpha + 
+            GAMMA_2 * self.alpha**2 + 
+            GAMMA_3 * self.alpha**3
+        ))
         
         # Compute effective dimension
         d_eff = 4 - n * self.alpha
@@ -1003,8 +1031,12 @@ class UnifiedField:
         # Base energy scale from Z mass
         E0 = Z_MASS
         
-        # Fractal scaling factor
-        scaling = sum(self.alpha**k * GAMMA_k for k in range(1, n+1))
+        # Fractal scaling using defined gamma values
+        scaling = (
+            GAMMA_1 * self.alpha + 
+            GAMMA_2 * self.alpha**2 + 
+            GAMMA_3 * self.alpha**3
+        )
         
         # Compute mode energy with quantum corrections
         E_n = E0 * exp(scaling) * (n + 0.5)
@@ -1088,10 +1120,10 @@ class UnifiedField:
         T_prod = theta * psi_i * psi_j + (1 - theta) * psi_j * psi_i
         
         # Add fractal vertex corrections
-        vertex = sum(
+        vertex = sum((
             self.alpha**n * self._compute_vertex_factor(n)
             for n in range(int(-log(self.precision)/log(self.alpha)))
-        )
+        ))
         
         return integrate(T_prod * vertex, (X, -oo, oo), (T, -oo, oo))
 
@@ -1181,8 +1213,8 @@ class UnifiedField:
         E = energy.value
         alpha_0 = ALPHA_REF  # Reference coupling at Z mass
         
-        # Beta function coefficients
-        beta_0 = -sum(GAMMA_k * self.alpha**k for k in range(1, 4))
+        # Beta function coefficients using defined gamma values
+        beta_0 = -(GAMMA_1 * self.alpha + GAMMA_2 * self.alpha**2 + GAMMA_3 * self.alpha**3)
         
         # Compute running coupling
         alpha = alpha_0 / (1 - beta_0 * np.log(E/Z_MASS))
@@ -1191,3 +1223,33 @@ class UnifiedField:
         uncertainty = abs(alpha * alpha_0 * np.log(E/Z_MASS)**2)
         
         return NumericValue(alpha, uncertainty)
+
+    def compute_cross_section(self, energy: Energy, psi: WaveFunction, **kwargs) -> NumericValue:
+        """Compute scattering cross section.
+        
+        Implements optical theorem from appendix_b_gauge.tex Eq. B.8.
+        
+        Args:
+            energy: Collision energy
+            psi: Initial state wavefunction
+            **kwargs: Optional precision parameters
+            
+        Returns:
+            NumericValue: Cross section with uncertainty
+        """
+        # Compute scattering amplitude with fractal corrections
+        M = self._compute_transition(psi, psi)
+        
+        # Optical theorem relates cross section to imaginary part
+        sigma = 4 * pi * np.imag(M) / (energy.value * np.sqrt(energy.value))
+        
+        # Phase space factor with fractal corrections
+        phase_space = self._compute_phase_space_factor(energy)
+        
+        # Final cross section
+        result = sigma * phase_space
+        
+        # Estimate uncertainty from higher orders
+        uncertainty = abs(result) * kwargs.get('rtol', self.precision)
+        
+        return NumericValue(result, uncertainty)
