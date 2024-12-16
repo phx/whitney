@@ -33,6 +33,9 @@ class UnifiedField:
         self.alpha = alpha
         self.mode = mode
         self.state = None
+        # Add symbolic coordinates as class attributes
+        self.X = X  # From physics_constants
+        self.T = T  # From physics_constants
         self._validate_params(alpha)
         
     def _validate_params(self, alpha: float) -> None:
@@ -88,20 +91,20 @@ class UnifiedField:
         
     def apply_gauge_transform(self, psi: WaveFunction, phase: float) -> WaveFunction:
         """
-        Apply U(1) gauge transformation to field.
+        Apply U(1) gauge transformation.
+        
+        The gauge transformation is:
+        ψ -> exp(iθ)ψ
         
         Args:
-            psi: Field configuration
-            phase: Gauge transformation phase
-            
-        Returns:
-            Gauge transformed field configuration
+            psi: Wavefunction to transform
+            phase: Gauge phase θ in radians
         """
-        # Validate phase
-        if not isinstance(phase, (int, float)) or phase < 0 or phase > 2*pi:
-            raise GaugeError("Phase must be in [0, 2π]")
+        # Normalize phase to [0, 2π] interval
+        phase = phase % (2*pi)
+        if not isinstance(phase, (int, float)):
+            raise GaugeError("Phase must be numeric")
             
-        # Apply U(1) transformation
         return psi * exp(I * phase)
         
     def apply_nonabelian_gauge_transform(self, psi: WaveFunction, 

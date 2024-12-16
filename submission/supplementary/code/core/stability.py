@@ -6,9 +6,9 @@ from .types import NumericValue, Energy
 from .errors import StabilityError
 
 def analyze_perturbation(func: Callable[..., NumericValue],
-                        params: Dict[str, float],
+                        params: Dict[str, Any],
                         n_samples: int = 100,
-                        epsilon: float = 1e-6) -> Dict[str, float]:
+                        epsilon: float = 1e-6) -> Dict[str, Any]:
     """
     Analyze stability under parameter perturbations.
     
@@ -33,24 +33,18 @@ def analyze_perturbation(func: Callable[..., NumericValue],
     Raises:
         StabilityError: If function is numerically unstable
     """
-    results = []
     nominal = func(**params)
+    results = []
     
     for _ in range(n_samples):
-        # Generate perturbed parameters
-        perturbed = {
+        perturbed_params = {
             k: v * (1 + np.random.normal(0, epsilon))
             for k, v in params.items()
         }
-        
-        # Compute with perturbed parameters
-        try:
-            result = func(**perturbed)
-            results.append(result)
-        except Exception as e:
-            raise StabilityError(f"Function unstable under perturbation: {e}")
+        result = func(**perturbed_params)
+        results.append(float(result.value))
     
-    results = np.array(results)
+    results = np.array([float(r) if isinstance(r, NumericValue) else r for r in results])
     mean = np.mean(results)
     std = np.std(results)
     max_dev = np.max(np.abs(results - nominal))

@@ -5,6 +5,7 @@ import numpy as np
 from sympy import Expr
 from .errors import ValidationError, PhysicsError
 from .types import Energy, Momentum, WaveFunction
+from .physics_constants import X
 
 def validate_energy(energy: Union[float, Energy]) -> Energy:
     """

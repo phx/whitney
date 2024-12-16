@@ -19,10 +19,20 @@ def field():
     """Create UnifiedField instance for testing."""
     return UnifiedField(alpha=0.1)
 
-@pytest.fixture
-def velocity(request):
-    """Create test velocity for Lorentz transformations."""
-    return 0.5
+@st.composite
+def velocities(draw):
+    """Strategy for generating valid velocities."""
+    return draw(st.floats(min_value=-0.99, max_value=0.99))
+
+@st.composite
+def separations(draw):
+    """Strategy for generating valid separations."""
+    return draw(st.floats(min_value=0.1, max_value=10.0))
+
+@st.composite
+def distances(draw):
+    """Strategy for generating valid distances."""
+    return draw(st.floats(min_value=0.1, max_value=10.0))
 
 @contextmanager
 def test_velocity(value: float = 0.5):
@@ -85,9 +95,10 @@ class TestSymmetryProperties:
             E2 = field.compute_energy_density(psi_transformed)
             assert abs(E1 - E2) < 1e-10
     
-    @given(st.floats(min_value=-0.99, max_value=0.99))
-    def test_lorentz_invariance(self, velocity, field):
-        """Test Lorentz invariance of the theory."""
+    @given(velocities())
+    def test_lorentz_invariance(self, velocity):
+        """Test Lorentz invariance."""
+        field = UnifiedField(alpha=0.1)
         psi = exp(-(X**2 + (C*T)**2)/(2*HBAR**2))
         
         # Apply Lorentz boost

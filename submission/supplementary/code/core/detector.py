@@ -181,3 +181,28 @@ class Detector:
                 raise ValidationError(f"Systematic {key} value must be numeric")
             if value < 0:
                 raise ValidationError(f"Systematic {key} value must be non-negative")
+    
+    def trigger(self, energy: float) -> bool:
+        """Check if energy passes trigger threshold."""
+        return energy >= self.threshold
+    
+    def measure_energy(self, true_energy: Union[float, Energy], include_systematics: bool = True) -> float:
+        """Measure energy with detector resolution and systematics."""
+        if isinstance(true_energy, Energy):
+            true_energy = float(true_energy.value)
+        resolution = self.resolution['energy']
+        smearing = np.random.normal(0, resolution * true_energy)
+        measured = true_energy + smearing
+        
+        if include_systematics:
+            scale_uncertainty = self.systematics['energy_scale']
+            measured *= (1 + np.random.normal(0, scale_uncertainty))
+            
+        return measured
+    
+    def measure_cross_section(self, true_xs: float, efficiency: Optional[float] = None) -> float:
+        """Measure cross section with detector effects."""
+        eff = efficiency if efficiency is not None else self.efficiency
+        measured = true_xs * eff
+        uncertainty = self.systematics['energy_scale'] * measured
+        return measured + np.random.normal(0, uncertainty)

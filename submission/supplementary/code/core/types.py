@@ -412,7 +412,7 @@ class WaveFunction:
     Quantum wavefunction with metadata.
     
     Attributes:
-        psi (np.ndarray): Complex wavefunction values
+        psi (Union[np.ndarray, Expr]): Complex wavefunction values or symbolic expression
         grid (np.ndarray): Spatial/momentum grid points
         quantum_numbers (Dict): Quantum numbers
         
@@ -420,11 +420,47 @@ class WaveFunction:
         >>> psi = np.array([1+0j, 0j, 0j, 0j]) / np.sqrt(2)
         >>> wf = WaveFunction(psi, np.linspace(-1,1,4), {'n':0, 'l':0})
         >>> wf.normalize()  # Ensure normalization
+        
+        >>> expr = exp(-X**2/(2*HBAR))  # Symbolic expression
+        >>> wf = WaveFunction.from_expression(expr)  # Convert to numerical
     """
-    psi: np.ndarray
+    psi: Union[np.ndarray, Expr]
     grid: np.ndarray
     quantum_numbers: Dict[str, int]
-    
+
+    def __post_init__(self):
+        """
+        Validate and initialize wavefunction.
+        
+        Converts symbolic expressions to numerical values if needed.
+        Ensures proper initialization of all attributes.
+        """
+        if isinstance(self.psi, Expr):
+            # Convert symbolic expression to numerical values
+            self.psi = np.array([complex(self.psi.subs(X, x)) for x in self.grid])
+        self.validate()
+
+    @classmethod
+    def from_expression(cls, expr: Expr, grid: Optional[np.ndarray] = None):
+        """
+        Create WaveFunction from symbolic expression.
+        
+        Args:
+            expr (Expr): Symbolic expression for wavefunction
+            grid (Optional[np.ndarray]): Grid points for evaluation
+            
+        Returns:
+            WaveFunction: Initialized wavefunction object
+            
+        Examples:
+            >>> expr = exp(-X**2/(2*HBAR))
+            >>> wf = WaveFunction.from_expression(expr)
+        """
+        if grid is None:
+            grid = np.linspace(-10, 10, 100)
+        psi = np.array([complex(expr.subs(X, x)) for x in grid])
+        return cls(psi=psi, grid=grid, quantum_numbers={'n': 0})
+
     def validate(self) -> None:
         """Additional validation of wavefunction."""
         if not isinstance(self.grid, np.ndarray):
@@ -437,14 +473,6 @@ class WaveFunction:
         norm = np.sqrt(np.sum(np.abs(self.psi)**2))
         if norm > 0:
             self.psi /= norm
-
-    @classmethod
-    def from_expression(cls, expr: Expr, grid: Optional[np.ndarray] = None):
-        """Create WaveFunction from symbolic expression."""
-        if grid is None:
-            grid = np.linspace(-10, 10, 100)
-        psi = np.array([complex(expr.subs(X, x)) for x in grid])
-        return cls(psi=psi, grid=grid, quantum_numbers={'n': 0})
 
 @dataclass
 class AnalysisResult:
@@ -758,3 +786,28 @@ class NumericValue:
             uncertainty = abs(value) * np.sqrt(rel_unc1**2 + rel_unc2**2)
             return NumericValue(value, uncertainty)
         return NotImplemented
+    
+    def __sub__(self, other: 'NumericValue') -> 'NumericValue':
+        """Subtract two values with uncertainty propagation."""
+        if not isinstance(other, NumericValue):
+            other = NumericValue(float(other))
+        value = self.value - other.value
+        if self.uncertainty is None and other.uncertainty is None:
+            return NumericValue(value)
+        unc1 = self.uncertainty or 0
+        unc2 = other.uncertainty or 0
+        uncertainty = np.sqrt(unc1**2 + unc2**2)
+        return NumericValue(value, uncertainty)
+    
+    def conjugate(self) -> 'NumericValue':
+        """Complex conjugate (for numpy compatibility)."""
+        return self  # Real numbers are their own conjugate
+    
+    @property
+    def real(self) -> float:
+        """Real part (for numpy compatibility)."""
+        return self.value
+    
+    def __array__(self) -> np.ndarray:
+        """Convert to numpy array (for numpy compatibility)."""
+        return np.array(self.value)

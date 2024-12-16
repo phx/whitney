@@ -8,7 +8,7 @@ def lorentz_boost(beta: float) -> Matrix:
     Generate Lorentz boost matrix.
     
     Args:
-        beta: Velocity parameter (v/c)
+        beta: Velocity in units of c
         
     Returns:
         2x2 Lorentz transformation matrix
