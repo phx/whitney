@@ -1,7 +1,7 @@
 """Property-based tests for field theory implementation."""
 
 import pytest
-from hypothesis import given, strategies as st
+from hypothesis import given, settings, strategies as st
 import numpy as np
 from sympy import exp, I, pi, sqrt, integrate, conjugate, oo
 from core.field import UnifiedField
@@ -33,6 +33,11 @@ def separations(draw):
 def distances(draw):
     """Strategy for generating valid distances."""
     return draw(st.floats(min_value=0.1, max_value=10.0))
+
+@st.composite
+def fractal_levels(draw):
+    """Strategy for generating valid fractal recursion levels."""
+    return draw(st.integers(min_value=1, max_value=10))
 
 @contextmanager
 def test_velocity(value: float = 0.5):
@@ -78,6 +83,30 @@ class TestFieldProperties:
         finite_norm1 = integrate(conjugate(psi) * psi, (X, -LIMIT, LIMIT))
         finite_norm2 = integrate(conjugate(evolved) * evolved, (X, -LIMIT, LIMIT))
         assert abs(finite_norm2 - finite_norm1) < 1e-10
+    
+    @given(fractal_levels())
+    def test_fractal_scaling(self, n_level, field):
+        """Test fractal scaling relation from paper Eq. I.1."""
+        # Test the fractal mass scaling from appendix_i_sm_features.tex
+        m_n = field.compute_mass_at_level(n_level)
+        m_0 = field.compute_mass_at_level(0)
+        
+        # Check fractal scaling formula from paper
+        expected = m_0 * np.prod([
+            1 + ALPHA_VAL**k * field.compute_fractal_exponent(k) 
+            for k in range(1, n_level + 1)
+        ])
+        assert np.isclose(m_n, expected, rtol=1e-6)
+
+    @given(st.floats(min_value=0.1, max_value=10.0))
+    def test_harmonic_mean_convergence(self, energy, field):
+        """Test harmonic mean convergence from appendix_j_math_details.tex."""
+        # Compute harmonic mean of fractal exponents
+        H_n = field.compute_harmonic_mean(energy)
+        
+        # Should converge to critical exponent
+        h_crit = field.compute_critical_exponent()
+        assert abs(H_n - h_crit) < ALPHA_VAL**2
 
 class TestSymmetryProperties:
     """Test symmetry properties of the field theory."""
@@ -114,6 +143,78 @@ class TestSymmetryProperties:
         
         # Account for Lorentz transformation of energy density
         assert abs(T00_boosted - gamma**2 * T00) < 1e-10
+
+class TestHolographicProperties:
+    """Test holographic properties from appendix_g_holographic.tex."""
+    
+    def test_entropy_bound(self, field):
+        """Test holographic entropy bound (Eq. G.1)."""
+        # Test area-scaling of entropy at different scales
+        for n in range(1, 5):
+            L_n = 10.0 * ALPHA_VAL**n  # Characteristic length at level n
+            area = L_n**2
+            
+            # Compute effective degrees of freedom
+            N_n = field.compute_dof_at_level(n)
+            entropy = np.log(N_n)
+            
+            # Check holographic bound from appendix_g_holographic.tex
+            assert entropy <= area/(4 * HBAR)
+    
+    @given(st.integers(min_value=1, max_value=5))
+    def test_fractal_dof_scaling(self, n, field):
+        """Test fractal scaling of degrees of freedom (Eq. G.2)."""
+        N_n = field.compute_dof_at_level(n)
+        L_n = field.compute_length_scale(n)
+        
+        # Check scaling formula from paper
+        expected = (L_n/HBAR)**2 * np.prod([
+            1 + ALPHA_VAL**k for k in range(1, n+1)
+        ])**(-1)
+        assert np.isclose(N_n, expected, rtol=1e-6)
+
+class TestRGFlowProperties:
+    """Test RG flow properties from appendix_h_rgflow.tex."""
+    
+    @given(st.floats(min_value=100, max_value=1e16))
+    def test_beta_function(self, energy, field):
+        """Test beta function structure (Eq. H.1)."""
+        # Compute beta function coefficients
+        for gauge_index in [1, 2, 3]:
+            beta = field.compute_beta_function(gauge_index, Energy(energy))
+            
+            # Should have correct fractal expansion
+            coeffs = field.compute_beta_coefficients(gauge_index, n_max=3)
+            expected = sum(
+                ALPHA_VAL**n * coeffs[n] 
+                for n in range(len(coeffs))
+            )
+            assert np.isclose(beta, expected, rtol=1e-4)
+    
+    def test_unification_uniqueness(self, field):
+        """Test uniqueness of unification point (Sec. H.3)."""
+        # Compute couplings near GUT scale
+        E_GUT = 2.1e16  # From appendix_e_predictions.tex
+        energies = np.logspace(15, 17, 100)
+        
+        # Find where couplings are closest
+        diffs = []
+        for E in energies:
+            g1 = field.compute_coupling(1, Energy(E))
+            g2 = field.compute_coupling(2, Energy(E))
+            g3 = field.compute_coupling(3, Energy(E))
+            
+            # Maximum difference between any two couplings
+            diff = max(abs(g1-g2), abs(g2-g3), abs(g3-g1))
+            diffs.append(diff)
+        
+        # Should have unique minimum near E_GUT
+        min_idx = np.argmin(diffs)
+        E_min = energies[min_idx]
+        
+        # Check uniqueness by verifying derivative is non-zero
+        assert diffs[min_idx+1] > diffs[min_idx] < diffs[min_idx-1]
+        assert np.isclose(E_min, E_GUT, rtol=0.1)
 
 class TestLocalityProperties:
     """Test locality and causality properties."""

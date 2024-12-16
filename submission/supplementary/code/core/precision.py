@@ -1,7 +1,7 @@
 """High-precision measurement techniques implementation."""
 
 import numpy as np
-from typing import Dict, Tuple
+from typing import Dict, Tuple, Union
 from .constants import ALPHA_REF, Z_MASS
 from .field import UnifiedField
 from .types import NumericValue
@@ -75,4 +75,9 @@ def validate_precision(
     abs_error = abs(value.value - target)
     rel_error = abs_error / (abs(target) + atol)
     
+    # Handle complex values
+    if isinstance(value.value, complex) or isinstance(target, complex):
+        abs_error = abs(complex(value.value) - complex(target))
+        rel_error = abs_error / (abs(complex(target)) + atol)
+
     return rel_error <= rtol and abs_error <= atol

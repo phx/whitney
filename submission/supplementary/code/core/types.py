@@ -432,13 +432,113 @@ class WaveFunction:
         """
         Validate and initialize wavefunction.
         
-        Converts symbolic expressions to numerical values if needed.
-        Ensures proper initialization of all attributes.
+        Handles both symbolic expressions and numerical arrays.
+        Ensures proper conversion and validation.
         """
+        # Validate grid first
+        if not isinstance(self.grid, np.ndarray):
+            raise ValidationError("Grid must be numpy array")
+        if len(self.grid.shape) != 1:
+            raise ValidationError("Grid must be 1-dimensional")
+        if not np.all(np.isfinite(self.grid)):
+            raise ValidationError("Grid points must be finite")
+            
+        # Validate quantum numbers
+        if not isinstance(self.quantum_numbers, dict):
+            raise ValidationError("Quantum numbers must be dictionary")
+        for key, value in self.quantum_numbers.items():
+            if not isinstance(value, int):
+                raise ValidationError(f"Quantum number {key} must be integer")
+
+        # Handle symbolic expressions
         if isinstance(self.psi, Expr):
-            # Convert symbolic expression to numerical values
-            self.psi = np.array([complex(self.psi.subs(X, x)) for x in self.grid])
-        self.validate()
+            try:
+                # Handle both atomic and compound expressions
+                if self.psi.is_Mul or self.psi.is_Add:
+                    # For compound expressions, substitute point by point
+                    self.psi = np.array([
+                        complex(self.psi.subs(X, x).evalf())
+                        for x in self.grid
+                    ])
+                else:
+                    # For simple expressions, vectorize
+                    subs_expr = self.psi.subs([(X, x) for x in self.grid])
+                    self.psi = np.array([
+                        complex(expr.evalf()) if expr.is_complex
+                        else float(expr.evalf()) 
+                        for expr in subs_expr
+                    ])
+            except (TypeError, ValueError) as e:
+                raise ValidationError(f"Failed to convert symbolic expression: {e}")
+        
+        # Validate numerical wavefunction
+        if not isinstance(self.psi, np.ndarray):
+            raise ValidationError("Wavefunction must be numpy array")
+        if self.psi.shape != self.grid.shape:
+            raise ValidationError("Wavefunction and grid shapes must match")
+        if not np.all(np.isfinite(self.psi)):
+            raise ValidationError("Wavefunction values must be finite")
+
+    def normalize(self) -> None:
+        """
+        Normalize wavefunction.
+        
+        Ensures the wavefunction is properly normalized according to:
+        ∫|ψ(x)|² dx = 1
+        
+        Uses trapezoidal integration over the grid points.
+        """
+        # Compute norm using trapezoidal rule
+        integrand = np.abs(self.psi)**2
+        norm = np.sqrt(np.trapz(integrand, self.grid))
+        
+        if norm <= 0:
+            raise PhysicsError("Cannot normalize zero wavefunction")
+        if not np.isfinite(norm):
+            raise PhysicsError("Normalization integral diverges")
+            
+        self.psi /= norm
+
+    def __mul__(self, other: Union[float, complex, 'WaveFunction']) -> 'WaveFunction':
+        """Multiply wavefunctions or scale by number."""
+        if isinstance(other, (float, complex, int)):
+            return WaveFunction(
+                psi=self.psi * other,
+                grid=self.grid.copy(),
+                quantum_numbers=self.quantum_numbers.copy()
+            )
+        elif isinstance(other, WaveFunction):
+            if not np.array_equal(self.grid, other.grid):
+                raise ValidationError("Grid points must match for multiplication")
+            return WaveFunction(
+                psi=self.psi * other.psi,
+                grid=self.grid.copy(),
+                quantum_numbers={**self.quantum_numbers, **other.quantum_numbers}
+            )
+        return NotImplemented
+
+    def __rmul__(self, other: Union[float, complex]) -> 'WaveFunction':
+        """Right multiplication."""
+        return self.__mul__(other)
+
+    def inner_product(self, other: 'WaveFunction') -> complex:
+        """
+        Compute inner product with another wavefunction.
+        
+        Args:
+            other: WaveFunction to compute inner product with
+            
+        Returns:
+            Complex inner product value
+            
+        Raises:
+            ValidationError: If grids don't match
+        """
+        if not np.array_equal(self.grid, other.grid):
+            raise ValidationError("Wavefunctions must be defined on same grid")
+            
+        integrand = np.conjugate(self.psi) * other.psi
+        return complex(np.trapz(integrand, self.grid))
 
     @classmethod
     def from_expression(cls, expr: Expr, grid: Optional[np.ndarray] = None):
@@ -467,12 +567,6 @@ class WaveFunction:
             raise ValidationError("Grid must be numpy array")
         if not isinstance(self.quantum_numbers, dict):
             raise ValidationError("Quantum numbers must be dictionary")
-
-    def normalize(self) -> None:
-        """Normalize wavefunction."""
-        norm = np.sqrt(np.sum(np.abs(self.psi)**2))
-        if norm > 0:
-            self.psi /= norm
 
 @dataclass
 class AnalysisResult:
@@ -650,41 +744,27 @@ class ErrorEstimate:
 
 @dataclass
 class NumericValue:
-    """
-    Base class for numeric values with validation and error propagation.
-    
-    Represents a numeric value (real or complex) with optional uncertainty
-    and validation rules. Used as base class for specific physical quantities.
-    
-    Attributes:
-        value: The numeric value (float or complex)
-        uncertainty: Optional uncertainty in the value
-        valid_range: Optional tuple of (min, max) for validation
-        
-    Methods:
-        validate(): Check if value is within valid range
-        propagate_error(): Propagate uncertainties in calculations
-        
-    Examples:
-        >>> x = NumericValue(1.0, uncertainty=0.1)
-        >>> y = NumericValue(2.0, uncertainty=0.2)
-        >>> z = x * y  # Uncertainties are properly propagated
-    """
-    value: Union[float, complex]
+    """Value with optional uncertainty and validation."""
+    value: Union[int, float, complex, np.number]
     uncertainty: Optional[float] = None
-    valid_range: Optional[Tuple[float, float]] = None
-    
+
     def __post_init__(self):
-        """Validate numeric value."""
-        if isinstance(self.value, (int, float)):
+        """Validate and initialize value."""
+        self._validate()
+        
+    def _validate(self):
+        """Validate value and uncertainty."""
+        # Validate value
+        if isinstance(self.value, (int, float, np.number)):
             if not np.isfinite(float(self.value)):
                 raise ValueError("Value must be finite")
         elif isinstance(self.value, complex):
             if not (np.isfinite(self.value.real) and np.isfinite(self.value.imag)):
-                raise ValueError("Complex value must have finite real and imaginary parts")
+                raise ValueError("Complex value must be finite")
         else:
-            raise TypeError(f"Value must be numeric, got {type(self.value)}")
-             
+            raise TypeError(f"Invalid value type: {type(self.value)}")
+
+        # Validate uncertainty
         if self.uncertainty is not None:
             if not isinstance(self.uncertainty, (int, float)):
                 raise TypeError("Uncertainty must be real number")
@@ -692,23 +772,80 @@ class NumericValue:
                 raise ValueError("Uncertainty must be non-negative")
             if not np.isfinite(float(self.uncertainty)):
                 raise ValueError("Uncertainty must be finite")
-                 
-        if self.valid_range is not None:
-            self.validate()
-    
-    def validate(self) -> None:
-        """Check if value is within valid range."""
-        if self.valid_range is not None:
-            min_val, max_val = self.valid_range
-            if isinstance(self.value, (int, float)):
-                if not min_val <= self.value <= max_val:
-                    raise ValueError(f"Value {self.value} outside valid range [{min_val}, {max_val}]")
-            else:
-                # For complex values, check magnitude
-                magnitude = abs(self.value)
-                if not min_val <= magnitude <= max_val:
-                    raise ValueError(f"Magnitude {magnitude} outside valid range [{min_val}, {max_val}]")
-    
+
+    @property
+    def real(self) -> float:
+        """Real part of the value."""
+        return float(self.value.real if isinstance(self.value, complex) else self.value)
+
+    @property 
+    def imag(self) -> float:
+        """Imaginary part of the value."""
+        return float(self.value.imag if isinstance(self.value, complex) else 0.0)
+
+    def conjugate(self) -> 'NumericValue':
+        """Complex conjugate."""
+        if isinstance(self.value, complex):
+            return NumericValue(self.value.conjugate(), self.uncertainty)
+        return self
+
+    @classmethod
+    def ensure_numeric(cls, value: Union[int, float, np.number, 'NumericValue']) -> 'NumericValue':
+        """Convert raw numeric types to NumericValue."""
+        if isinstance(value, NumericValue):
+            return value
+        if isinstance(value, (int, float, np.number)):
+            return cls(float(value))
+        raise TypeError(f"Cannot convert {type(value)} to NumericValue")
+
+    @property
+    def value(self) -> Union[float, complex]:
+        """Get numeric value."""
+        return self._value
+
+    @property
+    def magnitude(self) -> float:
+        """Get absolute magnitude of value."""
+        if isinstance(self._value, complex):
+            return abs(self._value)
+        return abs(float(self._value))
+        
+    @property
+    def phase(self) -> float:
+        """Get phase angle for complex values (in radians)."""
+        if isinstance(self._value, complex):
+            return np.angle(self._value)
+        return 0.0
+
+    def __complex__(self) -> complex:
+        """Enable complex() conversion."""
+        if isinstance(self._value, complex):
+            return self._value
+        return complex(float(self._value))
+
+    def __abs__(self) -> float:
+        """Enable abs() function."""
+        return self.magnitude
+
+    def __add__(self, other: Union[float, complex, 'NumericValue']) -> 'NumericValue':
+        """Add with uncertainty propagation."""
+        other = self.ensure_numeric(other)
+        value = self._value + other._value
+        
+        # Keep existing uncertainty propagation
+        if self.uncertainty is None and other.uncertainty is None:
+            return NumericValue(value)
+            
+        unc1 = self.uncertainty or 0
+        unc2 = other.uncertainty or 0
+        uncertainty = np.sqrt(unc1**2 + unc2**2)
+        
+        # Handle complex uncertainty propagation
+        if isinstance(value, complex):
+            uncertainty = abs(uncertainty)  # Use magnitude for complex values
+        
+        return NumericValue(value, uncertainty)
+
     def __mul__(self, other: 'NumericValue') -> 'NumericValue':
         """Multiply values with uncertainty propagation."""
         value = self.value * other.value
@@ -724,37 +861,6 @@ class NumericValue:
             uncertainty = abs(value) * rel_unc
             
         return NumericValue(value, uncertainty)
-    
-    def __add__(self, other: 'NumericValue') -> 'NumericValue':
-        """Add values with uncertainty propagation."""
-        value = self.value + other.value
-        
-        if self.uncertainty is None or other.uncertainty is None:
-            uncertainty = None
-        else:
-            # Absolute uncertainties add in quadrature for addition
-            uncertainty = np.sqrt(self.uncertainty**2 + other.uncertainty**2)
-            
-        return NumericValue(value, uncertainty)
-    
-    def check_finite(self) -> None:
-        """Check if value is finite."""
-        if isinstance(self.value, (int, float)):
-            if not np.isfinite(float(self.value)):
-                raise ValueError("Value must be finite")
-        elif isinstance(self.value, complex):
-            if not (np.isfinite(self.value.real) and np.isfinite(self.value.imag)):
-                raise ValueError("Complex value must have finite real and imaginary parts")
-    
-    def check_uncertainty(self) -> None:
-        """Validate uncertainty value."""
-        if self.uncertainty is not None:
-            if not isinstance(self.uncertainty, (int, float)):
-                raise TypeError("Uncertainty must be real number")
-            if self.uncertainty < 0:
-                raise ValueError("Uncertainty must be non-negative")
-            if not np.isfinite(float(self.uncertainty)):
-                raise ValueError("Uncertainty must be finite")
     
     def __abs__(self) -> float:
         """Get absolute value/magnitude."""
@@ -799,15 +905,19 @@ class NumericValue:
         uncertainty = np.sqrt(unc1**2 + unc2**2)
         return NumericValue(value, uncertainty)
     
-    def conjugate(self) -> 'NumericValue':
-        """Complex conjugate (for numpy compatibility)."""
-        return self  # Real numbers are their own conjugate
-    
-    @property
-    def real(self) -> float:
-        """Real part (for numpy compatibility)."""
-        return self.value
-    
     def __array__(self) -> np.ndarray:
         """Convert to numpy array (for numpy compatibility)."""
         return np.array(self.value)
+
+    @classmethod
+    def from_complex(cls, value: complex, uncertainty: Optional[float] = None) -> 'NumericValue':
+        """Create NumericValue from complex number."""
+        if not isinstance(value, complex):
+            raise TypeError("Value must be complex")
+        return cls(value, uncertainty)
+
+    def to_complex(self) -> complex:
+        """Convert value to complex number."""
+        if isinstance(self.value, complex):
+            return self.value
+        return complex(self.value)

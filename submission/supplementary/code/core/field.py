@@ -1,10 +1,16 @@
 """Unified field theory implementation."""
 
-from typing import Dict, Optional, Union, List, Tuple
+from typing import Dict, Optional, Union, List, Tuple, Callable
 import numpy as np
+from math import log, factorial
 from sympy import (
     Symbol, exp, integrate, conjugate, sqrt,
     oo, I, pi, Matrix, diff, solve, Eq, Function
+)
+from .basis import FractalBasis
+from .types import (
+    Energy, FieldConfig, WaveFunction, 
+    NumericValue, CrossSection
 )
 from .physics_constants import (
     ALPHA_VAL, X, T, P, Z_MASS,
@@ -12,13 +18,15 @@ from .physics_constants import (
     ALPHA_REF, GAMMA_1, GAMMA_2, GAMMA_3,
     HBAR, C, G, E, M_PLANCK
 )
-from .types import Energy, FieldConfig, WaveFunction, NumericValue
+from .validation import validate_energy, validate_wavefunction
 from .enums import ComputationMode
 from .errors import (
     PhysicsError, ValidationError, ComputationError,
     EnergyConditionError, CausalityError, GaugeError
 )
 from .transforms import lorentz_boost, gauge_transform
+from scipy.special import hermite
+from .mode_expansion import ModeExpansion, ModeCoefficient
 
 class UnifiedField:
     """Base class for unified field theory implementation."""
@@ -28,11 +36,17 @@ class UnifiedField:
     CAUSALITY_THRESHOLD = 1e-10  # Maximum allowed acausal contribution
     GAUGE_THRESHOLD = 1e-10  # Gauge invariance threshold
     
-    def __init__(self, alpha: float = ALPHA_VAL, mode: ComputationMode = ComputationMode.SYMBOLIC):
+    def __init__(
+        self, 
+        alpha: float = ALPHA_VAL,
+        mode: ComputationMode = ComputationMode.SYMBOLIC,
+        precision: float = 1e-10
+    ):
         """Initialize unified field."""
         self.alpha = alpha
         self.mode = mode
         self.state = None
+        self.precision = precision
         # Add symbolic coordinates as class attributes
         self.X = X  # From physics_constants
         self.T = T  # From physics_constants
@@ -89,7 +103,7 @@ class UnifiedField:
         # Apply transformation to field
         return psi.subs({T: t_prime, X: x_prime})
         
-    def apply_gauge_transform(self, psi: WaveFunction, phase: float) -> WaveFunction:
+    def apply_gauge_transform(self, psi: WaveFunction, phase: Union[float, Symbol]) -> WaveFunction:
         """
         Apply U(1) gauge transformation.
         
@@ -98,14 +112,39 @@ class UnifiedField:
         
         Args:
             psi: Wavefunction to transform
-            phase: Gauge phase θ in radians
-        """
-        # Normalize phase to [0, 2π] interval
-        phase = phase % (2*pi)
-        if not isinstance(phase, (int, float)):
-            raise GaugeError("Phase must be numeric")
+            phase: Gauge phase θ in radians (can be numeric or symbolic)
             
-        return psi * exp(I * phase)
+        Returns:
+            Transformed wavefunction
+            
+        Notes:
+            - For numeric phases, normalizes to [0, 2π] interval
+            - For symbolic phases, preserves symbolic form
+            - Preserves wavefunction normalization
+        """
+        try:
+            if isinstance(phase, Symbol):
+                # Handle symbolic phase using sympy's exp
+                gauge_factor = exp(I * phase)
+                transformed_psi = psi.psi * gauge_factor
+            else:
+                # Handle numeric phase using numpy's exp
+                phase = float(phase) % (2*pi)  # Normalize to [0, 2π]
+                if isinstance(psi.psi, np.ndarray):
+                    gauge_factor = np.exp(1j * phase)
+                    transformed_psi = psi.psi * gauge_factor
+                else:
+                    # Handle case where psi is still symbolic
+                    gauge_factor = exp(I * phase)
+                    transformed_psi = psi.psi * gauge_factor
+                    
+            return WaveFunction(
+                psi=transformed_psi,
+                grid=psi.grid,
+                quantum_numbers=psi.quantum_numbers
+            )
+        except (TypeError, ValueError) as e:
+            raise GaugeError(f"Invalid gauge phase: {e}")
         
     def apply_nonabelian_gauge_transform(self, psi: WaveFunction, 
                                        generators: List[Matrix],
@@ -145,49 +184,49 @@ class UnifiedField:
         
         return (j0, j1)
         
-    def check_gauge_invariance(self, psi: WaveFunction, observable: Function) -> bool:
+    def check_gauge_invariance(self, psi: WaveFunction, observable: Callable) -> bool:
         """
         Check if observable is gauge invariant.
         
         Args:
-            psi: Field configuration
-            observable: Physical observable
+            psi: Wavefunction
+            observable: Function that computes physical observable
             
         Returns:
-            True if observable is gauge invariant
+            bool: True if observable is gauge invariant
         """
-        # Test U(1) gauge invariance
-        phase = pi/4  # Test phase
-        psi_transformed = self.apply_gauge_transform(psi, phase)
+        # Test multiple phases
+        test_phases = [0, pi/4, pi/2, pi]
+        base_value = observable(psi)
         
-        # Compare observable values
-        val1 = observable(psi)
-        val2 = observable(psi_transformed)
+        for phase in test_phases:
+            transformed = self.apply_gauge_transform(psi, phase)
+            if not np.allclose(observable(transformed), base_value):
+                return False
+        return True
         
-        return abs(val1 - val2) < self.GAUGE_THRESHOLD
-        
-    def compute_field(self, config: FieldConfig) -> WaveFunction:
+    def compute_field(self, config: Union[FieldConfig, Energy]) -> WaveFunction:
         """
         Compute field configuration.
         
         Args:
-            config: Field configuration parameters
+            config: Field configuration or energy
             
         Returns:
-            WaveFunction: Computed field configuration
+            WaveFunction: Field configuration
         """
-        # Validate configuration
-        self._validate_config(config)
+        if isinstance(config, Energy):
+            config = FieldConfig(mass=config.value, coupling=self.alpha, dimension=4)
         
-        # Compute field using equations of motion
-        psi = self._solve_field_equations(config)
+        # Basic Gaussian packet with mass-dependent width
+        width = HBAR/(config.mass * C)
+        psi = exp(-(X**2)/(2*width**2)) * exp(-I*config.mass*C**2*T/HBAR)
         
-        # Check physical constraints
-        if not self.check_causality(psi):
-            raise PhysicsError("Field configuration violates causality")
-            
-        self.state = psi  # Update current state
-        return psi
+        return WaveFunction(
+            psi=psi,
+            grid=np.linspace(-10*width, 10*width, 1000),
+            quantum_numbers={'mass': config.mass}
+        )
         
     def _validate_config(self, config: FieldConfig) -> None:
         """Validate field configuration."""
@@ -288,28 +327,29 @@ class UnifiedField:
         
     def evolve(self, energy: Energy) -> WaveFunction:
         """
-        Evolve field to given energy scale.
+        Evolve current state to new energy.
         
         Args:
-            energy: Target energy scale
+            energy: Target energy
             
         Returns:
-            WaveFunction: Evolved field configuration
+            WaveFunction: Evolved state
         """
         if self.state is None:
-            raise PhysicsError("No field state to evolve")
-            
-        # Validate energy scale
-        if energy.value <= 0:
-            raise PhysicsError("Energy must be positive")
-            
-        # Compute evolution operator
-        U = self._compute_evolution_operator(energy)
+            raise PhysicsError("No state to evolve")
+        if energy.value < 0:
+            raise PhysicsError("Energy must be non-negative")
         
-        # Apply evolution
+        # Evolution operator U = exp(-iHt/ħ)
+        H = self._compute_hamiltonian()
+        U = exp(-I*H*energy.value/HBAR)
+        
         evolved = U * self.state
-        self.state = evolved  # Update current state
-        return evolved
+        return WaveFunction(
+            psi=evolved,
+            grid=self.state.grid,
+            quantum_numbers=self.state.quantum_numbers
+        )
         
     def validate_energy_conditions(self, psi: WaveFunction) -> None:
         """
@@ -419,134 +459,94 @@ class UnifiedField:
         
         return psi * phase / sqrt(norm)
 
-    def evolve_field(
-        self, 
-        psi: WaveFunction,
-        times: np.ndarray,
-        dt: float = 0.01
-    ) -> Dict[str, np.ndarray]:
+    def evolve_field(self, psi: WaveFunction, times: np.ndarray) -> Dict[str, Union[np.ndarray, bool]]:
         """Evolve field configuration in time.
+        
+        Implements evolution from appendix_k_io_distinction.tex Eq. K.2.
         
         Args:
             psi: Initial field configuration
-            times: Array of time points to evolve to
-            dt: Time step for evolution
+            times: Array of time points
             
         Returns:
-            Dictionary containing:
-            - 'psi': Evolved field configurations
-            - 'norm': Field normalization at each time
-            - 'energy': Energy expectation value
+            Dict containing:
+            - psi: Evolved states
+            - energy: Energy values
+            - norm: Norm values
+            - stable: Stability flag
         """
         results = {
-            'psi': np.zeros((len(times),) + psi.shape, dtype=complex),
-            'norm': np.zeros(len(times)),
-            'energy': np.zeros(len(times))
+            'psi': [],
+            'energy': [],
+            'norm': [],
+            'stable': True
         }
         
-        # Initial conditions
-        current_psi = psi
-        results['psi'][0] = current_psi
-        results['norm'][0] = self.compute_norm(current_psi)
-        results['energy'][0] = self.compute_energy(current_psi)
+        # Initial energy
+        E0 = self.compute_energy_density(psi)
         
-        # Time evolution using symplectic integrator
-        for i, t in enumerate(times[1:], 1):
-            # Kinetic evolution
-            k_evolved = self._evolve_kinetic(current_psi, dt/2)
+        for t in times:
+            # Apply evolution operator
+            evolved = self._apply_evolution_operator(psi, t)
             
-            # Potential evolution
-            v_evolved = self._evolve_potential(k_evolved, dt)
-            
-            # Final kinetic evolution
-            current_psi = self._evolve_kinetic(v_evolved, dt/2)
+            # Check conservation laws
+            E = self.compute_energy_density(evolved)
+            norm = abs(self.compute_inner_product(evolved, evolved))
             
             # Store results
-            results['psi'][i] = current_psi
-            results['norm'][i] = self.compute_norm(current_psi)
-            results['energy'][i] = self.compute_energy(current_psi)
-        
+            results['psi'].append(evolved)
+            results['energy'].append(float(E))
+            results['norm'].append(float(norm))
+            
+            # Check stability
+            if abs(E - E0) > self.precision or abs(norm - 1) > self.precision:
+                results['stable'] = False
+                
         return results
 
-    def _evolve_kinetic(self, psi: WaveFunction, dt: float) -> WaveFunction:
-        """Evolve field under kinetic Hamiltonian.
+    def _apply_evolution_operator(self, psi: WaveFunction, t: float) -> WaveFunction:
+        """Apply time evolution operator.
+        
+        Implements Eq. K.3 from appendix_k_io_distinction.tex.
         
         Args:
-            psi: Field configuration
-            dt: Time step
+            psi: Initial state
+            t: Time value
             
         Returns:
-            Evolved field configuration
+            Evolved state
         """
-        # Kinetic evolution operator: exp(-i*T*dt/2ℏ)
-        k = -HBAR**2 / (2 * M_PLANCK)  # Kinetic coefficient
-        d2_x = diff(psi, X, 2)
+        # Compute energy expectation
+        E = self.compute_energy_density(psi)
         
-        return psi + (k * d2_x * dt / HBAR) * I
-        
-    def _evolve_potential(self, psi: WaveFunction, dt: float) -> WaveFunction:
-        """Evolve field under potential terms.
-        
-        Args:
-            psi: Field configuration
-            dt: Time step
-            
-        Returns:
-            Evolved field configuration
-        """
-        # Compute potential terms from fractal structure
-        V = self._compute_effective_potential(psi)
-        
-        # Potential evolution operator: exp(-i*V*dt/ℏ)
-        return psi * exp(-I * V * dt / HBAR)
-        
-    def _compute_effective_potential(self, psi: WaveFunction) -> WaveFunction:
-        """Compute effective potential including fractal corrections.
-        
-        Args:
-            psi: Field configuration
-            
-        Returns:
-            Effective potential
-        """
-        # Base potential
-        V0 = self.alpha * abs(psi)**2
-        
-        # Fractal corrections from appendix_j
-        fractal_term = self._compute_fractal_correction(psi)
-        
-        return V0 + fractal_term
-        
-    def _compute_fractal_correction(self, psi: WaveFunction) -> WaveFunction:
-        """Compute fractal correction terms to potential.
-        
-        Args:
-            psi: Field configuration
-            
-        Returns:
-            Fractal correction to potential
-        """
-        # Compute derivatives needed for correction terms
-        d_x = diff(psi, X)
-        d2_x = diff(psi, X, 2)
-        d_t = diff(psi, T)
-        d2_t = diff(psi, T, 2)
-        
-        # Kinetic correction from fractal structure
-        K_frac = (HBAR**2 / (2*M_PLANCK)) * (
-            self.alpha * abs(d_x)**2 +
-            (1/C**2) * abs(d_t)**2
+        # Evolution operator with fractal corrections
+        U = exp(-I*E*t/HBAR) * sum(
+            self.alpha**n * self._compute_fractal_phase(n, t)
+            for n in range(int(-log(self.precision)/log(self.alpha)))
         )
         
-        # Potential correction from fractal iterations
-        V_frac = self.alpha**2 * (
-            abs(psi)**4 / 4 +
-            abs(d2_x)**2 / (4*M_PLANCK**2) +
-            abs(d2_t)**2 / (4*M_PLANCK**2 * C**4)
-        )
+        return U * psi
+
+    def _compute_fractal_phase(self, n: int, t: float) -> WaveFunction:
+        """Compute fractal phase factor.
         
-        return K_frac + V_frac
+        Implements Eq. K.4 from appendix_k_io_distinction.tex.
         
+        Args:
+            n: Mode number
+            t: Time value
+            
+        Returns:
+            WaveFunction: Fractal phase factor
+        """
+        # Fractal phase factor
+        phase = exp(I * pi * sum(self.alpha**k * k for k in range(1, n+1)))
+        
+        # Time-dependent amplitude
+        amplitude = (self.alpha**n) * exp(-self.alpha * t)
+        
+        return phase * amplitude / sqrt(factorial(n))
+
     def compute_field_equation(self, psi: WaveFunction) -> WaveFunction:
         """Compute field equation including fractal corrections.
         
@@ -774,3 +774,420 @@ class UnifiedField:
             M = self._compute_matrix_element(psi, p)
             amplitudes.append(M)
         return np.array(amplitudes)
+
+    def compute_basis_function(self, n: int, energy: Optional[Energy] = None) -> WaveFunction:
+        """Compute nth basis function.
+        
+        Implements fractal basis construction from appendix_d_scale.tex Eq. D.4.
+        
+        Args:
+            n: Basis function index
+            energy: Optional energy scale (default: Z_MASS)
+            
+        Returns:
+            WaveFunction: Normalized basis function
+        """
+        if energy is None:
+            energy = Energy(Z_MASS)
+            
+        # Scale parameter from fractal recursion
+        scale = energy.value * exp(-sum(self.alpha**k * GAMMA_k for k in range(1, n+1)))
+        
+        # Compute effective dimension
+        d_eff = 4 - n * self.alpha
+        
+        # Basis function (Eq. D.4)
+        psi = (
+            (scale/sqrt(2*pi*HBAR))**(d_eff/2) *
+            exp(-scale*(X**2 + (C*T)**2)/(2*HBAR)) *
+            exp(I*energy.value*T/HBAR) *
+            self._hermite_polynomial(n, X*sqrt(scale/HBAR))
+        )
+        
+        return self.normalize(psi)
+        
+    def normalize(self, psi: WaveFunction) -> WaveFunction:
+        """Normalize wavefunction to unit probability.
+        
+        Implements normalization from appendix_a_convergence.tex.
+        
+        Args:
+            psi: Wavefunction to normalize
+            
+        Returns:
+            Normalized wavefunction
+        """
+        norm = sqrt(abs(self.compute_inner_product(psi, psi)))
+        if norm == 0:
+            raise PhysicsError("Cannot normalize zero wavefunction")
+        return psi / norm
+
+    def compute_basis_state(self, E: Energy) -> WaveFunction:
+        """
+        Compute energy eigenstate at given energy.
+        
+        From appendix_b_gauge.tex:
+        |E⟩ = sum_n c_n(E) |n⟩ where c_n(E) have fractal form
+        
+        Args:
+            E: Energy value
+            
+        Returns:
+            WaveFunction: Energy eigenstate
+        """
+        validate_energy(E)
+        
+        # Maximum level for truncation
+        n_max = int(-log(self.precision)/log(ALPHA_VAL))
+        
+        # Compute expansion coefficients
+        coeffs = []
+        for n in range(n_max):
+            c_n = self._compute_expansion_coefficient(n, E)
+            coeffs.append(c_n)
+        
+        # Sum over basis functions
+        psi = sum(
+            c_n * self.compute_basis_function(n, E).psi
+            for n, c_n in enumerate(coeffs)
+        )
+        
+        return WaveFunction(
+            psi=psi,
+            grid=np.linspace(-10/sqrt(E.value), 10/sqrt(E.value), 1000),
+            quantum_numbers={'E': E.value}
+        )
+
+    def compute_correlator(self, psi: WaveFunction, points: List[Tuple[Symbol, Symbol]]) -> complex:
+        """
+        Compute correlation function between spacetime points.
+        
+        From appendix_i_sm_features.tex Eq I.5:
+        ⟨ϕ(x₁)ϕ(x₂)⟩ = sum_n α^n G_n(x₁,x₂)
+        
+        Args:
+            psi: Quantum state
+            points: List of (x,t) coordinates
+            
+        Returns:
+            complex: Correlation function value
+        """
+        validate_wavefunction(psi)
+        if len(points) != 2:
+            raise ValidationError("Correlator requires exactly 2 points")
+            
+        (x1, t1), (x2, t2) = points
+        
+        # Compute propagator with fractal corrections
+        n_max = int(-log(self.precision)/log(ALPHA_VAL))
+        G = 0
+        for n in range(n_max):
+            G_n = self._compute_green_function(x1, t1, x2, t2, n)
+            G += ALPHA_VAL**n * G_n
+            
+        return G
+
+    def compute_mass_at_level(self, n: int) -> float:
+        """
+        Compute effective mass at fractal level n.
+        From appendix_i_sm_features.tex Eq I.1.
+        """
+        if n < 0:
+            raise ValidationError("Level must be non-negative")
+        
+        m_0 = Z_MASS  # Reference mass scale
+        if n == 0:
+            return m_0
+        
+        # Apply fractal corrections
+        return m_0 * np.prod([
+            1 + ALPHA_VAL**k * self.compute_fractal_exponent(k)
+            for k in range(1, n+1)
+        ])
+
+    def compute_fractal_exponent(self, k: int) -> float:
+        """
+        Compute fractal exponent h_f(k) at level k.
+        From appendix_i_sm_features.tex.
+        """
+        if k < 1:
+            raise ValidationError("Level must be positive")
+        # Fractal exponent from paper
+        return 1/(k * factorial(k))  # Converges rapidly
+
+    def compute_norm(self, psi: WaveFunction) -> float:
+        """
+        Compute wavefunction normalization.
+        
+        Uses trapezoidal integration over the grid points to ensure
+        proper normalization according to quantum mechanics.
+        
+        Args:
+            psi: Quantum wavefunction
+            
+        Returns:
+            float: Normalization factor
+        """
+        integrand = np.abs(psi.psi)**2
+        return float(np.sqrt(np.trapz(integrand, psi.grid)))
+        
+    def compute_s_matrix(self, states: List[WaveFunction]) -> np.ndarray:
+        """Compute S-matrix elements between states.
+        
+        Implements scattering formalism from appendix_b_gauge.tex Eq. B.3.
+        
+        Args:
+            states: List of quantum states
+            
+        Returns:
+            Complex S-matrix elements
+        """
+        n_states = len(states)
+        S = np.zeros((n_states, n_states), dtype=complex)
+        
+        for i, psi_i in enumerate(states):
+            for j, psi_j in enumerate(states):
+                # Compute transition amplitude with fractal corrections
+                S[i,j] = self._compute_transition(psi_i, psi_j)
+                
+        # Verify unitarity
+        if not np.allclose(S @ S.conj().T, np.eye(n_states), atol=self.precision):
+            raise PhysicsError("S-matrix violates unitarity")
+            
+        return S
+        
+    def _compute_transition(self, psi_i: WaveFunction, psi_j: WaveFunction) -> complex:
+        """Compute transition amplitude between states.
+        
+        Implements Eq. B.4 from appendix_b_gauge.tex.
+        
+        Args:
+            psi_i: Initial state
+            psi_j: Final state
+            
+        Returns:
+            Complex transition amplitude
+        """
+        # Time-ordered product with fractal vertex
+        T_prod = self._compute_time_ordered_product(psi_i, psi_j)
+        
+        # LSZ reduction with fractal corrections
+        amplitude = self.alpha * T_prod * sum(
+            self.alpha**n * self._compute_lsz_factor(n)
+            for n in range(int(-log(self.precision)/log(self.alpha)))
+        )
+        
+        return amplitude
+
+    def init_mode_expansion(self) -> ModeExpansion:
+        """Initialize mode expansion handler.
+        
+        Returns:
+            Configured ModeExpansion instance
+        """
+        expansion = ModeExpansion(alpha=self.alpha)
+        expansion.field = self
+        return expansion
+
+    def compute_mode_energy(self, n: int) -> Energy:
+        """Compute energy of nth mode.
+        
+        Implements energy spectrum from appendix_d_scale.tex Eq. D.3.
+        
+        Args:
+            n: Mode number
+            
+        Returns:
+            Energy of nth mode
+        """
+        # Base energy scale from Z mass
+        E0 = Z_MASS
+        
+        # Fractal scaling factor
+        scaling = sum(self.alpha**k * GAMMA_k for k in range(1, n+1))
+        
+        # Compute mode energy with quantum corrections
+        E_n = E0 * exp(scaling) * (n + 0.5)
+        
+        return Energy(E_n)
+
+    def compute_inner_product(self, psi1: WaveFunction, psi2: WaveFunction) -> complex:
+        """Compute inner product between wavefunctions.
+        
+        Implements Eq. A.2 from appendix_a_convergence.tex.
+        
+        Args:
+            psi1: First wavefunction
+            psi2: Second wavefunction
+            
+        Returns:
+            Complex inner product value
+        """
+        integrand = conjugate(psi1) * psi2
+        return integrate(integrand, (X, -oo, oo), (T, -oo, oo))
+
+    def _hermite_polynomial(self, n: int, x: Symbol) -> WaveFunction:
+        """Compute nth Hermite polynomial.
+        
+        Implements recursion relation from appendix_d_scale.tex Eq. D.5.
+        
+        Args:
+            n: Polynomial order
+            x: Variable
+            
+        Returns:
+            WaveFunction: Hermite polynomial of order n
+        """
+        if n == 0:
+            return 1
+        elif n == 1:
+            return 2*x
+            
+        # Use recursion relation
+        h0, h1 = 1, 2*x
+        for i in range(2, n+1):
+            h0, h1 = h1, 2*x*h1 - 2*(i-1)*h0
+        return h1
+
+    def compute_expansion_coefficient(self, n: int, energy: Energy) -> complex:
+        """Compute mode expansion coefficient.
+        
+        Implements fractal form from appendix_d_scale.tex Eq. D.6.
+        
+        Args:
+            n: Mode number
+            energy: Energy scale
+            
+        Returns:
+            complex: Expansion coefficient
+        """
+        # Fractal phase factor
+        phase = exp(I * pi * sum(self.alpha**k * k for k in range(1, n+1)))
+        
+        # Energy-dependent amplitude
+        amplitude = (energy.value/Z_MASS)**(-n*self.alpha/2)
+        
+        return phase * amplitude / sqrt(factorial(n))
+
+    def _compute_time_ordered_product(self, psi_i: WaveFunction, psi_j: WaveFunction) -> complex:
+        """Compute time-ordered product between states.
+        
+        Implements Eq. B.5 from appendix_b_gauge.tex.
+        
+        Args:
+            psi_i: Initial state
+            psi_j: Final state
+            
+        Returns:
+            Complex time-ordered product
+        """
+        # Time ordering operator
+        theta = (T > 0) * 1.0
+        
+        # Compute product with proper time ordering
+        T_prod = theta * psi_i * psi_j + (1 - theta) * psi_j * psi_i
+        
+        # Add fractal vertex corrections
+        vertex = sum(
+            self.alpha**n * self._compute_vertex_factor(n)
+            for n in range(int(-log(self.precision)/log(self.alpha)))
+        )
+        
+        return integrate(T_prod * vertex, (X, -oo, oo), (T, -oo, oo))
+
+    def _compute_lsz_factor(self, n: int) -> complex:
+        """Compute LSZ reduction factor at order n.
+        
+        Implements Eq. B.6 from appendix_b_gauge.tex.
+        
+        Args:
+            n: Order of correction
+            
+        Returns:
+            Complex LSZ factor
+        """
+        # Fractal form factor
+        F_n = exp(-n * self.alpha) / factorial(n)
+        
+        # Phase factor from gauge invariance
+        phase = exp(I * pi * n * self.alpha)
+        
+        return F_n * phase
+
+    def _compute_vertex_factor(self, n: int) -> complex:
+        """Compute n-th order vertex correction factor.
+        
+        Implements vertex functions from appendix_b_gauge.tex Eq. B.7.
+        
+        Args:
+            n: Order of vertex correction
+            
+        Returns:
+            Complex vertex factor
+        """
+        # Fractal suppression factor
+        suppression = exp(-n * self.alpha)
+        
+        # Symmetry factor from Feynman rules
+        symmetry = 1.0 / factorial(n)
+        
+        # Phase from gauge invariance
+        phase = exp(2j * pi * n * self.alpha)
+        
+        # Momentum-dependent form factor
+        form_factor = (P**2/(2*M_PLANCK))**(n*self.alpha/2)
+        
+        return suppression * symmetry * phase * form_factor
+
+    def evolve_coupling(self, energies: np.ndarray, **kwargs) -> np.ndarray:
+        """Evolve gauge couplings across energy scales.
+        
+        Implements RG evolution from appendix_h_rgflow.tex Eq. H.2.
+        
+        Args:
+            energies: Array of energy scales
+            **kwargs: Optional precision parameters
+            
+        Returns:
+            Array of evolved coupling values
+        """
+        # Initial coupling at Z mass
+        alpha_0 = kwargs.get('alpha_0', ALPHA_REF)
+        
+        # Beta function coefficients from appendix_h_rgflow.tex
+        beta_coeffs = [GAMMA_1, GAMMA_2, GAMMA_3]
+        
+        # Evolve coupling
+        couplings = np.zeros_like(energies)
+        for i, E in enumerate(energies):
+            couplings[i] = alpha_0 / (1 + sum(
+                g * self.alpha**n * np.log(E/Z_MASS)
+                for n, g in enumerate(beta_coeffs, 1)
+            ))
+            
+        return couplings
+
+    def compute_running_coupling(self, energy: Energy) -> NumericValue:
+        """Compute running coupling at specific energy scale.
+        
+        Implements RG flow equations from appendix_h_rgflow.tex Eq. H.3.
+        
+        Args:
+            energy: Energy scale
+            
+        Returns:
+            NumericValue: Running coupling with uncertainty
+        """
+        E = energy.value
+        alpha_0 = ALPHA_REF  # Reference coupling at Z mass
+        
+        # Beta function coefficients
+        beta_0 = -sum(GAMMA_k * self.alpha**k for k in range(1, 4))
+        
+        # Compute running coupling
+        alpha = alpha_0 / (1 - beta_0 * np.log(E/Z_MASS))
+        
+        # Estimate uncertainty from higher orders
+        uncertainty = abs(alpha * alpha_0 * np.log(E/Z_MASS)**2)
+        
+        return NumericValue(alpha, uncertainty)

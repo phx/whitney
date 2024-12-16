@@ -88,3 +88,35 @@
   - [ ] compute_fermion_masses()
   - [ ] compute_mass_ratios()
   - [ ] Test coverage and validation
+
+# Critical Fixes Needed
+
+## High Priority
+- [ ] Fix NumericValue complex number handling
+  - [x] Add complex value support in type hints
+  - [ ] Update arithmetic operations for complex numbers
+  - [ ] Fix complex conjugate method
+  - [ ] Add proper real/imag properties
+
+- [ ] Fix WaveFunction initialization issues
+  - [ ] Add proper grid validation
+  - [ ] Fix quantum number validation
+  - [ ] Add normalization checks
+  - [ ] Handle symbolic expressions correctly
+
+- [ ] Fix Field computation errors
+  - [ ] Fix compute_basis_function missing method
+  - [ ] Fix compute_norm missing method
+  - [ ] Fix compute_coupling type errors
+  - [ ] Fix energy validation
+
+## Medium Priority
+- [ ] Fix test infrastructure
+  - [ ] Fix hypothesis test fixtures
+  - [ ] Add proper test isolation
+  - [ ] Fix benchmark timeouts
+
+## Low Priority
+- [ ] Improve error messages
+- [ ] Add more validation checks
+- [ ] Improve documentation

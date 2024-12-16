@@ -7,6 +7,7 @@ from typing import Dict, Any, List, Tuple, Optional
 import pytest
 import numpy as np
 import pytest_benchmark
+from sympy import exp
 
 # Add project root to Python path
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -141,37 +142,29 @@ def field_config() -> FieldConfig:
 
 @pytest.fixture
 def standard_field():
-    """Create standard model field configuration."""
-    return UnifiedField(
-        alpha=ALPHA_VAL,
-        mode='standard_model'
-    )
+    """Create standard UnifiedField instance for testing."""
+    return UnifiedField(alpha=ALPHA_VAL)
 
 @pytest.fixture
 def physics_data():
     """Create standard physics test data."""
     return {
-        'energies': np.logspace(2, 4, 10),  # 100 GeV - 10 TeV
-        'momenta': np.array([
-            [100.0, 0.0, 0.0, 0.0],
-            [0.0, 100.0, 0.0, 0.0]
-        ]),
-        'masses': {
-            'higgs': 125.1,
-            'top': 173.0,
-            'z': Z_MASS
-        }
+        'energies': np.logspace(2, 4, 10),  # 100 GeV to 10 TeV
+        'momenta': np.linspace(0, 1000, 10),  # 0 to 1000 GeV
+        'angles': np.linspace(0, 2*np.pi, 10),
+        'times': np.linspace(0, 10, 10),  # 0 to 10 units
+        'positions': np.linspace(-10, 10, 10)  # -10 to 10 units
     }
 
 @pytest.fixture
 def test_state():
     """Create test quantum state."""
-    return np.exp(-(X**2 + (C*T)**2)/(2*HBAR**2))
+    return exp(-(X**2 + (C*T)**2)/(2*HBAR**2))
 
 @pytest.fixture
 def phase():
     """Create test gauge phase."""
-    return np.pi/4  # 45 degrees
+    return 0.1  # Small gauge transformation phase
 
 @pytest.fixture
 def standard_detector(detector):

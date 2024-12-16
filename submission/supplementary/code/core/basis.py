@@ -20,6 +20,8 @@ from .types import Energy, FieldConfig, WaveFunction
 from .modes import ComputationMode
 from .field import UnifiedField
 from .errors import PhysicsError, ValidationError
+from .mode_expansion import ModeExpansion
+from .enums import ComputationMode
 
 class FractalBasis(UnifiedField):
     """

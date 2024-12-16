@@ -3,13 +3,15 @@
 from typing import Dict, List, Optional, Union, Tuple
 import numpy as np
 from sympy import Expr, Symbol, integrate, exp
-from .types import Energy, Momentum, WaveFunction, CrossSection
+from .types import Energy, Momentum, WaveFunction, CrossSection, NumericValue
 from .validation import (
     validate_energy, validate_momentum, validate_wavefunction,
     validate_numeric_range
 )
 from .errors import ComputationError, PhysicsError
 from .physics_constants import ALPHA_VAL, X, E
+from .basis import FractalBasis
+from .constants import Z_MASS
 
 def compute_cross_section(
     energy: Union[float, Energy],
@@ -177,3 +179,40 @@ def compute_total_width(E: float, couplings: Dict[str, float]) -> float:
             M_squared = compute_matrix_element_squared(coupling, params)
             total += M_squared * phase_space
     return total / (32 * np.pi * E)
+
+def compute_cross_section(psi: WaveFunction, energy: Energy) -> CrossSection:
+    """Compute scattering cross section."""
+    # Existing S-matrix calculation
+    amplitude = compute_amplitude(psi, energy)
+    
+    return CrossSection(np.abs(amplitude)**2)
+
+def compute_phase_space_integral(
+    psi: WaveFunction,
+    energy: Energy,
+    precision: Optional[float] = None
+) -> NumericValue:
+    """
+    Compute phase space integral with proper normalization.
+    
+    Uses fractal basis decomposition to maintain gauge invariance
+    while respecting unitarity constraints.
+    
+    Args:
+        psi: Quantum state in fractal basis
+        energy: Center of mass energy
+        precision: Optional numerical precision
+        
+    Returns:
+        Normalized phase space integral
+    """
+    if precision is None:
+        precision = 1e-8
+        
+    # Compute using fractal decomposition
+    basis = FractalBasis(precision=precision)
+    return basis.integrate_phase_space(psi, energy)
+
+def compute_amplitude(psi: WaveFunction, energy: Energy) -> complex:
+    # Implementation of compute_amplitude function
+    pass

@@ -3,6 +3,20 @@
 - [ ] Add scale invariance tests
   - [ ] Test scaling at different energy levels
   - [ ] Verify fractal dimension consistency
+- [ ] Add holographic principle tests
+  - [ ] Test entropy bounds from Eq. G.1
+  - [ ] Test fractal scaling of degrees of freedom
+  - [ ] Test AdS/CFT correspondence
+  - [ ] Test holographic recursion relations
+- [ ] Add RG flow tests
+  - [ ] Test beta function structure
+  - [ ] Test coupling unification
+  - [ ] Test fractal corrections to RG equations
+  - [ ] Test uniqueness of unification point
+- [ ] Add experimental prediction tests
+  - [ ] Test coupling predictions at M_Z
+  - [ ] Test gravitational wave spectrum
+  - [ ] Test cosmological parameters
 
 ## Test Infrastructure Fixes
 - [ ] Fix Missing Fixtures

@@ -1,0 +1,32 @@
+# Core dependencies
+mkdocs>=1.4.0
+mkdocs-material>=9.1.0
+
+# Math support
+pymdown-extensions>=10.0
+python-markdown-math>=0.8
+
+# Theme extensions
+mkdocs-material-extensions>=1.1
+mkdocs-minify-plugin>=0.6.4
+
+# Code highlighting
+pygments>=2.15.0
+
+# Navigation and search
+mkdocs-awesome-pages-plugin>=2.8.0
+mkdocs-section-index>=0.3.5
+
+# Additional features
+mkdocs-git-revision-date-plugin>=0.3.2
+mkdocs-jupyter>=0.24.1
+mkdocs-pdf-export-plugin>=0.5.10
+mkdocs-redirects>=1.2.0
+
+# Documentation testing
+markdown-include>=0.8.0
+mkdocs-markdownextradata-plugin>=0.2.5
+mkdocs-macros-plugin>=0.7.0
+
+# LaTeX support
+latex>=0.7.0 
