@@ -1,122 +1,49 @@
-# Project TODO
+# Core Framework Priorities
 
-## Critical Path (Paper Submission Blockers)
+## 1. Type System (Critical)
+- [ ] Fix NumericValue property access for 'value' attribute
+- [ ] Add proper type conversion for numpy types (float64, ndarray)
+- [ ] Implement valid_range support in NumericValue.__init__
+- [ ] Fix WaveFunction normalization and validation
+- [ ] Ensure proper type handling in field computations
 
-### 14.30 Core Theory Implementation
-- [ ] Fix Critical Theoretical Components
-  - [ ] Fix Import Dependencies (BUG-009)
-    - [ ] Move common constants to physics_constants.py
-      - [x] Add E symbol to physics_constants.py
-      - [x] Update imports in conftest.py
-      - [x] Move transformations to separate module
-      - [x] Add missing error classes
-    - [x] Update import hierarchy in field.py and basis.py
-    - [ ] Fix circular dependencies in test fixtures
-    - [ ] Refactor imports to resolve circular dependencies (BUG-018)
-  - [ ] Fix Test Runner (BUG-021)
-    - [ ] Fix Python Path Setup
-    - [ ] Fix Test Import Structure
-    - [ ] Add Import Validation
-  - [ ] Fix Coordinate System (BUG-008, BUG-012)
-    - [ ] Consolidate symbol definitions in constants.py
-    - [ ] Update field calculations to use consistent coordinates
-    - [ ] Add coordinate system tests
-  - [ ] Fix UnifiedField Implementation (BUG-010)
-    - [ ] Implement UnifiedField class
-    - [ ] Add validation and constraints
-    - [ ] Fix failing tests
-    - [ ] Fix Version Control (BUG-004)
+## 2. UnifiedField API (High)
+- [ ] Add missing compute_* methods:
+  - [ ] compute_commutator
+  - [ ] compute_noether_current
+  - [ ] compute_retarded_propagator
+  - [ ] compute_couplings
+  - [ ] compute_gut_scale
+  - [ ] compute_dark_matter_density
+- [ ] Standardize method signatures to accept rtol parameter
+- [ ] Fix argument handling in compute_basis_function and compute_basis_state
 
-### 14.31 Validation Framework
-- [ ] Complete Validation System
-  - [ ] Fix Version Control (BUG-004)
-  - [x] Add Property Tests (BUG-017)
-  - [ ] Add missing test coverage (BUG-002)
-  - [x] Generate coverage reports
+## 3. Test Framework (Medium)
+- [ ] Replace function-scoped fixtures with context managers
+- [ ] Add HealthCheck suppression where appropriate
+- [ ] Optimize slow tests exceeding deadline
+- [ ] Fix hypothesis test configurations
 
-## Implementation Status
-- [x] Fix linter errors
-  - [x] Add target_precision to generate_weights.py
-  - [x] Add learning_rate to generate_weights.py 
-  - [x] Import GUT_SCALE in test_predictions.py
-- [ ] Check UnifiedField implementation
-  - [x] compute_field() and tests ✓
-  - [x] evolve_field() and tests ✓
-  - [x] compute_field_equation() and tests ✓
-  - [ ] For each remaining method:
-    1. Implement method
-    2. Write tests
-    3. Verify coverage
-    4. Move to next method
+## 4. Coverage Goals (High)
+- [ ] Increase core/field.py coverage (currently 42%)
+- [ ] Increase core/types.py coverage (currently 58%)
+- [ ] Increase core/utils.py coverage (currently 59%)
+- [ ] Reach overall 80% coverage target (currently 61.47%)
 
-## Test Coverage & Validation
-- [x] Add basic theorem tests
-- [ ] Add scale invariance tests
-  - [ ] Test scaling at different energy levels
-  - [ ] Verify fractal dimension consistency
-- [ ] Add gauge coupling tests
-  - [ ] Test running coupling convergence
-  - [ ] Verify unification point stability
-- [ ] Add fermion mass tests
-  - [ ] Test mass ratio predictions
-  - [ ] Verify generational structure 
-- [ ] Verify existing UnifiedField methods
-  - [ ] compute_field()
-  - [ ] evolve_field() 
-  - [ ] compute_field_equation()
-- [ ] Fix any failing tests in:
-  - [ ] test_physics.py
-  - [ ] test_consistency.py
-  - [ ] test_integration.py
-- [ ] Ensure test coverage meets 80% threshold
+## 5. Documentation (Medium)
+- [ ] Update testing_guide.md with new patterns
+- [ ] Document type system enhancements
+- [ ] Add examples for UnifiedField API
+- [ ] Update scientific.md with theoretical foundations
 
-## Standard Model Features Implementation
-- [ ] Neutrino Physics
-  - [ ] compute_neutrino_angles()
-  - [ ] compute_neutrino_masses()
-  - [ ] Test coverage and validation
-- [ ] CP Violation
-  - [ ] compute_ckm_matrix()
-  - [ ] extract_cp_phase()
-  - [ ] compute_jarlskog()
-  - [ ] compute_cp_violation()
-  - [ ] compute_baryon_asymmetry()
-  - [ ] Test coverage and validation
-- [ ] Mass Generation
-  - [ ] compute_higgs_vev()
-  - [ ] compute_higgs_mass()
-  - [ ] compute_fermion_masses()
-  - [ ] compute_mass_ratios()
-  - [ ] Test coverage and validation
+## 6. Performance (Low)
+- [ ] Fix ImmutableDenseNDimArray expand issue
+- [ ] Optimize phase space integration
+- [ ] Resolve memory usage in field evolution
+- [ ] Improve numerical stability in gauge transformations
 
-# Critical Fixes Needed
-
-## High Priority
-- [ ] Fix NumericValue complex number handling
-  - [x] Add complex value support in type hints
-  - [ ] Update arithmetic operations for complex numbers
-  - [ ] Fix complex conjugate method
-  - [ ] Add proper real/imag properties
-
-- [ ] Fix WaveFunction initialization issues
-  - [ ] Add proper grid validation
-  - [ ] Fix quantum number validation
-  - [ ] Add normalization checks
-  - [ ] Handle symbolic expressions correctly
-
-- [ ] Fix Field computation errors
-  - [ ] Fix compute_basis_function missing method
-  - [ ] Fix compute_norm missing method
-  - [ ] Fix compute_coupling type errors
-  - [ ] Fix energy validation
-
-## Medium Priority
-- [ ] Fix test infrastructure
-  - [ ] Fix hypothesis test fixtures
-  - [ ] Add proper test isolation
-  - [ ] Fix benchmark timeouts
-
-## Low Priority
-- [ ] Improve error messages
-- [ ] Add more validation checks
-- [ ] Improve documentation
+# References
+- See appendix_k_io_distinction.tex for measurement theory
+- See appendix_b_gauge.tex for gauge transformations
+- See appendix_g_holographic.tex for entropy calculations
+- See appendix_a_convergence.tex for basis expansions
