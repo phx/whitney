@@ -1,7 +1,7 @@
 """Type definitions for fractal field theory framework."""
 
-from typing import Any, Dict, List, Union, Optional, Tuple
-from dataclasses import dataclass
+from typing import Any, Dict, List, Union, Optional, Tuple, Callable
+from dataclasses import dataclass, field
 import numpy as np
 from sympy import Expr, Symbol
 from .errors import ValidationError, PhysicsError
@@ -385,16 +385,22 @@ class FieldConfig:
             Number of dimensions
         parameters: Dict[str, float]
             Additional configuration parameters
+        alpha: Optional[float]
+            Fine structure constant (default: ALPHA_VAL)
     """
     mass: float
-    coupling: float
+    coupling: float 
     dimension: int
-    parameters: Dict[str, float] = None
+    parameters: Dict[str, float] = field(default_factory=dict)
+    alpha: Optional[float] = None
     
     def __post_init__(self):
-        """Initialize with empty parameters if None."""
+        """Initialize and validate configuration."""
         if self.parameters is None:
             self.parameters = {}
+        if self.alpha is None:
+            from .constants import ALPHA_VAL
+            self.alpha = ALPHA_VAL
         self.validate()
     
     def validate(self) -> None:
@@ -402,31 +408,45 @@ class FieldConfig:
         if self.mass < 0:
             raise ValueError("Mass must be non-negative")
         if self.coupling < 0:
-            raise ValueError("Coupling must be non-negative")
+            raise ValueError("Coupling must be non-negative") 
         if self.dimension < 1:
             raise ValueError("Dimension must be positive")
+        if self.alpha <= 0:
+            raise ValueError("Alpha must be positive")
 
 @dataclass
 class WaveFunction:
-    """Quantum wavefunction."""
+    """Quantum wavefunction.
+    
+    Implements quantum mechanical wavefunctions with proper normalization,
+    validation, and symbolic/numeric handling capabilities.
+    
+    Key features:
+    - Handles both symbolic and numerical representations
+    - Automatic normalization and validation
+    - Grid-based evaluation for numerical calculations
+    - Quantum number tracking for state identification
+    """
     psi: Union[np.ndarray, Symbol]
     grid: Optional[np.ndarray] = None
     quantum_numbers: Optional[Dict[str, Any]] = None
     
-    def __post_init__(self):
-        """Initialize after construction."""
-        if self.grid is None:
-            self.grid = np.linspace(-10, 10, 1000)
-        if self.quantum_numbers is None:
-            self.quantum_numbers = {}
-
     def __post_init__(self):
         """
         Validate and initialize wavefunction.
         
         Handles both symbolic expressions and numerical arrays.
         Ensures proper conversion and validation.
+        
+        Also performs automatic normalization for numerical wavefunctions
+        while preserving symbolic expressions.
         """
+        # Initialize defaults while preserving any existing values
+        if self.grid is None:
+            self.grid = np.linspace(-10, 10, 1000)
+        if self.quantum_numbers is None:
+            self.quantum_numbers = {}
+            
         # Validate grid first
         if not isinstance(self.grid, np.ndarray):
             raise ValidationError("Grid must be numpy array")
@@ -442,7 +462,7 @@ class WaveFunction:
             if not isinstance(value, int):
                 raise ValidationError(f"Quantum number {key} must be integer")
 
-        # Handle symbolic expressions
+        # Handle symbolic expressions with enhanced validation
         if isinstance(self.psi, Expr):
             try:
                 # Handle both atomic and compound expressions
@@ -479,6 +499,9 @@ class WaveFunction:
         ∫|ψ(x)|² dx = 1
         
         Uses trapezoidal integration over the grid points.
+        Raises PhysicsError if normalization fails.
+        
+        See appendix_a_convergence.tex for mathematical details.
         """
         # Compute norm using trapezoidal rule
         integrand = np.abs(self.psi)**2
@@ -490,6 +513,31 @@ class WaveFunction:
             raise PhysicsError("Normalization integral diverges")
             
         self.psi /= norm
+
+    def compute_expectation(self, operator: Union[np.ndarray, Callable]) -> complex:
+        """
+        Compute quantum expectation value.
+        
+        Args:
+            operator: Matrix or function representing observable
+            
+        Returns:
+            Complex expectation value ⟨ψ|A|ψ⟩
+            
+        See appendix_k_io_distinction.tex for measurement theory.
+        """
+        if callable(operator):
+            op_matrix = operator(self.grid)
+        else:
+            op_matrix = operator
+            
+        # Compute ⟨ψ|A|ψ⟩
+        expectation = np.trapz(
+            np.conjugate(self.psi) * op_matrix @ self.psi,
+            self.grid
+        )
+        
+        return complex(expectation)
 
     def __mul__(self, other: Union[float, complex, 'WaveFunction']) -> 'WaveFunction':
         """Multiply wavefunctions or scale by number."""
@@ -559,6 +607,175 @@ class WaveFunction:
             raise ValidationError("Grid must be numpy array")
         if not isinstance(self.quantum_numbers, dict):
             raise ValidationError("Quantum numbers must be dictionary")
+
+    def compute_overlap(self, other: 'WaveFunction') -> complex:
+        """
+        Compute quantum mechanical overlap integral.
+        
+        Implements overlap calculation from appendix_a_convergence.tex:
+        ⟨ψ₁|ψ₂⟩ = ∫ ψ₁*(x) ψ₂(x) dx
+        
+        Args:
+            other: WaveFunction to compute overlap with
+            
+        Returns:
+            Complex overlap integral
+            
+        Raises:
+            ValidationError: If grid points don't match
+        """
+        if not np.array_equal(self.grid, other.grid):
+            raise ValidationError("Grid points must match for overlap calculation")
+            
+        return complex(np.trapz(
+            np.conjugate(self.psi) * other.psi,
+            self.grid
+        ))
+
+    def evolve(self, hamiltonian: Union[np.ndarray, Callable], time: float) -> 'WaveFunction':
+        """
+        Time evolve wavefunction under given Hamiltonian.
+        
+        Implements Schrödinger evolution from appendix_k_io_distinction.tex:
+        |ψ(t)⟩ = exp(-iHt/ħ)|ψ(0)⟩
+        
+        Args:
+            hamiltonian: Energy operator (matrix or function)
+            time: Evolution time
+            
+        Returns:
+            Evolved wavefunction
+            
+        See appendix_k_io_distinction.tex for detailed evolution equations.
+        """
+        if callable(hamiltonian):
+            H = hamiltonian(self.grid)
+        else:
+            H = hamiltonian
+            
+        # Compute evolution operator exp(-iHt/ħ)
+        from scipy.linalg import expm
+        from .physics_constants import HBAR
+        
+        U = expm(-1j * H * time / HBAR)
+        
+        # Evolve state
+        evolved_psi = U @ self.psi
+        
+        return WaveFunction(
+            psi=evolved_psi,
+            grid=self.grid.copy(),
+            quantum_numbers=self.quantum_numbers.copy()
+        )
+
+    def to_momentum_space(self) -> 'WaveFunction':
+        """
+        Transform wavefunction to momentum space.
+        
+        Implements Fourier transform from appendix_b_gauge.tex:
+        ψ(p) = (1/√(2πħ)) ∫ ψ(x) exp(-ipx/ħ) dx
+        
+        Returns:
+            WaveFunction in momentum representation
+            
+        See appendix_b_gauge.tex for gauge transformations.
+        """
+        from numpy.fft import fft, fftfreq
+        from .physics_constants import HBAR
+        
+        # Compute momentum grid
+        dp = 2*np.pi*HBAR / (self.grid[-1] - self.grid[0])
+        p_grid = fftfreq(len(self.grid), d=dp) * 2*np.pi*HBAR
+        
+        # Perform FFT with proper normalization
+        psi_p = fft(self.psi) / np.sqrt(len(self.grid))
+        
+        # Update quantum numbers for momentum space
+        p_numbers = self.quantum_numbers.copy()
+        p_numbers['representation'] = 'momentum'
+        
+        return WaveFunction(
+            psi=psi_p,
+            grid=p_grid,
+            quantum_numbers=p_numbers
+        )
+        
+    def uncertainty(self, operator: Union[np.ndarray, Callable]) -> float:
+        """
+        Compute quantum mechanical uncertainty.
+        
+        Implements uncertainty calculation from appendix_k_io_distinction.tex:
+        ΔA = √(⟨A²⟩ - ⟨A⟩²)
+        
+        Args:
+            operator: Observable operator
+            
+        Returns:
+            Standard deviation of observable
+            
+        See appendix_k_io_distinction.tex for measurement theory.
+        """
+        # Compute expectation values
+        exp_A = self.compute_expectation(operator)
+        exp_A2 = self.compute_expectation(lambda x: operator(x) @ operator(x))
+        
+        # Return standard deviation
+        return float(np.sqrt(abs(exp_A2 - exp_A**2)))
+
+    def compute_density_matrix(self) -> np.ndarray:
+        """
+        Compute quantum density matrix.
+        
+        Implements density operator from appendix_k_io_distinction.tex:
+        ρ = |ψ⟩⟨ψ|
+        
+        Returns:
+            Complex density matrix
+            
+        See appendix_k_io_distinction.tex for measurement theory.
+        """
+        # Compute outer product |ψ⟩⟨ψ|
+        return np.outer(self.psi, np.conjugate(self.psi))
+        
+    def compute_entropy(self) -> float:
+        """
+        Compute von Neumann entropy.
+        
+        Implements entropy calculation from appendix_g_holographic.tex:
+        S = -Tr(ρ ln ρ)
+        
+        Returns:
+            Entropy value (dimensionless)
+            
+        See appendix_g_holographic.tex for holographic principles.
+        """
+        # Compute eigenvalues of density matrix
+        rho = self.compute_density_matrix()
+        eigenvals = np.linalg.eigvalsh(rho)
+        
+        # Remove negligible eigenvalues
+        eigenvals = eigenvals[eigenvals > 1e-15]
+        
+        # Compute von Neumann entropy
+        return float(-np.sum(eigenvals * np.log(eigenvals)))
+        
+    def compute_correlation_length(self) -> float:
+        """
+        Compute quantum correlation length.
+        
+        Implements correlation analysis from appendix_k_io_distinction.tex:
+        ξ = √(⟨x²⟩ - ⟨x⟩²)
+        
+        Returns:
+            Correlation length in grid units
+            
+        See appendix_k_io_distinction.tex for locality principles.
+        """
+        # Position operator
+        x_op = lambda x: np.diag(x)
+        
+        # Compute correlation length using uncertainty
+        return self.uncertainty(x_op)
 
 @dataclass
 class AnalysisResult:
@@ -736,30 +953,10 @@ class ErrorEstimate:
 
 @dataclass
 class NumericValue:
-    """Numeric value with uncertainty."""
-    _value: Union[float, complex]
-    _uncertainty: Optional[float] = None
+    """Value with optional uncertainty and validation."""
+    value: Union[int, float, complex, np.number]
+    uncertainty: Optional[float] = None
     
-    @property
-    def value(self) -> Union[float, complex]:
-        """Get the value."""
-        return self._value
-        
-    @value.setter
-    def value(self, val: Union[float, complex]):
-        """Set the value."""
-        self._value = val
-        
-    @property
-    def uncertainty(self) -> Optional[float]:
-        """Get the uncertainty."""
-        return self._uncertainty
-        
-    @uncertainty.setter
-    def uncertainty(self, val: Optional[float]):
-        """Set the uncertainty."""
-        self._uncertainty = val
-
     def __post_init__(self):
         """Validate and initialize value."""
         self._validate()
@@ -767,38 +964,38 @@ class NumericValue:
     def _validate(self):
         """Validate value and uncertainty."""
         # Validate value
-        if isinstance(self._value, (int, float, np.number)):
-            if not np.isfinite(float(self._value)):
+        if isinstance(self.value, (int, float, np.number)):
+            if not np.isfinite(float(self.value)):
                 raise ValueError("Value must be finite")
-        elif isinstance(self._value, complex):
-            if not (np.isfinite(self._value.real) and np.isfinite(self._value.imag)):
+        elif isinstance(self.value, complex):
+            if not (np.isfinite(self.value.real) and np.isfinite(self.value.imag)):
                 raise ValueError("Complex value must be finite")
         else:
-            raise TypeError(f"Invalid value type: {type(self._value)}")
+            raise TypeError(f"Invalid value type: {type(self.value)}")
 
         # Validate uncertainty
-        if self._uncertainty is not None:
-            if not isinstance(self._uncertainty, (int, float)):
+        if self.uncertainty is not None:
+            if not isinstance(self.uncertainty, (int, float)):
                 raise TypeError("Uncertainty must be real number")
-            if self._uncertainty < 0:
+            if self.uncertainty < 0:
                 raise ValueError("Uncertainty must be non-negative")
-            if not np.isfinite(float(self._uncertainty)):
+            if not np.isfinite(float(self.uncertainty)):
                 raise ValueError("Uncertainty must be finite")
 
     @property
     def real(self) -> float:
         """Real part of the value."""
-        return float(self._value.real if isinstance(self._value, complex) else self._value)
+        return float(self.value.real if isinstance(self.value, complex) else self.value)
 
     @property 
     def imag(self) -> float:
         """Imaginary part of the value."""
-        return float(self._value.imag if isinstance(self._value, complex) else 0.0)
+        return float(self.value.imag if isinstance(self.value, complex) else 0.0)
 
     def conjugate(self) -> 'NumericValue':
         """Complex conjugate."""
-        if isinstance(self._value, complex):
-            return NumericValue(self._value.conjugate(), self._uncertainty)
+        if isinstance(self.value, complex):
+            return NumericValue(self.value.conjugate(), self.uncertainty)
         return self
 
     @classmethod
@@ -813,22 +1010,22 @@ class NumericValue:
     @property
     def magnitude(self) -> float:
         """Get absolute magnitude of value."""
-        if isinstance(self._value, complex):
-            return abs(self._value)
-        return abs(float(self._value))
+        if isinstance(self.value, complex):
+            return abs(self.value)
+        return abs(float(self.value))
         
     @property
     def phase(self) -> float:
         """Get phase angle for complex values (in radians)."""
-        if isinstance(self._value, complex):
-            return np.angle(self._value)
+        if isinstance(self.value, complex):
+            return np.angle(self.value)
         return 0.0
 
     def __complex__(self) -> complex:
         """Enable complex() conversion."""
-        if isinstance(self._value, complex):
-            return self._value
-        return complex(float(self._value))
+        if isinstance(self.value, complex):
+            return self.value
+        return complex(float(self.value))
 
     def __abs__(self) -> float:
         """Enable abs() function."""
@@ -837,14 +1034,14 @@ class NumericValue:
     def __add__(self, other: Union[float, complex, 'NumericValue']) -> 'NumericValue':
         """Add with uncertainty propagation."""
         other = self.ensure_numeric(other)
-        value = self._value + other._value
+        value = self.value + other.value
         
         # Keep existing uncertainty propagation
-        if self._uncertainty is None and other._uncertainty is None:
+        if self.uncertainty is None and other.uncertainty is None:
             return NumericValue(value)
             
-        unc1 = self._uncertainty or 0
-        unc2 = other._uncertainty or 0
+        unc1 = self.uncertainty or 0
+        unc2 = other.uncertainty or 0
         uncertainty = np.sqrt(unc1**2 + unc2**2)
         
         # Handle complex uncertainty propagation
@@ -855,15 +1052,15 @@ class NumericValue:
 
     def __mul__(self, other: 'NumericValue') -> 'NumericValue':
         """Multiply values with uncertainty propagation."""
-        value = self._value * other._value
+        value = self.value * other.value
         
-        if self._uncertainty is None or other._uncertainty is None:
+        if self.uncertainty is None or other.uncertainty is None:
             uncertainty = None
         else:
             # Relative uncertainties add in quadrature for multiplication
             rel_unc = np.sqrt(
-                (self._uncertainty/abs(self._value))**2 +
-                (other._uncertainty/abs(other._value))**2
+                (self.uncertainty/abs(self.value))**2 +
+                (other.uncertainty/abs(other.value))**2
             )
             uncertainty = abs(value) * rel_unc
             
@@ -871,31 +1068,31 @@ class NumericValue:
     
     def __abs__(self) -> float:
         """Get absolute value/magnitude."""
-        return abs(self._value)
+        return abs(self.value)
     
     def __str__(self) -> str:
         """String representation with uncertainty."""
-        if self._uncertainty is None:
-            return f"{self._value}"
-        return f"{self._value} ± {self._uncertainty}"
+        if self.uncertainty is None:
+            return f"{self.value}"
+        return f"{self.value} ± {self.uncertainty}"
     
     def __repr__(self) -> str:
         """Detailed string representation."""
-        return f"NumericValue(value={self._value}, uncertainty={self._uncertainty})"
+        return f"NumericValue(value={self.value}, uncertainty={self.uncertainty})"
     
     def __truediv__(self, other: Union[int, float, 'NumericValue']) -> 'NumericValue':
         """Implement division with uncertainty propagation."""
         if isinstance(other, (int, float)):
-            value = self._value / other
-            uncertainty = self._uncertainty / abs(other) if self._uncertainty is not None else None
+            value = self.value / other
+            uncertainty = self.uncertainty / abs(other) if self.uncertainty is not None else None
             return NumericValue(value, uncertainty)
         elif isinstance(other, NumericValue):
-            value = self._value / other._value
-            if self._uncertainty is None and other._uncertainty is None:
+            value = self.value / other.value
+            if self.uncertainty is None and other.uncertainty is None:
                 return NumericValue(value)
             # Propagate uncertainties using quadrature
-            rel_unc1 = (self._uncertainty / abs(self._value)) if self._uncertainty is not None else 0
-            rel_unc2 = (other._uncertainty / abs(other._value)) if other._uncertainty is not None else 0
+            rel_unc1 = (self.uncertainty / abs(self.value)) if self.uncertainty is not None else 0
+            rel_unc2 = (other.uncertainty / abs(other.value)) if other.uncertainty is not None else 0
             uncertainty = abs(value) * np.sqrt(rel_unc1**2 + rel_unc2**2)
             return NumericValue(value, uncertainty)
         return NotImplemented
@@ -904,17 +1101,17 @@ class NumericValue:
         """Subtract two values with uncertainty propagation."""
         if not isinstance(other, NumericValue):
             other = NumericValue(float(other))
-        value = self._value - other._value
-        if self._uncertainty is None and other._uncertainty is None:
+        value = self.value - other.value
+        if self.uncertainty is None and other.uncertainty is None:
             return NumericValue(value)
-        unc1 = self._uncertainty or 0
-        unc2 = other._uncertainty or 0
+        unc1 = self.uncertainty or 0
+        unc2 = other.uncertainty or 0
         uncertainty = np.sqrt(unc1**2 + unc2**2)
         return NumericValue(value, uncertainty)
     
     def __array__(self) -> np.ndarray:
         """Convert to numpy array (for numpy compatibility)."""
-        return np.array(self._value)
+        return np.array(self.value)
 
     @classmethod
     def from_complex(cls, value: complex, uncertainty: Optional[float] = None) -> 'NumericValue':
@@ -925,6 +1122,6 @@ class NumericValue:
 
     def to_complex(self) -> complex:
         """Convert value to complex number."""
-        if isinstance(self._value, complex):
-            return self._value
-        return complex(self._value)
+        if isinstance(self.value, complex):
+            return self.value
+        return complex(self.value)
