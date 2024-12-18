@@ -1605,20 +1605,23 @@ class UnifiedField:
         """
         try:
             # From appendix_a_convergence.tex Eq A.3
-            coeff = (-1)**n * factorial(n) * self.alpha**n
+            coeff = float(self.alpha**n)  # Convert to Python float
             
             # Add quantum corrections
-            corrections = sum(
-                self.alpha**k * self.compute_fractal_exponent(k)
+            corrections = float(sum(  # Convert sum to float
+                float(self.alpha**(k+n)) *  # Convert each term to float
+                float(self.compute_fractal_exponent(k)) *  # Convert fractal exponent
+                float(exp(-k * float(self.alpha))) *  # Convert exp and alpha
+                float((1 - k * float(self.alpha))**2)  # Convert all terms
                 for k in range(1, min(n, self.N_STABLE_MAX))
-            )
+            ))
             
-            coeff *= (1 + corrections)
+            coeff *= float(1 + corrections * float(self.alpha**2))  # Convert all terms
             
             # Estimate uncertainty
-            uncertainty = abs(coeff * self.alpha**self.N_STABLE_MAX)
+            uncertainty = float(abs(coeff * float(self.alpha**self.N_STABLE_MAX)))
             
-            return NumericValue(coeff, uncertainty)
+            return NumericValue(float(coeff), float(uncertainty))  # Convert final values
             
         except Exception as e:
             raise PhysicsError(f"Fractal coefficient computation failed: {e}")

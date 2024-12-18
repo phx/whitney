@@ -10,22 +10,18 @@
 - Fixed beta function length (13 -> 10)
 - Fixed ward identity test (missing psi argument)
 - Fixed coupling unification (g1-g2 < 0.001)
+- Fixed holographic entropy (ratio < 0.1)
 
 ## 🚧 In Progress
 - Fixing ward identity test (missing psi argument)
 
 ## 📋 Remaining Tasks
-1. Fix holographic entropy:
-   - Current: ratio ~1.0
-   - Target: ratio < 0.1
-   - Need stronger scaling
-
-2. Fix fractal recursion:
+1. Fix fractal recursion:
    - Current: diff = 0.00732
    - Target: diff < 1e-6
    - Need stronger convergence
 
-3. Fix dark matter profile:
+2. Fix dark matter profile:
    - Current: ratio < 0.1
    - Target: 0.1 < ratio < 10.0
    - Need to adjust base density
