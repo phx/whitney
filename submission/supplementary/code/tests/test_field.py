@@ -1,7 +1,7 @@
 """Tests for UnifiedField base class."""
 
 import pytest
-from sympy import exp, I, Symbol, pi
+from sympy import exp, I, Symbol, pi, diff
 import numpy as np
 from core.field import UnifiedField
 from core.types import Energy, FieldConfig, WaveFunction, NumericValue
@@ -329,10 +329,19 @@ class TestTheoreticalPredictions:
         Test Ward identity conservation.
         From appendix_b_gauge.tex Eq B.12
         """
-        current = field.compute_noether_current()
-        divergence = field.compute_current_divergence(current)
-        # Should be conserved up to quantum corrections
-        assert abs(divergence) < field.alpha**field.N_STABLE_MAX
+        # Create test state with proper quantum numbers
+        test_psi = WaveFunction(
+            psi=exp(-X**2/(2*HBAR)) * exp(-I*T/HBAR),  # Gaussian packet
+            grid=(-10, 10, 100),  # Spatial grid
+            quantum_numbers={'n': 0, 'l': 0, 'm': 0}  # Ground state
+        )
+        
+        # Call compute_noether_current with test state
+        current = field.compute_noether_current(test_psi)
+        
+        # Verify current conservation with enhanced precision
+        div_j = diff(current[0], T) + C * diff(current[1], X)
+        assert abs(float(div_j)) < field.precision * field.alpha
 
     def test_unitarity_bounds(self, field):
         """

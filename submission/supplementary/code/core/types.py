@@ -754,6 +754,10 @@ class WaveFunction:
         # Compute correlation length using uncertainty
         return self.uncertainty(x_op)
 
+    def _sympy_(self):
+        """Convert to SymPy expression for symbolic manipulation."""
+        return self.psi
+
 @dataclass
 class AnalysisResult:
     """
