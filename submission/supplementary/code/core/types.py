@@ -374,122 +374,97 @@ class Momentum(RealValue):
 
 @dataclass
 class FieldConfig:
-    """Field configuration parameters.
+    """Configuration for field theory computations.
+    
+    From appendix_i_sm_features.tex Eq I.1:
+    Field configurations are specified by mass, coupling, and dimension.
     
     Attributes:
-        mass: float
-            Mass parameter in GeV
-        coupling: float
-            Coupling constant (dimensionless)
-        dimension: int
-            Number of dimensions
-        parameters: Dict[str, float]
-            Additional configuration parameters
-        alpha: Optional[float]
-            Fine structure constant (default: ALPHA_VAL)
+        mass: Mass parameter (GeV)
+        coupling: Coupling constant
+        dimension: Spacetime dimension
+        max_level: Maximum fractal level
+        precision: Numerical precision
     """
     mass: float
-    coupling: float 
-    dimension: int
-    parameters: Dict[str, float] = field(default_factory=dict)
-    alpha: Optional[float] = None
+    coupling: float
+    dimension: int = 4
+    max_level: int = 10
+    precision: float = 1e-8
     
     def __post_init__(self):
-        """Initialize and validate configuration."""
-        if self.parameters is None:
-            self.parameters = {}
-        if self.alpha is None:
-            from .constants import ALPHA_VAL
-            self.alpha = ALPHA_VAL
-        self.validate()
-    
-    def validate(self) -> None:
-        """Validate field configuration."""
-        if self.mass < 0:
-            raise ValueError("Mass must be non-negative")
-        if self.coupling < 0:
-            raise ValueError("Coupling must be non-negative") 
-        if self.dimension < 1:
+        """Validate configuration parameters."""
+        if self.mass <= 0:
+            raise ValueError("Mass must be positive")
+        if self.coupling <= 0:
+            raise ValueError("Coupling must be positive")
+        if self.dimension <= 0:
             raise ValueError("Dimension must be positive")
-        if self.alpha <= 0:
-            raise ValueError("Alpha must be positive")
+        if self.max_level < 1:
+            raise ValueError("Max level must be positive")
+        if self.precision <= 0:
+            raise ValueError("Precision must be positive")
+            
+    @property
+    def scaling_dimension(self) -> float:
+        """Compute scaling dimension from spacetime dimension."""
+        return (self.dimension - 2)/2
+        
+    def to_dict(self) -> Dict[str, Union[float, int]]:
+        """Convert to dictionary for serialization."""
+        return {
+            'mass': self.mass,
+            'coupling': self.coupling,
+            'dimension': self.dimension,
+            'max_level': self.max_level,
+            'precision': self.precision
+        }
 
 @dataclass
 class WaveFunction:
-    """Quantum wavefunction.
+    """Quantum wavefunction with proper normalization.
     
-    Implements quantum mechanical wavefunctions with proper normalization,
-    validation, and symbolic/numeric handling capabilities.
+    From appendix_a_convergence.tex Eq A.4:
+    Wavefunctions must be properly normalized and satisfy quantum mechanical properties.
     
-    Key features:
-    - Handles both symbolic and numerical representations
-    - Automatic normalization and validation
-    - Grid-based evaluation for numerical calculations
-    - Quantum number tracking for state identification
+    Attributes:
+        psi: Wavefunction value (symbolic or numeric)
+        grid: Spatial/temporal grid points
+        quantum_numbers: State quantum numbers
     """
     psi: Union[np.ndarray, Symbol]
     grid: Optional[np.ndarray] = None
     quantum_numbers: Optional[Dict[str, Any]] = None
     
     def __post_init__(self):
-        """
-        Validate and initialize wavefunction.
-        
-        Handles both symbolic expressions and numerical arrays.
-        Ensures proper conversion and validation.
-        
-        Also performs automatic normalization for numerical wavefunctions
-        while preserving symbolic expressions.
-        """
-        # Initialize defaults while preserving any existing values
-        if self.grid is None:
-            self.grid = np.linspace(-10, 10, 1000)
+        """Initialize and normalize wavefunction."""
         if self.quantum_numbers is None:
             self.quantum_numbers = {}
             
-        # Validate grid first
-        if not isinstance(self.grid, np.ndarray):
-            raise ValidationError("Grid must be numpy array")
-        if len(self.grid.shape) != 1:
-            raise ValidationError("Grid must be 1-dimensional")
-        if not np.all(np.isfinite(self.grid)):
-            raise ValidationError("Grid points must be finite")
-            
-        # Validate quantum numbers
-        if not isinstance(self.quantum_numbers, dict):
-            raise ValidationError("Quantum numbers must be dictionary")
-        for key, value in self.quantum_numbers.items():
-            if not isinstance(value, int):
-                raise ValidationError(f"Quantum number {key} must be integer")
-
-        # Handle symbolic expressions with enhanced validation
-        if isinstance(self.psi, Expr):
-            try:
-                # Handle both atomic and compound expressions
-                if self.psi.is_Mul or self.psi.is_Add:
-                    # For compound expressions, substitute point by point
-                    self.psi = np.array([
-                        complex(self.psi.subs(X, x).evalf())
-                        for x in self.grid
-                    ])
-                else:
-                    # For simple expressions, vectorize
-                    subs_expr = self.psi.subs([(X, x) for x in self.grid])
-                    self.psi = np.array([
-                        complex(expr.evalf()) if expr.is_complex
-                        else float(expr.evalf()) 
-                        for expr in subs_expr
-                    ])
-            except (TypeError, ValueError) as e:
-                raise ValidationError(f"Failed to convert symbolic expression: {e}")
-        
-        # Validate numerical wavefunction
-        if not isinstance(self.psi, np.ndarray):
-            raise ValidationError("Wavefunction must be numpy array")
-        if self.psi.shape != self.grid.shape:
-            raise ValidationError("Wavefunction and grid shapes must match")
-        if not np.all(np.isfinite(self.psi)):
-            raise ValidationError("Wavefunction values must be finite")
+        if isinstance(self.psi, np.ndarray):
+            # Normalize numeric wavefunction
+            if self.grid is None:
+                raise ValueError("Grid required for numeric wavefunction")
+            norm = np.sqrt(np.sum(np.abs(self.psi)**2 * np.diff(self.grid)[0]))
+            if not np.isclose(norm, 1.0, rtol=1e-7):
+                self.psi = self.psi / norm
+                
+        self._validate()
+    
+    def _validate(self):
+        """Validate wavefunction properties."""
+        if isinstance(self.psi, np.ndarray):
+            if not np.all(np.isfinite(self.psi)):
+                raise ValueError("Wavefunction must be finite")
+            if self.grid is not None and len(self.grid) != len(self.psi):
+                raise ValueError("Grid and wavefunction dimensions must match")
+                
+    @property
+    def norm(self) -> float:
+        """Compute wavefunction norm."""
+        if isinstance(self.psi, np.ndarray):
+            return float(np.sqrt(np.sum(np.abs(self.psi)**2 * np.diff(self.grid)[0])))
+        return 1.0  # Symbolic wavefunctions assumed normalized
 
     def normalize(self) -> None:
         """
@@ -954,13 +929,22 @@ class ErrorEstimate:
 @dataclass
 class NumericValue:
     """Value with optional uncertainty and validation."""
-    value: Union[int, float, complex, np.number]
+    value: Union[int, float, complex, np.number, np.ndarray]
     uncertainty: Optional[float] = None
     
     def __post_init__(self):
         """Validate and initialize value."""
-        self._validate()
+        # Convert numpy types to standard Python types
+        if isinstance(self.value, (np.number, np.ndarray)):
+            if isinstance(self.value, np.ndarray):
+                if self.value.size != 1:
+                    raise ValueError("Can only convert scalar arrays")
+                self.value = float(self.value.item())
+            else:
+                self.value = float(self.value)
         
+        self._validate()
+    
     def _validate(self):
         """Validate value and uncertainty."""
         # Validate value
@@ -981,6 +965,33 @@ class NumericValue:
                 raise ValueError("Uncertainty must be non-negative")
             if not np.isfinite(float(self.uncertainty)):
                 raise ValueError("Uncertainty must be finite")
+
+    @property
+    def value(self) -> Union[float, complex]:
+        """Get the value with type validation.
+        
+        Returns:
+            Union[float, complex]: The stored value
+        """
+        if isinstance(self._value, (np.number, np.ndarray)):
+            return float(self._value)
+        return self._value
+
+    @value.setter 
+    def value(self, val: Union[float, complex, np.ndarray, 'NumericValue']) -> None:
+        """Set value with type conversion.
+        
+        Args:
+            val: New value to set
+        """
+        if isinstance(val, NumericValue):
+            self._value = val.value
+        elif isinstance(val, (np.number, np.ndarray)):
+            self._value = float(val)
+        elif isinstance(val, (int, float, complex)):
+            self._value = val
+        else:
+            raise TypeError(f"Cannot convert {type(val)} to numeric value")
 
     @property
     def real(self) -> float:
@@ -1006,7 +1017,6 @@ class NumericValue:
         if isinstance(value, (int, float, np.number)):
             return cls(float(value))
         raise TypeError(f"Cannot convert {type(value)} to NumericValue")
-
     @property
     def magnitude(self) -> float:
         """Get absolute magnitude of value."""
@@ -1022,10 +1032,15 @@ class NumericValue:
         return 0.0
 
     def __complex__(self) -> complex:
-        """Enable complex() conversion."""
-        if isinstance(self.value, complex):
-            return self.value
-        return complex(float(self.value))
+        """Enable complex number conversion.
+        
+        Enhances numeric compatibility by allowing:
+        complex(numeric_value)
+        
+        Returns:
+            complex: Complex representation of value
+        """
+        return complex(self.value)
 
     def __abs__(self) -> float:
         """Enable abs() function."""
@@ -1125,3 +1140,52 @@ class NumericValue:
         if isinstance(self.value, complex):
             return self.value
         return complex(self.value)
+
+    def to_numpy(self) -> np.ndarray:
+        """Convert to numpy array for computation.
+        
+        Enhances scientific computation compatibility.
+        
+        Returns:
+            np.ndarray: Array containing value
+        """
+        return np.array(self.value)
+
+    @classmethod
+    def from_measurement(cls, value: float, instrument_error: float) -> 'NumericValue':
+        """Create from physical measurement with instrument error.
+        
+        Enhances experimental data handling.
+        
+        Args:
+            value: Measured value
+            instrument_error: Instrument uncertainty
+            
+        Returns:
+            NumericValue with propagated uncertainty
+        """
+        return cls(value, abs(instrument_error))
+
+def ensure_numeric_value(value: Union[float, complex, np.ndarray, 'NumericValue']) -> 'NumericValue':
+    """Ensure value is wrapped in NumericValue type.
+    
+    Args:
+        value: Value to convert
+        
+    Returns:
+        NumericValue: Wrapped value
+        
+    Raises:
+        TypeError: If value cannot be converted
+    """
+    if isinstance(value, NumericValue):
+        return value
+    elif isinstance(value, (float, int, complex)):
+        return NumericValue(value)
+    elif isinstance(value, np.ndarray):
+        if value.size == 1:
+            return NumericValue(float(value))
+        raise TypeError(f"Can only convert scalar arrays, got shape {value.shape}")
+    else:
+        raise TypeError(f"Cannot convert {type(value)} to NumericValue")
+

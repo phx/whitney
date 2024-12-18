@@ -8,6 +8,9 @@ import pytest
 import numpy as np
 import pytest_benchmark
 from sympy import exp
+from numpy import sqrt
+from math import factorial
+from scipy.special import hermite
 
 # Add project root to Python path
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -106,10 +109,10 @@ def numeric_precision() -> Dict[str, float]:
         Dict[str, float]: Precision parameters
     """
     return {
-        'rtol': 1e-6,
-        'atol': 1e-8,
+        'rtol': 1e-8,
+        'atol': 1e-10,
         'maxiter': 1000,
-        'stability_threshold': 1e-4
+        'stability_threshold': 1e-6
     }
 
 @pytest.fixture
@@ -140,10 +143,14 @@ def field_config() -> FieldConfig:
         dimension=4
     )
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def standard_field():
     """Create standard UnifiedField instance for testing."""
-    return UnifiedField(alpha=ALPHA_VAL)
+    return UnifiedField(
+        alpha=ALPHA_VAL,
+        mode=ComputationMode.NUMERIC,
+        precision=1e-8
+    )
 
 @pytest.fixture
 def physics_data():
@@ -151,9 +158,19 @@ def physics_data():
     return {
         'energies': np.logspace(2, 4, 10),  # 100 GeV to 10 TeV
         'momenta': np.linspace(0, 1000, 10),  # 0 to 1000 GeV
-        'angles': np.linspace(0, 2*np.pi, 10),
+        'angles': np.linspace(0, 2*np.pi, 10),  # Full rotation
         'times': np.linspace(0, 10, 10),  # 0 to 10 units
-        'positions': np.linspace(-10, 10, 10)  # -10 to 10 units
+        'positions': np.linspace(-10, 10, 10),  # -10 to 10 units
+        'couplings': {
+            'g1': g1_REF,
+            'g2': g2_REF,
+            'g3': g3_REF
+        },
+        'quantum_numbers': {
+            'n': range(10),
+            'l': range(5),
+            'j': [n/2 for n in range(10)]
+        }
     }
 
 @pytest.fixture
@@ -217,3 +234,34 @@ def benchmark(request):
     if pytest_benchmark is None:
         pytest.skip("pytest-benchmark not installed")
     return request.getfixturevalue('benchmark')
+
+@pytest.fixture
+def quantum_state_generator():
+    """Generate quantum states for testing."""
+    def _generate(n: int = 0, l: int = 0):
+        """Generate nth excited state with angular momentum l."""
+        norm = 1/sqrt(2**n * factorial(n))
+        psi = norm * hermite(n)(X/sqrt(2*HBAR)) * exp(-X**2/(2*HBAR))
+        if l != 0:
+            psi *= (X/sqrt(HBAR))**l
+        return psi
+    return _generate
+
+@pytest.fixture
+def correlation_generator():
+    """Generate correlation functions for testing."""
+    def _generate(separation: float):
+        """Generate correlation function at given separation."""
+        def corr(x1, x2):
+            return exp(-(abs(x1 - x2)/separation)**2)
+        return corr
+    return _generate
+
+@pytest.fixture(scope="session")
+def test_config():
+    """Create standard test configuration."""
+    return FieldConfig(
+        mass=125.0,  # Higgs mass in GeV
+        coupling=0.1,
+        dimension=4
+    )

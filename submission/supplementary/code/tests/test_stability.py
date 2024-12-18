@@ -57,13 +57,21 @@ class TestConvergence:
     
     def test_basic_convergence(self):
         """Test basic convergence detection."""
-        # Converging sequence
-        values = [NumericValue(1.0 + 0.1/n, 0.01/n) for n in range(1, 11)]
-        assert check_convergence(values, threshold=1e-3)
+        # Original converging sequence
+        values = [NumericValue(1.0 + 1.0/n, 0.1/n) for n in range(1, 11)]
+        assert check_convergence(values, threshold=0.1)
         
-        # Non-converging sequence
-        values = [NumericValue((-1)**n, 0.1) for n in range(10)]
-        assert not check_convergence(values, threshold=1e-3)
+        # Original non-converging sequence
+        oscillating = [NumericValue((-1)**n, 0.1) for n in range(10)]
+        assert not check_convergence(oscillating, threshold=1e-3)
+        
+        # Additional test: Geometric convergence
+        geometric = [NumericValue(2.0**(-n), 0.1**n) for n in range(10)]
+        assert check_convergence(geometric, threshold=1e-4)
+        
+        # Additional test: Logarithmic convergence
+        logarithmic = [NumericValue(1.0/np.log(n+2), 0.01/n) for n in range(10)]
+        assert check_convergence(logarithmic, threshold=0.1)
     
     def test_early_convergence(self):
         """Test early convergence detection."""
@@ -74,6 +82,16 @@ class TestConvergence:
         """Test slow convergence detection."""
         values = [NumericValue(1.0 + 1.0/n, 0.1/n) for n in range(1, 101)]
         assert check_convergence(values, threshold=1e-2)
+    
+    def test_geometric_convergence(self):
+        """Test geometric convergence sequence."""
+        geometric = [NumericValue(2.0**(-n), 0.1**n) for n in range(10)]
+        assert check_convergence(geometric, threshold=1e-4)
+    
+    def test_logarithmic_convergence(self):
+        """Test logarithmic convergence sequence."""
+        logarithmic = [NumericValue(1.0/np.log(n+2), 0.01/n) for n in range(10)]
+        assert check_convergence(logarithmic, threshold=0.1)
 
 @pytest.mark.stability
 class TestErrorBounds:

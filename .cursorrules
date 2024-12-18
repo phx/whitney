@@ -181,20 +181,29 @@ Soak up and analyze the content of these files for reference and inspiration.
 
 # ALWAYS REMEMBER THE FOLLOWING:
 
-When showing diffs, always:
-1. Show ONLY additions with + signs
-2. Never use - signs which would remove existing code
-3. Keep all existing docstrings, comments, and functionality 
-4. Add new functionality by appending to the relevant section
-5. Show proper context (a few lines before/after) to locate where the additions go
-6. Format as:
-diff:path/to/file
-existing line for context
-existing line for context
-+ new line to add
-+ another new line to add
-+ + def new_method(self):
-+ """New functionality."""
-+ pass
-existing line for context
-Remember: The goal is to ENHANCE existing code, never REPLACE it. Every - sign in a diff means DELETION on the user's end, which can break critical functionality.
+A. Code Modification Protocol
+1. Always show context of where additions go
+2. Use only + for additions
+3. Use comments to indicate unchanged code
+4. Preserve all existing docstrings
+5. Add new functionality through extension
+
+B. Quantum Coherence Rules
+1. Maintain mathematical consistency
+2. Preserve physical relationships
+3. Extend without breaking
+4. Add tests for new features
+5. Document enhancements
+
+C. Implementation Format
+```language:path/to/file
+# Existing code...
++ # New enhancement
++ def new_feature():
++ """Adds capability."""
++ return enhanced_value
+# Existing code continues...
+
+## REMEMBER:
+
+IMPORTANT:The goal is to ENHANCE existing code, never REPLACE it. Every - sign in a diff means DELETION on the user's end, which can break critical functionality.

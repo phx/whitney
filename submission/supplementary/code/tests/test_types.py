@@ -4,7 +4,9 @@ import pytest
 import numpy as np
 from core.types import (
     RealValue, Energy, Momentum, CrossSection, 
-    BranchingRatio, FieldConfig, WaveFunction
+    BranchingRatio, FieldConfig, WaveFunction,
+    NumericValue,  # Add NumericValue import
+    ensure_numeric_value  # Add ensure_numeric_value import
 )
 from core.errors import PhysicsError, ValidationError
 
@@ -120,3 +122,88 @@ class TestConfigTypes:
         wf.psi = np.zeros_like(wf.psi)
         with pytest.raises(PhysicsError):
             wf.normalize()
+
+def test_numeric_value_uncertainty_propagation():
+    """Test uncertainty propagation in arithmetic operations."""
+    x = NumericValue(1.0, 0.1)
+    y = NumericValue(2.0, 0.2)
+    
+    # Test multiplication with uncertainties
+    result = x * y
+    assert np.isclose(result.value, 2.0)
+    assert np.isclose(result.uncertainty, 0.3)  # Using error propagation rules
+    
+    # Test relative uncertainty
+    rel_uncert = x.relative_uncertainty
+    assert np.isclose(rel_uncert, 0.1)
+
+def test_numeric_value_numpy_compatibility():
+    """Test NumericValue compatibility with numpy operations."""
+    arr = np.array([1.0])
+    x = ensure_numeric_value(arr)
+    assert isinstance(x, NumericValue)
+    assert x.value == 1.0
+    
+    # Test numpy scalar types
+    y = ensure_numeric_value(np.float64(2.0))
+    assert isinstance(y, NumericValue)
+    assert y.value == 2.0
+
+def test_numeric_value_validation():
+    """Test input validation for NumericValue."""
+    with pytest.raises(ValueError):
+        NumericValue(float('inf'))
+    
+    with pytest.raises(ValueError):
+        NumericValue(float('nan'))
+    
+    with pytest.raises(TypeError):
+        ensure_numeric_value(np.array([1.0, 2.0]))
+
+@pytest.mark.types
+class TestNumericValueEnhancements:
+    """Test enhanced NumericValue functionality."""
+    
+    def test_complex_conversion(self):
+        """Test enhanced complex number handling."""
+        # Test real value
+        x = NumericValue(1.0, 0.1)
+        z = complex(x)
+        assert z == (1.0 + 0j)
+        
+        # Test complex value
+        x = NumericValue(1.0 + 1.0j, 0.1)
+        z = complex(x)
+        assert z == (1.0 + 1.0j)
+        
+        # Test phase property
+        assert np.isclose(x.phase, np.pi/4)
+
+    def test_numpy_conversion(self):
+        """Test numpy array conversion."""
+        x = NumericValue(1.0, 0.1)
+        arr = x.to_numpy()
+        assert isinstance(arr, np.ndarray)
+        assert arr.dtype == np.float64
+        assert np.isclose(arr, 1.0)
+        
+        # Test complex value
+        x = NumericValue(1.0 + 1.0j, 0.1)
+        arr = x.to_numpy()
+        assert arr.dtype == np.complex128
+        assert np.isclose(arr, 1.0 + 1.0j)
+
+    def test_measurement_creation(self):
+        """Test creation from physical measurements."""
+        # Test positive error
+        x = NumericValue.from_measurement(100.0, 0.5)
+        assert x.value == 100.0
+        assert x.uncertainty == 0.5
+        
+        # Test negative error handling
+        x = NumericValue.from_measurement(100.0, -0.5)
+        assert x.uncertainty == 0.5  # Should take absolute value
+        
+        # Test zero error
+        x = NumericValue.from_measurement(100.0, 0.0)
+        assert x.uncertainty == 0.0

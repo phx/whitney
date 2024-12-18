@@ -2,7 +2,7 @@
 
 import pytest
 import numpy as np
-from hypothesis import given, strategies as st
+from hypothesis import given, strategies as st, settings, HealthCheck
 from sympy import exp, I, pi, sqrt, integrate, conjugate, oo, Matrix, diff
 from core.field import UnifiedField
 from core.basis import FractalBasis
@@ -502,3 +502,21 @@ class TestFieldTheorems:
         fractal_terms = field._compute_fractal_field_terms(psi)
         # Should scale as alpha^2
         assert abs(fractal_terms) < field.alpha**2 * abs(psi)
+
+    @settings(suppress_health_check=[
+        HealthCheck.function_scoped_fixture,
+        HealthCheck.too_slow
+    ])
+    @given(st.floats(min_value=0.1, max_value=10.0))
+    def test_energy_conservation(self, time):
+        """Test energy conservation in field evolution."""
+        field = UnifiedField()
+        psi = field.compute_basis_state(n=0)
+        
+        # Evolve system
+        times = np.linspace(0, time, 100)
+        results = field.evolve_field(psi, times)
+        
+        # Check energy conservation
+        E0 = results['energy'][0]
+        assert np.allclose(results['energy'], E0, rtol=1e-8)
