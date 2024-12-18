@@ -145,3 +145,45 @@ class NumericValue:
         if self.value == 0:
             raise ValueError("Division by zero")
         return NumericValue(other.value / self.value)
+    
+    @property
+    def value(self) -> Union[float, complex]:
+        """Get the underlying numeric value."""
+        return self._value
+
+    @value.setter 
+    def value(self, val: Union[float, complex]) -> None:
+        """Set numeric value with validation."""
+        if not isinstance(val, (int, float, complex)):
+            raise TypeError(f"Value must be numeric, got {type(val)}")
+        self._value = complex(val) if isinstance(val, complex) else float(val)
+
+    def __add__(self, other: Union['NumericValue', float]) -> 'NumericValue':
+        """Add two values with proper uncertainty propagation."""
+        other = ensure_numeric_value(other)
+        value = self.value + other.value
+        
+        # Propagate uncertainties if both present
+        if self.uncertainty is not None and other.uncertainty is not None:
+            uncertainty = np.sqrt(self.uncertainty**2 + other.uncertainty**2)
+        else:
+            uncertainty = None
+        
+        return NumericValue(value, uncertainty)
+
+    def __mul__(self, other: Union['NumericValue', float]) -> 'NumericValue':
+        """Multiply with proper uncertainty propagation."""
+        other = ensure_numeric_value(other)
+        value = self.value * other.value
+        
+        # Relative uncertainties add in quadrature for multiplication
+        if self.uncertainty is not None and other.uncertainty is not None:
+            rel_unc = np.sqrt(
+                (self.uncertainty/abs(self.value))**2 + 
+                (other.uncertainty/abs(other.value))**2
+            )
+            uncertainty = abs(value) * rel_unc
+        else:
+            uncertainty = None
+        
+        return NumericValue(value, uncertainty)

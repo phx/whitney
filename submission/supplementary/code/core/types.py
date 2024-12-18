@@ -81,9 +81,9 @@ class ComplexValue:
         uncertainty (Optional[float]): Uncertainty in absolute value
         
     Examples:
-        >>> z = ComplexValue(1+1j, 0.1)
-        >>> print(abs(z.value))  # Magnitude
-        >>> print(z.uncertainty)  # Uncertainty in magnitude
+        >>> z = ComplexValue(1 + 1j, 0.1)
+        >>> abs(z)  # Returns magnitude with uncertainty
+        >>> z.phase  # Returns phase in radians
     """
     value: complex
     uncertainty: Optional[float] = None
@@ -92,34 +92,36 @@ class ComplexValue:
         """Validate complex value."""
         if not isinstance(self.value, (complex, float, int)):
             raise ValueError("Value must be complex number")
-        self.value = complex(self.value)
+        if not np.isfinite(float(abs(self.value))):
+            raise ValueError("Value must be finite")
+        if self.uncertainty is not None:
+            if not isinstance(self.uncertainty, (int, float)):
+                raise ValueError("Uncertainty must be a real number")
+            if self.uncertainty < 0:
+                raise ValueError("Uncertainty must be non-negative")
+            if not np.isfinite(float(self.uncertainty)):
+                raise ValueError("Uncertainty must be finite")
     
-    def __abs__(self) -> float:
+    @property
+    def magnitude(self) -> float:
         """Get magnitude of complex value."""
         return abs(self.value)
     
+    @property 
+    def phase(self) -> float:
+        """Get phase angle in radians."""
+        return np.angle(self.value)
+    
+    def __abs__(self) -> RealValue:
+        """Get magnitude with propagated uncertainty."""
+        mag = abs(self.value)
+        if self.uncertainty is None:
+            return RealValue(mag)
+        return RealValue(mag, self.uncertainty)
+    
     def conjugate(self) -> 'ComplexValue':
         """Get complex conjugate."""
-        return ComplexValue(
-            value=self.value.conjugate(),
-            uncertainty=self.uncertainty
-        )
-    
-    def __mul__(self, other: Union['ComplexValue', RealValue]) -> 'ComplexValue':
-        """Multiply complex values with uncertainty propagation."""
-        if isinstance(other, (ComplexValue, RealValue)):
-            value = self.value * other.value
-            if self.uncertainty is None or other.uncertainty is None:
-                uncertainty = None
-            else:
-                # Relative uncertainties add in quadrature for multiplication
-                rel_unc = np.sqrt(
-                    (self.uncertainty/abs(self.value))**2 +
-                    (other.uncertainty/abs(other.value))**2
-                )
-                uncertainty = abs(value) * rel_unc
-            return ComplexValue(value, uncertainty)
-        return NotImplemented
+        return ComplexValue(self.value.conjugate(), self.uncertainty)
 
 @dataclass
 class Energy(RealValue):
