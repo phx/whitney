@@ -271,7 +271,14 @@ class TestTheoreticalPredictions:
         From appendix_i_sm_features.tex Eq I.8:
         m_n/m_{n+1} ≈ exp(-π/α)
         """
-        masses = field.compute_fermion_masses(rtol=1e-8)
+        config = FieldConfig(
+            mass=125.0,  # Higgs mass in GeV
+            coupling=0.1,  # Standard coupling
+            dimension=4,  # 4D spacetime
+            max_level=10,  # Sufficient for convergence
+            precision=1e-8  # High precision
+        )
+        masses = field.compute_fermion_masses(config, rtol=1e-8)
         ratio = masses['muon'].value / masses['tau'].value
         expected = np.exp(-np.pi/field.alpha)
         assert abs(ratio - expected) < 0.1  # 10% accuracy
