@@ -1172,6 +1172,23 @@ class NumericValue:
         """
         return cls(value, abs(instrument_error))
 
+    def __pow__(self, other: Union[int, float, 'NumericValue']) -> 'NumericValue':
+        """Implement power operation with uncertainty propagation."""
+        if isinstance(other, (int, float)):
+            value = self.value ** other
+            # Error propagation for power
+            uncertainty = abs(other * self.value**(other-1) * self.uncertainty)
+            return NumericValue(value, uncertainty)
+        elif isinstance(other, NumericValue):
+            value = self.value ** other.value
+            # Error propagation for power with uncertain exponent
+            uncertainty = abs(value * (
+                (other.value/self.value * self.uncertainty)**2 +
+                (log(self.value) * other.uncertainty)**2
+            )**0.5)
+            return NumericValue(value, uncertainty)
+        return NotImplemented
+
 def ensure_numeric_value(value: Union[float, complex, np.ndarray, 'NumericValue']) -> 'NumericValue':
     """Ensure value is wrapped in NumericValue type.
     

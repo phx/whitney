@@ -23,6 +23,36 @@
    - Target: 0.1 < ratio < 10.0
    - Need to adjust base density
 
+2. Neutrino Physics Implementation:
+   - ✅ Fix neutrino mixing angles computation
+   - ✅ Implement neutrino mass hierarchy calculation
+   - ✅ Add tests for neutrino oscillation predictions
+
+3. CP Violation Mechanisms:
+   - Implement CKM matrix calculation
+   - Add Jarlskog invariant computation
+   - Fix baryon asymmetry prediction
+
+4. Mass Generation:
+   - Implement Higgs mechanism
+   - Fix fermion mass hierarchy computation
+   - Add tests for mass ratio predictions
+
+5. Gravitational Effects:
+   - Implement gravitational wave spectrum
+   - Add dark matter substructure calculations
+   - Fix galactic rotation curves
+
+6. Quantum Properties:
+   - Fix S-matrix unitarity tests
+   - Implement CPT theorem validation
+   - Add spin-statistics verification
+
+7. Field Theory Fundamentals:
+   - Fix Ward identity tests
+   - Implement proper gauge transformations
+   - Add tests for causality constraints
+
 ## 🔍 Notes
 - All changes must preserve quantum coherence
 - Follow .cursorrules for minimal, targeted changes

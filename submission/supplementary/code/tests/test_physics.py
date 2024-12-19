@@ -98,6 +98,24 @@ class TestNeutrinoPhysics:
             assert abs(dm21 - 7.53e-5) < 0.18e-5  # eV²
             assert abs(dm32 - 2.453e-3) < 0.034e-3  # eV²
 
+    def test_neutrino_oscillations(self, field):
+        """Test neutrino oscillation probabilities."""
+        with field_config(dimension=4) as config, numeric_precision(rtol=1e-5) as prec:
+            # Test νμ → νe appearance at T2K baseline
+            L = 295.0  # km (T2K baseline)
+            E = 0.6  # GeV (T2K peak energy)
+            
+            P_mue = field.compute_oscillation_probability(
+                initial='muon',
+                final='electron',
+                L=L,
+                E=E,
+                **prec
+            )
+            
+            # Compare to T2K best fit
+            assert abs(P_mue.value - 0.0597) < 0.0073  # T2K 2020 result
+
 @pytest.mark.physics
 class TestCPViolation:
     """Test CP violation and matter-antimatter asymmetry."""
