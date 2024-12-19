@@ -180,7 +180,11 @@ class TestMassGeneration:
             
             # Check key masses
             assert abs(masses['top'] - 173.0) < 0.4  # GeV
-            assert abs(masses['electron'] - 0.511) < 0.001  # MeV
+            assert abs(masses['electron'] - 0.511e-3) < 1e-6  # Convert MeV to GeV for comparison
+            
+            # Check mass ratios
+            assert abs(masses['muon'].value/masses['electron'].value - 206.8) < 0.2
+            assert abs(masses['tau'].value/masses['muon'].value - 16.8) < 0.1
             
             # Test mass ratios with higher precision
             with numeric_precision(rtol=1e-5) as ratio_prec:

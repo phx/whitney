@@ -6,6 +6,7 @@ import numpy as np
 from sympy import Expr, Symbol
 from .errors import ValidationError, PhysicsError
 from .physics_constants import X
+from math import log
 
 __all__ = [
     'RealValue',
@@ -934,10 +935,20 @@ class ErrorEstimate:
 
 @dataclass
 class NumericValue:
-    """Value with optional uncertainty and validation."""
-    value: Union[int, float, complex, np.number, np.ndarray]
-    uncertainty: Optional[float] = None
+    """Value with associated uncertainty."""
     
+    def __init__(self, value: float, uncertainty: Optional[float] = None):
+        self.value = float(value)
+        self.uncertainty = float(uncertainty) if uncertainty is not None else None
+        
+    def __lt__(self, other: 'NumericValue') -> bool:
+        """Less than comparison using value."""
+        return self.value < other.value
+        
+    def __gt__(self, other: 'NumericValue') -> bool:
+        """Greater than comparison using value."""
+        return self.value > other.value
+
     def __post_init__(self):
         """Validate and initialize value."""
         # Convert numpy types to standard Python types

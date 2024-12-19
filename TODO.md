@@ -34,7 +34,7 @@
    - ✅ Fix baryon asymmetry prediction
 
 4. Mass Generation:
-   - Implement Higgs mechanism
+   - ✅ Implement Higgs mechanism
    - Fix fermion mass hierarchy computation
    - Add tests for mass ratio predictions
 

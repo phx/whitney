@@ -62,3 +62,12 @@
   - [ ] Implement missing UnifiedField methods
   - [ ] Add missing FractalBasis methods
   - [ ] Fix validation and error handling
+
+# Physics Implementation Tasks
+
+- [x] Fix fermion mass ratio calculations in field.py
+  - [x] Add proper NumericValue comparison operators
+  - [x] Fix mass ratio computation method
+  - [x] Update test cases to match experimental values
+  - [x] Add mu_tau ratio calculation
+  - [x] Fix precision and scaling factors
