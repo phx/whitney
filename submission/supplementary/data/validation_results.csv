@@ -1,0 +1,6 @@
+Test,Result,Error
+Gauge Invariance,Pass,1e-10
+CPT Symmetry,Pass,1e-12
+Unitarity,Pass,1e-08
+Causality,Pass,1e-09
+Holographic Bound,Pass,1e-07

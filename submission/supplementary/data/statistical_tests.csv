@@ -1,0 +1,7 @@
+Test_Name,Description,Null_Hypothesis,Required_Data_Points,Critical_Value,Expected_Significance
+Likelihood_Ratio,Nested model comparison,Standard QFT,1000,3.84,5.0
+Bayes_Factor,Full model comparison,Standard QFT,500,10.0,4.5
+Cross_Validation,Out-of-sample validation,Standard QFT,2000,0.05,4.0
+Akaike_IC,Information loss minimization,Standard QFT,1500,4.0,3.5
+Bayesian_IC,Posterior probability,Standard QFT,1500,6.0,4.2
+Deviance_IC,Effective parameter count,Standard QFT,1000,2.0,3.8

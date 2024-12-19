@@ -1,0 +1,7 @@
+Source,Energy_Range_GeV,Rate_Hz,Discrimination_Method,Rejection_Factor,Signal_Efficiency
+Cosmic_Rays,0.1-1e6,0.01,Timing + Topology,1e-06,0.99
+Detector_Noise,0.001-0.1,1000.0,ML Pattern Recognition,0.001,0.95
+Beam_Gas,1-100,10.0,Vertex Quality,0.0001,0.98
+QCD_Background,10-1000,100000.0,Isolation + Kinematics,1e-05,0.9
+Electroweak_Background,100-1000,100.0,Mass Windows,0.01,0.95
+Pile_up,10-500,1000000.0,Timing Resolution,0.001,0.92

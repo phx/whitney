@@ -1,0 +1,7 @@
+Test_Name,Observable,Standard_QFT_Prediction,Fractal_Theory_Prediction,Required_Energy_GeV,Statistical_Precision,Discrimination_Power
+Fractal_Scaling_Test,Field correlation function,Power law decay,Fractal dimension scaling,1000,0.001,5.0
+Holographic_Entropy_Measurement,Entropy density vs energy,Volume scaling,Area law scaling,5000,0.005,4.5
+Quantum_Correlation_Study,n-point correlators,Gaussian statistics,Fractal statistics,10000,0.002,4.0
+Coupling_Evolution_Precision,Running coupling ratios,Logarithmic running,Fractal scaling,2000,0.001,5.5
+Field_Configuration_Analysis,Field mode distribution,Gaussian modes,Fractal modes,500,0.01,3.5
+Symmetry_Breaking_Pattern,Vacuum alignment,Single vacuum,Multiple vacua,15000,0.005,4.2

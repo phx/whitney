@@ -671,7 +671,9 @@ class UnifiedField:
         rtol: float = 1e-8,
         atol: float = 1e-10,
         maxiter: int = 1000,
-        stability_threshold: float = 0.001
+        stability_threshold: float = 0.001,
+        config: Optional[FieldConfig] = None,
+        **kwargs
     ) -> Tuple[float, float, float]:
         """
         Compute neutrino mixing angles with precision control.
@@ -682,17 +684,23 @@ class UnifiedField:
             atol: Absolute tolerance for computations
             maxiter: Maximum number of iterations for convergence
             stability_threshold: Threshold for numerical stability checks
-        
+            config: Optional field configuration
+            
         Returns:
             Tuple[float, float, float]: (theta_12, theta_23, theta_13) mixing angles
         """
         try:
+            # Use provided config if available
+            if config is None:
+                config = FieldConfig(
+                    mass=125.0,  # Higgs mass in GeV
+                    coupling=0.1,  # Standard coupling
+                    dimension=4,  # 4D spacetime
+                    max_level=10  # Sufficient for convergence
+                )
+            
             # Get lepton masses with proper precision
-            masses = self.compute_fermion_masses(
-                rtol=rtol,
-                atol=atol,
-                maxiter=maxiter
-            )
+            masses = self.compute_fermion_masses(config)
             m_e = masses['electron'].value
             m_mu = masses['muon'].value
             m_tau = masses['tau'].value
@@ -2127,13 +2135,7 @@ class UnifiedField:
             theta_12, theta_23, theta_13 = self.compute_neutrino_angles(**kwargs)
             
             # Get mass differences
-            config = FieldConfig(
-                mass=125.0,  # Higgs mass in GeV
-                coupling=0.1,  # Standard coupling
-                dimension=4,  # 4D spacetime
-                max_level=10,  # Sufficient for convergence
-                precision=1e-8  # High precision
-            )
+            config = kwargs.pop('config', None)
             masses = self.compute_neutrino_masses(config, **kwargs)
             dm21 = masses[1]**2 - masses[0]**2  # eV²
             dm32 = masses[2]**2 - masses[1]**2  # eV²
@@ -2197,3 +2199,192 @@ class UnifiedField:
             
         except Exception as e:
             raise PhysicsError(f"Oscillation probability computation failed: {e}")
+
+    def compute_anomalous_dimension(self, process: str) -> float:
+        """
+        Compute anomalous dimension for a given process.
+        
+        Args:
+            process: Process name ('Z_to_ll', 'W_to_lnu', etc.)
+            
+        Returns:
+            float: Anomalous dimension γ
+        """
+        # Process-specific anomalous dimensions from paper Eq. 4.9
+        dimensions = {
+            'Z_to_ll': -0.0185,      # Z→l⁺l⁻
+            'W_to_lnu': -0.0198,     # W→lν
+            'H_to_gammagamma': 0.0,  # H→γγ (protected by gauge invariance)
+            'fractal_channel': -0.025 # From paper Eq. 4.10
+        }
+        return dimensions.get(process, 0.0)
+
+    def compute_radiative_factor(self, log_term: float) -> float:
+        """
+        Compute radiative correction factor F(x) from Eq. 4.7.
+        
+        Args:
+            log_term: ln(E/E₀)
+            
+        Returns:
+            float: Radiative correction factor
+        """
+        # Second order radiative corrections from paper Eq. 4.7
+        alpha = self.alpha
+        return 1.0 + alpha/(2*np.pi) * log_term**2
+
+    def compute_correlation(self, psi: WaveFunction, r: float) -> float:
+        """
+        Compute two-point correlation function.
+        
+        Args:
+            psi: Field configuration
+            r: Spatial separation
+            
+        Returns:
+            float: G₂(r) value
+        """
+        # Implement correlation function from paper Eq. 4.15
+        delta = 2 + self.compute_anomalous_dimension('fractal_channel')
+        scaling = r**(-2*delta)
+        F = self.compute_radiative_factor(np.log(r))
+        return float(scaling * F)
+
+    def compute_three_point_correlation(self, psi: WaveFunction, 
+                                      r1: float, r2: float) -> float:
+        """
+        Compute three-point correlation function.
+        
+        Args:
+            psi: Field configuration
+            r1, r2: Spatial separations
+            
+        Returns:
+            float: G₃(r₁,r₂) value
+        """
+        # Implement three-point function from paper Eq. 4.16
+        delta = 2 + self.compute_anomalous_dimension('fractal_channel')
+        scaling = abs(r1 * r2)**(-delta)
+        H = self.compute_radiative_factor(np.log(r1/r2))
+        return float(scaling * H)
+
+    def calculate_correlation_functions(self, r: np.ndarray, E: float) -> Dict[str, np.ndarray]:
+        """
+        Calculate correlation functions at given energy scale.
+        
+        Implements correlation functions from paper Sec. 4.4:
+        G₂(r) = <ψ(0)ψ(r)> = r^(-2Δ) * F(α*ln(r))
+        G₃(r₁,r₂) = <ψ(0)ψ(r₁)ψ(r₂)> = |r₁r₂|^(-Δ) * H(α*ln(r₁/r₂))
+        
+        Args:
+            r: Array of spatial separations in GeV⁻¹
+            E: Energy scale in GeV
+            
+        Returns:
+            Dict containing:
+            - 'two_point': G₂(r) values
+            - 'three_point': G₃(r,r/2) values
+        """
+        # Input validation
+        if not isinstance(r, np.ndarray):
+            raise TypeError("r must be a numpy array")
+        if E <= 0:
+            raise ValueError("Energy must be positive")
+        if E > M_PLANCK:
+            raise ValueError("Energy cannot exceed Planck scale")
+        if np.any(r <= 0):
+            raise ValueError("Spatial separations must be positive")
+        
+        # Create test field configuration
+        psi = self.compute_basis_function(0)  # Ground state
+        
+        correlations = {
+            'two_point': np.array([
+                self.compute_correlation(psi, r_val)
+                for r_val in r
+            ]),
+            'three_point': np.array([
+                self.compute_three_point_correlation(psi, r_val, r_val/2)
+                for r_val in r
+            ])
+        }
+        
+        return correlations
+
+    def compute_ground_state_energy(self, n: int) -> float:
+        """
+        Compute ground state energy for nth level.
+        
+        Args:
+            n: Level number
+            
+        Returns:
+            float: Ground state energy in GeV
+        """
+        # From paper Eq. 3.12: E_n = E_0 * α^n
+        E_0 = Z_MASS  # Ground state at Z mass
+        return float(E_0 * self.alpha**n)
+
+    def compute_basis_function(self, n: int) -> WaveFunction:
+        """
+        Compute nth basis function.
+        
+        Args:
+            n: Level number
+            
+        Returns:
+            WaveFunction: Basis function
+        """
+        # Get energy for this level
+        E = Energy(self.compute_ground_state_energy(n))
+        
+        # Compute wavefunction (from paper Eq. 3.15)
+        psi = exp(-X**2/(2*HBAR)) * exp(-I*E.value*T/HBAR)
+        
+        return WaveFunction(
+            psi=psi,
+            grid=(-10, 10, 100),  # Standard grid
+            quantum_numbers={'n': n, 'l': 0, 'm': 0}  # Ground state
+        )
+
+    def compute_holographic_entropy(self, E: float) -> float:
+        """
+        Compute holographic entropy at given energy scale.
+        
+        From paper Eq. G.4:
+        S(E) = (2π/α)*(E/M_P)^(3/4)
+        
+        Args:
+            E: Energy scale in GeV
+            
+        Returns:
+            float: Holographic entropy
+        """
+        if E <= 0:
+            raise ValueError("Energy must be positive")
+        if E > M_PLANCK:
+            raise ValueError("Energy cannot exceed Planck scale")
+        
+        # Compute entropy from paper equation
+        return float((2*np.pi/self.alpha) * (E/M_PLANCK)**(3/4))
+
+    def calculate_fractal_dimension(self, E: float) -> float:
+        """
+        Calculate fractal dimension at given energy scale.
+        
+        From paper Eq. D.8:
+        D(E) = 4 + α*ln(E/M_Z)
+        
+        Args:
+            E: Energy scale in GeV
+            
+        Returns:
+            float: Fractal dimension
+        """
+        if E <= 0:
+            raise ValueError("Energy must be positive")
+        if E > M_PLANCK:
+            raise ValueError("Energy cannot exceed Planck scale")
+        
+        # Compute dimension from paper equation
+        return float(4 + self.alpha * np.log(E/Z_MASS))

@@ -1,0 +1,7 @@
+Filter_Type,Target_Background,Input_Features,Architecture,Training_Data_Size,Signal_Efficiency,Background_Rejection,Inference_Time_ms
+Deep_Neural_Network,QCD_Jets,"Energy,Position,Time",5x256 Dense + Dropout,1000000,0.95,0.99,0.5
+Boosted_Decision_Trees,Pile_up,"Track_Parameters,Isolation","100 Trees, Depth 5",500000,0.92,0.98,0.2
+Convolutional_NN,Detector_Noise,Calorimeter_Image,ResNet-18,2000000,0.94,0.995,1.0
+Graph_Neural_Network,Topology_Classification,Particle_Graph,EdgeConv + GCN,300000,0.93,0.97,0.8
+Autoencoder,Anomaly_Detection,Raw_Detector_Output,Conv3D + Dense,1500000,0.9,0.999,0.3
+Transformer,Time_Series,Event_Sequence,"6-layer, 8-head",800000,0.91,0.98,1.2

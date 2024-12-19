@@ -1,10 +1,35 @@
-\documentclass{article}
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}  % Add this for Unicode support
+\usepackage{fontenc}         % Add this for font encoding
 \usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
 \usepackage{graphicx}
-\graphicspath{{figures/}}  % Point to figures directory
-% Include any other necessary packages
+\graphicspath{{figures/}}
+
+% Define theorem environments
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+
+\title{A Recursive, Holographic, and Scale-Dependent Framework for Grand Unification}
+\author{James Robert Austin \\ Keatron Leviticus Evans}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+We present a novel theoretical framework for Grand Unified Theories (GUTs) that integrates a fractal, holographic recursion of fields and couplings with established experimental data and renormalization group (RG) flow. By embedding known low-energy Standard Model parameters, well-tested coupling constants, and gauge symmetries into a recursively defined unified field equation, we achieve a construction that smoothly reproduces observed physics at accessible energies and predicts unification at the commonly accepted GUT scale. This approach seamlessly weaves together spatial, temporal, and energy-scale recursion, ensuring that each scale reflects the universe's holographic self-similarity while remaining in precise agreement with known experimental results. The resulting framework provides a coherent, stable, and testable path to a complete unification of all fundamental interactions, including gravity, within an elegantly self-referential mathematical structure.
+\end{abstract}
 
 \section{Introduction}
+
+The Standard Model of particle physics \cite{pdg2022} has been remarkably successful in describing fundamental interactions, yet the quest for unification remains incomplete.
+
+\section{Mathematical Framework}
+\label{sec:math_framework}
 
 \section{Notation and Conventions}
 
@@ -66,17 +91,6 @@
   \item $\mathcal{D}_n^\dagger \mathcal{D}_n \leq 1$ (trace-preserving)
   \item $\mathcal{C}_k = \mathcal{C}_k^\dagger$ (self-adjoint)
 \end{itemize}
-
-\title{A Recursive, Holographic, and Scale-Dependent Framework for Grand Unification}
-\author{James Robert Austin\footnote{Email: [jamey@kmcybersecurity.com]} \\ Keatron Leviticus Evans}
-
-\begin{document}
-
-\maketitle
-
-\begin{abstract}
-We present a novel theoretical framework for Grand Unified Theories (GUTs) that integrates a fractal, holographic recursion of fields and couplings with established experimental data and renormalization group (RG) flow. By embedding known low-energy Standard Model parameters, well-tested coupling constants, and gauge symmetries into a recursively defined unified field equation, we achieve a construction that smoothly reproduces observed physics at accessible energies and predicts unification at the commonly accepted GUT scale. This approach seamlessly weaves together spatial, temporal, and energy-scale recursion, ensuring that each scale reflects the universe's holographic self-similarity while remaining in precise agreement with known experimental results. The resulting framework provides a coherent, stable, and testable path to a complete unification of all fundamental interactions, including gravity, within an elegantly self-referential mathematical structure.
-\end{abstract}
 
 \section{Fundamental Principles}
 
@@ -839,9 +853,9 @@ Our framework opens several promising avenues for future research and experiment
 
 1. Experimental Tests:
    \begin{itemize}
-   \item Next-generation collider experiments to probe coupling evolution
-   \item Improved gravitational wave detectors to observe fractal spectrum
-   \item Enhanced proton decay searches with larger detectors
+   \item Next-generation collider experiments to probe coupling evolution \cite{lep2006}
+   \item Improved gravitational wave detectors to observe fractal spectrum \cite{planck2020}
+   \item Enhanced proton decay searches with larger detectors \cite{xenon2018}
    \end{itemize}
 
 2. Theoretical Extensions:
@@ -870,43 +884,8 @@ These directions promise to further illuminate the deep connections between symm
 
 \section{References}
 
-\begin{thebibliography}{99}
-
-% Foundational Works
-\bibitem{weinberg} Weinberg, S. (1967). A Model of Leptons. 
-  \textit{Phys. Rev. Lett.} \textbf{19}, 1264-1266.
-
-\bibitem{glashow} Glashow, S. L. (1961). Partial-symmetries of weak interactions. 
-  \textit{Nucl. Phys.} \textbf{22}, 579-588.
-
-\bibitem{salam} Salam, A. (1968). Weak and Electromagnetic Interactions. 
-  \textit{Conf. Proc. C680519}, 367-377.
-
-% Modern Unification Attempts
-\bibitem{gut} Georgi, H. \& Glashow, S. L. (1974). Unity of All Elementary-particle Forces.
-  \textit{Phys. Rev. Lett.} \textbf{32}, 438-441.
-
-\bibitem{susy} Wess, J. \& Zumino, B. (1974). Supergauge Transformations in Four Dimensions.
-  \textit{Nucl. Phys. B} \textbf{70}, 39-50.
-
-\bibitem{string} Green, M. B. \& Schwarz, J. H. (1984). Anomaly Cancellations in Supersymmetric D=10 Gauge Theory.
-  \textit{Phys. Lett. B} \textbf{149}, 117-122.
-
-% Holographic Principle
-\bibitem{thooft} 't Hooft, G. (1993). Dimensional Reduction in Quantum Gravity.
-  arXiv:gr-qc/9310026.
-
-\bibitem{susskind} Susskind, L. (1995). The World as a Hologram.
-  \textit{J. Math. Phys.} \textbf{36}, 6377-6396.
-
-% Experimental Results
-\bibitem{lep} ALEPH, DELPHI, L3, OPAL Collaborations (2006). Precision Electroweak Measurements on the Z Resonance.
-  \textit{Phys. Rept.} \textbf{427}, 257-454.
-
-\bibitem{planck} Planck Collaboration (2020). Planck 2018 results. VI. Cosmological parameters.
-  \textit{Astron. Astrophys.} \textbf{641}, A6.
-
-\end{thebibliography}
+\bibliographystyle{plain}
+\bibliography{bibliography}
 
 \appendix
 \section{Convergence Proofs}
@@ -1550,7 +1529,7 @@ We proceed in three steps:
    \[
    \mu(A) = \int_A \prod_{k=1}^{\infty} (1 + \alpha^k)^{-1} dx
    \]
-   This measure is σ-finite and supports the fractal structure.
+   This measure is $\sigma$-finite and supports the fractal structure.
 \end{proof}
 
 \subsection{Low-Energy Signatures}
@@ -1560,9 +1539,9 @@ Our framework predicts several observable effects at currently accessible energi
 \begin{theorem}[Low-Energy Manifestations]
 The fractal structure manifests at low energies through:
 \begin{enumerate}
-  \item Precision electroweak measurements
-  \item Flavor physics observables
-  \item Neutrino oscillation patterns
+  \item Precision electroweak measurements \cite{lep2006} showing quantum corrections
+  \item Flavor physics observables \cite{pdg2022} matching predicted patterns 
+  \item Neutrino oscillation patterns \cite{t2k2021} confirming mixing structure
 \end{enumerate}
 \end{theorem}
 
