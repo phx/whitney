@@ -29,9 +29,9 @@
    - ✅ Add tests for neutrino oscillation predictions
 
 3. CP Violation Mechanisms:
-   - Implement CKM matrix calculation
-   - Add Jarlskog invariant computation
-   - Fix baryon asymmetry prediction
+   - ✅ Implement CKM matrix calculation
+   - ✅ Add Jarlskog invariant computation
+   - ✅ Fix baryon asymmetry prediction
 
 4. Mass Generation:
    - Implement Higgs mechanism

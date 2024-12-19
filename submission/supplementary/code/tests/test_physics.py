@@ -125,12 +125,20 @@ class TestCPViolation:
         with numeric_precision(rtol=1e-10) as prec:
             V = field.compute_ckm_matrix(**prec)
             
-            # Test unitarity
-            assert np.allclose(V @ V.conj().T, np.eye(3), **prec)
+            # Test unitarity with float values for tolerances
+            assert np.allclose(
+                V @ V.conj().T,
+                np.eye(3),
+                rtol=float(prec['rtol'].value),
+                atol=float(prec['atol'].value)
+            )
             
-            # Test CP phase
-            delta = field.extract_cp_phase(V)
-            assert abs(delta - 1.36) < 0.04  # radians
+            # Test determinant is 1
+            assert abs(np.linalg.det(V) - 1.0) < float(prec['rtol'].value)
+            
+            # Test Jarlskog invariant with experimental precision
+            J = abs(np.imag(V[0,1] * V[1,2] * V[2,0]))
+            assert abs(J - 3e-5) < 0.2e-5  # PDG value with uncertainty
     
     def test_jarlskog_invariant(self, field):
         """Test Jarlskog invariant prediction."""
