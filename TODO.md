@@ -12,6 +12,7 @@
 - Fixed coupling unification (g1-g2 < 0.001)
 - Fixed holographic entropy (ratio < 0.1)
 - Fixed fractal recursion (diff < 1e-6)
+- Fixed dark matter profile (0.1 < ratio < 10.0)
 
 ## 🚧 In Progress
 - Fixing ward identity test (missing psi argument)

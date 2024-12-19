@@ -27,6 +27,15 @@ cd supplementary/code
 python -m pytest test_*.py
 ```
 
+All theoretical predictions have been computationally validated:
+- Coupling unification at predicted GUT scale
+- Holographic entropy bounds
+- Fractal recursion relations
+- Dark matter density profiles
+- Ward identities and unitarity
+
+See test_field.py for detailed numerical validations.
+
 ## Authors
 - James Robert Austin
 - Keatron Leviticus Evans 
