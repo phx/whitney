@@ -7,6 +7,7 @@ from sympy import Expr, Symbol
 from .errors import ValidationError, PhysicsError
 from .physics_constants import X
 from math import log
+from numpy import floating  # For type checking
 
 __all__ = [
     'RealValue',
@@ -758,6 +759,37 @@ class WaveFunction:
     def _sympy_(self):
         """Convert to SymPy expression for symbolic manipulation."""
         return self.psi
+
+    def __truediv__(self, other: Union[float, int, complex, floating]) -> 'WaveFunction':
+        """
+        Implement division by scalar.
+        
+        Args:
+            other: Scalar value to divide by
+            
+        Returns:
+            WaveFunction: New wavefunction with divided values
+            
+        Raises:
+            TypeError: If other is not a scalar type
+            ZeroDivisionError: If dividing by zero
+        """
+        # Handle all numeric types by converting to float
+        try:
+            other_float = float(other)
+            if other_float == 0:
+                raise ZeroDivisionError("Cannot divide wavefunction by zero")
+            return WaveFunction(
+                psi=self.psi / other_float,
+                grid=self.grid,
+                quantum_numbers=self.quantum_numbers
+            )
+        except (TypeError, ValueError):
+            return NotImplemented
+
+    def __repr__(self) -> str:
+        """String representation."""
+        return f"WaveFunction(psi={self.psi}, grid={self.grid}, quantum_numbers={self.quantum_numbers})"
 
 @dataclass
 class AnalysisResult:
