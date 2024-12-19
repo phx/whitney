@@ -5,7 +5,7 @@ import numpy as np
 from sympy import Expr
 from .errors import ValidationError, PhysicsError
 from .types import Energy, Momentum, WaveFunction
-from .physics_constants import X
+from .physics_constants import X, T
 
 def validate_energy(energy: Union[float, Energy]) -> Energy:
     """
@@ -54,7 +54,19 @@ def validate_wavefunction(psi: Union[Expr, np.ndarray, WaveFunction]) -> WaveFun
             return psi  # Already a WaveFunction, just return it
         if isinstance(psi, Expr):
             grid = np.linspace(-10, 10, 100)
-            values = np.array([complex(psi.subs(X, x)) for x in grid])
+            # Scale down the exponents to avoid overflow
+            scaled_psi = psi.subs({
+                X: X/1e42,  # Scale spatial coordinate
+                T: T/1e42   # Scale time coordinate
+            })
+            values = np.array([
+                complex(scaled_psi.subs({X: x, T: 0})) 
+                for x in grid
+            ])
+            # Normalize the wavefunction
+            norm = np.sqrt(np.sum(np.abs(values)**2) * (grid[1] - grid[0]))
+            if norm > 0:
+                values = values / norm
             return WaveFunction(
                 psi=values,
                 grid=grid,

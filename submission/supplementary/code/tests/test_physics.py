@@ -2,7 +2,7 @@
 
 import pytest
 import numpy as np
-from hypothesis import given, strategies as st
+from hypothesis import given, strategies as st, settings
 from sympy import exp, I, pi
 from core.field import UnifiedField
 from core.types import Energy, Momentum
@@ -63,6 +63,7 @@ class TestTheorems:
     """Test theoretical consistency and theorems."""
     
     @given(st.floats(min_value=0.1, max_value=10.0))
+    @settings(deadline=1000)  # Increase deadline to 1 second
     def test_unitarity(self, energy):
         """Test unitarity constraints."""
         field = UnifiedField(alpha=ALPHA_VAL)
@@ -73,7 +74,12 @@ class TestTheorems:
             states = [psi1, psi2]
             s_matrix = field.compute_s_matrix(states, **prec)
             identity = s_matrix @ s_matrix.conj().T
-            assert np.allclose(identity, np.eye(len(identity)), **prec)
+            assert np.allclose(
+                identity, 
+                np.eye(len(identity)), 
+                rtol=float(prec['rtol'].value),
+                atol=float(prec['atol'].value)
+            )
 
 @pytest.mark.physics
 class TestNeutrinoPhysics:

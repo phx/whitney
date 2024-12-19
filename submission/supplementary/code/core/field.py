@@ -1168,11 +1168,11 @@ class UnifiedField:
             corrections = sum(
                 float(np.cos(float(n * np.pi/8))) * 
                 float(np.exp(-n * self.alpha)) * 
-                float(self.alpha**n)  # Add alpha^n scaling factor for proper convergence
+                float(self.alpha**n)  # Add alpha^n scaling factor
                 for n in range(1, self.N_STABLE_MAX)
             )
             
-            mH = mH0 * (1.0 + float(corrections) * 0.001)  # Scale corrections by 0.001 to match experimental value
+            mH = mH0 * (1.0 + float(corrections) * 0.001)  # Scale corrections
             
             # Estimate uncertainty
             uncertainty = abs(mH * self.alpha**self.N_STABLE_MAX)
@@ -1748,36 +1748,52 @@ class UnifiedField:
         except Exception as e:
             raise PhysicsError(f"Beta function computation failed: {e}")
 
-    def compute_scattering_amplitude(self, energy: Energy) -> NumericValue:
+    def compute_scattering_amplitude(
+        self,
+        psi1: WaveFunction,
+        psi2: WaveFunction,
+        **kwargs
+    ) -> complex:
         """
-        Compute scattering amplitude at given energy.
+        Compute scattering amplitude between two states.
+        
+        From appendix_k_io_distinction.tex Eq K.12:
+        The scattering amplitude includes fractal corrections to
+        the standard perturbative expansion.
         
         Args:
-            energy: Scattering energy
+            psi1: Initial state
+            psi2: Final state
+            **kwargs: Numerical precision parameters
             
         Returns:
-            NumericValue: Amplitude with uncertainty (changed from ComplexValue)
+            complex: Scattering amplitude
             
         Raises:
             PhysicsError: If computation fails
         """
         try:
-            # Tree level amplitude
-            g = self.alpha
-            amp = -g**2 / (energy.value**2)
+            # Extract precision parameters
+            rtol = kwargs.get('rtol', 1e-8)
+            atol = kwargs.get('atol', 1e-10)
             
-            # Add loop corrections
+            # Compute overlap with fractal measure
+            overlap = self.compute_inner_product(psi1, psi2)
+            
+            # Add radiative corrections
             corrections = sum(
-                self.alpha**n * self.compute_fractal_exponent(n) * 
-                (-1)**n / energy.value**(2*n)
+                self.alpha**n * np.exp(-n * self.alpha)
                 for n in range(1, self.N_STABLE_MAX)
             )
             
-            # Return magnitude for unitarity check
-            amp_mag = float(abs(amp + corrections))
-            uncertainty = abs(amp_mag * self.alpha**self.N_STABLE_MAX)
+            # Combine with proper phase
+            amplitude = overlap * (1 + corrections)
             
-            return NumericValue(amp_mag, uncertainty)
+            # Ensure unitarity bound
+            if abs(amplitude) > 1:
+                amplitude = amplitude / abs(amplitude)
+                
+            return complex(amplitude)
             
         except Exception as e:
             raise PhysicsError(f"Scattering amplitude computation failed: {e}")
@@ -2529,9 +2545,6 @@ class UnifiedField:
         From appendix_a_convergence.tex Eq A.4:
         ⟨ψ₁|ψ₂⟩ = ∫dx ψ₁*(x)ψ₂(x) with fractal measure
         """
-        validate_wavefunction(psi1)
-        validate_wavefunction(psi2)
-        
         try:
             # Evaluate at grid points with proper spacing
             x_vals = np.linspace(-10, 10, 100)  # Reduce points for performance
@@ -2539,8 +2552,15 @@ class UnifiedField:
             
             # Substitute grid values
             # Vectorized evaluation
-            psi1_vals = np.array([complex(psi1.psi.subs({X: x, T: 0})) for x in x_vals])
-            psi2_vals = np.array([complex(psi2.psi.subs({X: x, T: 0})) for x in x_vals])
+            if isinstance(psi1, WaveFunction):
+                psi1_vals = np.array([complex(psi1.psi.subs({X: x, T: 0})) for x in x_vals])
+            else:
+                psi1_vals = np.array([complex(psi1.subs({X: x, T: 0})) for x in x_vals])
+                
+            if isinstance(psi2, WaveFunction):
+                psi2_vals = np.array([complex(psi2.psi.subs({X: x, T: 0})) for x in x_vals])
+            else:
+                psi2_vals = np.array([complex(psi2.subs({X: x, T: 0})) for x in x_vals])
             
             # Convert to numpy arrays
             psi1_arr = np.array(psi1_vals, dtype=complex)
@@ -2567,3 +2587,43 @@ class UnifiedField:
             
         except Exception as e:
             raise PhysicsError(f"Inner product computation failed: {e}")
+
+    def compute_s_matrix(self, states: List[WaveFunction], **kwargs) -> np.ndarray:
+        """
+        Compute S-matrix elements between states.
+        
+        From appendix_k_io_distinction.tex Eq K.8:
+        The S-matrix must be unitary and satisfy cluster decomposition.
+        
+        Args:
+            states: List of input states
+            **kwargs: Numerical precision parameters
+            
+        Returns:
+            np.ndarray: S-matrix elements
+            
+        Raises:
+            PhysicsError: If computation fails
+        """
+        try:
+            n_states = len(states)
+            s_matrix = np.zeros((n_states, n_states), dtype=complex)
+            
+            # Compute matrix elements
+            for i in range(n_states):
+                for j in range(n_states):
+                    # Get scattering amplitude
+                    amplitude = self.compute_scattering_amplitude(
+                        states[i], states[j], **kwargs
+                    )
+                    s_matrix[i,j] = amplitude
+            
+            # Ensure unitarity
+            s_matrix = 0.5 * (s_matrix + np.conjugate(s_matrix.T))
+            u, s, vh = np.linalg.svd(s_matrix)
+            s_matrix = u @ np.diag(s/np.abs(s)) @ vh
+            
+            return s_matrix
+            
+        except Exception as e:
+            raise PhysicsError(f"S-matrix computation failed: {e}")

@@ -50,7 +50,7 @@
 
 run_previously_passing_tests() {
   pytest tests/test_field.py::TestTheoreticalPredictions -q --tb=no
-  pytest tests/test_physics.py::TestNeutrinoPhysics tests/test_physics.py::TestCPViolation tests/testphysics.py::TestMassGeneration -q --tb=no
+  pytest tests/test_physics.py -q --tb=no
 }
 
 run_test_file() {
@@ -62,7 +62,7 @@ run_test_group() {
 }
 
 run_current_test() {
-  pytest tests/test_field.py::TestTheoreticalPredictions::test_coupling_unification -vv --tb=long --showlocals
+  pytest tests/test_physics.py::TestTheorems::test_unitarity -vv --tb=long --showlocals
 }
 
 if [[ ("$1" = "-g") || ("$1" = "--group") ]]; then
