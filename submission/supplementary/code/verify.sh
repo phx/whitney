@@ -64,7 +64,7 @@ run_test_group() {
 }
 
 run_current_test() {
-  pytest tests/test_physics.py::TestPhysicsCalculations::test_cross_sections -vv --tb=long --showlocals
+  pytest tests/test_basis.py::test_field_equations -vv --tb=long --showlocals
 }
 
 if [[ ("$1" = "-g") || ("$1" = "--group") ]]; then

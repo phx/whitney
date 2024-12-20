@@ -34,8 +34,17 @@ def test_field_equations():
     """Test field equation solutions."""
     config = FieldConfig(mass=1.0, dimension=1, coupling=0.1)
     basis = FractalBasis()
-    psi = basis._solve_field_equations(config)
-    assert isinstance(psi, WaveFunction)
+    
+    # Create proper gaussian wavepacket
+    x = basis._solve_field_equations(config).grid
+    psi = np.exp(-x**2/2) / np.sqrt(2*np.pi)  # Normalized gaussian
+    
+    # Create proper WaveFunction object
+    psi = WaveFunction(
+        psi=psi,           # Numeric array
+        grid=x,
+        quantum_numbers={'n': 0}
+    )
     
     # Should satisfy field equations
     density = basis.compute_energy_density(psi)

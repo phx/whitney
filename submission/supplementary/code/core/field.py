@@ -81,45 +81,43 @@ class UnifiedField:
             raise ValidationError("Alpha must be positive")
             
     def compute_energy_density(self, psi: WaveFunction) -> NumericValue:
-        """Compute energy density of field configuration.
+        """
+        Compute energy density of field configuration.
         
         Args:
-            psi: Input wavefunction
+            psi: Field configuration
             
         Returns:
             NumericValue: Energy density with uncertainty
-            
-        Raises:
-            ValidationError: If wavefunction is invalid
-            PhysicsError: If computation fails
         """
-        validate_wavefunction(psi)
-        
         try:
-            # Convert to numpy arrays for computation
-            psi_array = np.asarray(psi.psi, dtype=complex)
-            grid_t = np.asarray(self.T, dtype=float) 
-            grid_x = np.asarray(self.X, dtype=float)
+            # Convert to numpy array if needed
+            psi_array = np.array(psi.psi, dtype=np.complex128)
+            grid = psi.grid
             
-            # Compute derivatives
-            d_t_psi = np.gradient(psi_array, grid_t, edge_order=2)
-            d_x_psi = np.gradient(psi_array, grid_x, edge_order=2)
+            # Compute spatial derivatives using finite differences
+            dx = grid[1] - grid[0]
+            grad_psi = np.gradient(psi_array, dx)
             
-            # Kinetic term
-            kinetic = (HBAR**2/(2*C**2)) * np.sum(
-                np.abs(np.conjugate(psi_array) * d_t_psi) +
-                C**2 * np.abs(np.conjugate(psi_array) * d_x_psi))  # Close parenthesis for np.sum()
+            # Create time grid centered at t=0
+            dt = dx/C  # Use light-cone coordinates
+            t_points = 5  # Number of time points for derivative
+            grid_t = np.linspace(-2*dt, 2*dt, t_points)
             
-            # Potential term
-            potential = (self.alpha/2) * np.sum(
-                np.abs(np.conjugate(psi_array) * psi_array) * 
-                (grid_x**2 + (C*grid_t)**2)  # Close np.sum() parenthesis
-            )
+            # Time derivative using forward difference
+            d_psi_dt = (np.roll(psi_array, -1) - psi_array) / dt
             
-            total_energy = float(kinetic + potential)
-            uncertainty = abs(total_energy * self.alpha**self.N_STABLE_MAX)
+            # Compute energy components
+            kinetic = 0.5 * (np.abs(d_psi_dt)**2 + C**2 * np.abs(grad_psi)**2)
+            potential = 0.5 * self.alpha**2 * np.abs(psi_array)**2
             
-            return NumericValue(total_energy, uncertainty)
+            # Integrate over space
+            total_energy = np.trapz(kinetic + potential, grid)
+            
+            # Estimate uncertainty
+            uncertainty = abs(total_energy) * self.alpha**self.N_STABLE_MAX
+            
+            return NumericValue(float(total_energy), float(uncertainty))
             
         except Exception as e:
             raise PhysicsError(f"Energy density computation failed: {e}") from e
@@ -2258,7 +2256,7 @@ class UnifiedField:
             r: Spatial separation
             
         Returns:
-            float: G��(r) value
+            float: G(r) value
         """
         # Implement correlation function from paper Eq. 4.15
         delta = 2 + self.compute_anomalous_dimension('fractal_channel')
@@ -2290,7 +2288,7 @@ class UnifiedField:
         
         Implements correlation functions from paper Sec. 4.4:
         G(r) = <(0)ψ(r)> = r^(-2Δ) * F(α*ln(r))
-        G₃(r₁,r₂) = <ψ(0)ψ(r₁)ψ(r₂)> = |r₁r₂|^(-����) * H(α*ln(r₁/r₂))
+        G₃(r₁,r₂) = <ψ(0)ψ(r₁)ψ(r₂)> = |r₁r₂|^(-) * H(α*ln(r₁/r₂))
         
         Args:
             r: Array of spatial separations in GeV⁻¹
