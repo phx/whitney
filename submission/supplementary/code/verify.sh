@@ -64,7 +64,8 @@ run_test_group() {
 }
 
 run_current_test() {
-  pytest tests/test_field.py::TestTheoreticalPredictions::test_unitarity_bounds -vv --tb=long --showlocals
+  python generate_data.py
+  pytest tests/test_predictions.py -vv --tb=long --showlocals
 }
 
 if [[ ("$1" = "-g") || ("$1" = "--group") ]]; then

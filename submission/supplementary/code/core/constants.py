@@ -16,3 +16,14 @@ LOG_LEVEL = "INFO"
 
 # Physics scales
 GUT_SCALE = 2.1e16  # GeV - Grand unification scale
+
+from dataclasses import dataclass
+
+@dataclass
+class Constants:
+    G: float = 6.67430e-11  # m^3 kg^-1 s^-2
+    hbar: float = 1.054571817e-34  # J·s
+    M_PLANCK: float = 2.176434e-8  # kg
+    c: float = 299792458  # m/s
+    M_Z: float = 91.1876  # GeV
+    # Add other necessary constants as required

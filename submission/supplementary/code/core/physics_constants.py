@@ -8,6 +8,10 @@ C = 2.99792458e8      # Speed of light (m/s)
 G = 6.67430e-11       # Gravitational constant (m³/kg⁻¹/s⁻²)
 M_PLANCK = 1.22089e19    # Planck mass (GeV)
 
+# Energy scales
+Z_MASS = 91.1876      # Z boson mass (GeV)
+GUT_SCALE = 2.1e16    # Grand unification scale (GeV)
+
 # Coordinates and fields
 X = Symbol('x')       # Spatial coordinate
 T = Symbol('t')       # Time coordinate
@@ -16,7 +20,6 @@ E = Symbol('E')       # Energy coordinate/field
 
 # Reference values
 ALPHA_VAL = 1/137    # Fine structure constant
-Z_MASS = 91.1876     # Z boson mass (GeV)
 
 # Coupling constants
 g1_REF = 0.357  # U(1) coupling

@@ -9,6 +9,9 @@ from core.types import Energy, Momentum, CrossSection
 from core.numeric import integrate_phase_space
 from core.stability import check_convergence
 from core.errors import ComputationError
+from core.physics_constants import (
+    G, HBAR, C, M_PLANCK  # Add these imports
+)
 
 @pytest.mark.integration
 class TestPhysicsWorkflow:
@@ -120,3 +123,27 @@ class TestAnalysisWorkflow:
         # 3. Verify unification
         assert unification_scale > 1e15  # Above 10^15 GeV
         assert min(diffs) < 0.1  # Couplings meet within 10%
+
+@pytest.mark.integration
+def test_gravitational_wave_coherence():
+    """
+    Test quantum coherence preservation in gravitational waves.
+    From appendix_k_io_distinction.tex Eq K.51-K.53
+    """
+    field = UnifiedField()
+    
+    # Test frequencies
+    omega = np.logspace(-16, 4, 1000)
+    
+    # Compute spectrum
+    h = field.compute_gravitational_wave_spectrum(omega)
+    
+    # Verify quantum coherence preservation
+    for i in range(len(omega)-1):
+        # Coherence measure from appendix_k_io_distinction.tex Eq K.52
+        dh = abs(h[i+1] - h[i]) / abs(h[i])
+        dw = abs(omega[i+1] - omega[i]) / omega[i]
+        coherence = dh/dw
+        
+        # Should satisfy quantum coherence bound
+        assert coherence < np.exp(omega[i]/(2*M_PLANCK*C**2))
