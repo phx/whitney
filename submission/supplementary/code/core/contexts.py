@@ -2,11 +2,11 @@
 
 from contextlib import contextmanager
 import numpy as np
-from typing import Generator
+from typing import Generator, Tuple
 from sympy import pi, sqrt, exp, I
-from core.physics_constants import C, HBAR, X, T
+from core.physics_constants import C, HBAR, X, T, Z_MASS
 from core.errors import PhysicsError
-from core.types import FieldConfig, NumericValue
+from core.types import FieldConfig, NumericValue, WaveFunction, Energy
 
 @contextmanager
 def gauge_phase(min_val: float = 0.0, max_val: float = 2*pi) -> Generator[float, None, None]:
@@ -82,35 +82,42 @@ def lorentz_boost(min_velocity: float = -0.9, max_velocity: float = 0.9) -> Gene
         pass 
 
 @contextmanager
-def quantum_state(energy: float = 1.0) -> Generator[tuple[object, float], None, None]:
-    """
-    Context manager for quantum states.
-    
-    Provides a normalized quantum state with specified energy.
+def quantum_state(energy: float = 100.0, *, norm: float = 10.0) -> Generator[Tuple[WaveFunction, float], None, None]:
+    """Create quantum state for testing.
     
     Args:
-        energy: Energy of the state in GeV (default: 1.0)
+        energy: Energy in GeV
+        norm: Normalization factor
         
-    Yields:
-        tuple[object, float]: (psi, norm) where:
-            psi: Quantum state wavefunction
-            norm: Normalization factor
-            
-    Example:
-        >>> with quantum_state(energy=100.0) as (psi, norm):
-        ...     field.compute_expectation(psi)
+    Returns:
+        Tuple[WaveFunction, float]: (state, norm)
     """
     try:
-        # Generate gaussian wavepacket
-        psi = exp(-(X**2 + (C*T)**2)/(2*HBAR**2))
+        # Create simple gaussian wavepacket
+        width = 1.0  # Width parameter
         
-        # Compute normalization
-        norm = sqrt(energy)
+        # Create normalized wavefunction
+        x_vals = np.linspace(-10, 10, 100)
+        psi_vals = np.array([
+            float(exp(-x**2/(2*width**2)))  # Standard gaussian
+            for x in x_vals
+        ])
+        
+        # Normalize
+        dx = x_vals[1] - x_vals[0]
+        norm_factor = np.sqrt(np.sum(np.abs(psi_vals)**2) * dx)
+        psi_vals = psi_vals / norm_factor
+        
+        psi = WaveFunction(
+            psi=psi_vals,
+            grid=x_vals,
+            quantum_numbers={'E': Energy(energy)}
+        )
         
         yield psi, norm
         
     finally:
-        pass
+        pass  # Cleanup if needed
 
 @contextmanager 
 def field_config(

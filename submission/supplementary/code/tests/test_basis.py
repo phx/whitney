@@ -7,6 +7,7 @@ from core.basis import FractalBasis
 from core.types import Energy, FieldConfig, WaveFunction
 from core.modes import ComputationMode
 from core.errors import PhysicsError
+from core.physics_constants import T  # Import symbolic time variable
 
 @pytest.fixture
 def basis():
@@ -45,8 +46,11 @@ def test_evolution_operator():
     basis = FractalBasis()
     U = basis._compute_evolution_operator(Energy(10.0))
     assert U is not None
-    
+
     # Should be unitary
-    assert abs(abs(U) - 1.0) < 1e-10
+    t_vals = np.linspace(-1, 1, 10)
+    for t in t_vals:
+        U_val = complex(U.subs(T, t))
+        assert abs(abs(U_val) - 1.0) < 1e-10
 
 # ... rest of existing tests ...

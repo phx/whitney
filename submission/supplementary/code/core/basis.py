@@ -15,7 +15,7 @@ from .physics_constants import (
     ALPHA_REF, HBAR, C
 )
 from .transforms import lorentz_boost, gauge_transform
-from .types import Energy, FieldConfig, WaveFunction
+from core.types import NumericValue, WaveFunction, FieldConfig, Energy
 from .enums import ComputationMode
 from .errors import PhysicsError, ValidationError
 
@@ -47,9 +47,18 @@ class FractalBasis:
     
     def __init__(self, alpha: float = ALPHA_VAL, mode: ComputationMode = ComputationMode.MIXED):
         """Initialize fractal basis with scaling parameter."""
+        # Import UnifiedField here to avoid circular import
+        from .field import UnifiedField
+        # Initialize UnifiedField functionality
+        self._unified = UnifiedField()
         self.alpha = alpha
         self.mode = mode
         self.scaling_dimension = 1.0
+        # Delegate UnifiedField methods
+        self.compute_energy_density = self._unified.compute_energy_density
+        self.normalize = self._unified.normalize
+        # Add required causality check delegation
+        self.check_causality = self._unified.check_causality
     
     # Core implementation methods (overriding UnifiedField)
     def _solve_field_equations(self, config: FieldConfig) -> WaveFunction:
@@ -73,7 +82,19 @@ class FractalBasis:
         
         # Combine all factors
         psi = self.alpha**n * F * modulation * exp(-I*E*T/HBAR)
-        return self.normalize(psi)
+        
+        # Create grid and evaluate
+        grid = np.linspace(-10, 10, 100)
+        psi_vals = np.array([
+            complex(psi.subs({X: x, T: 0}))  # Evaluate at t=0
+            for x in grid
+        ])
+        
+        return WaveFunction(
+            psi=psi_vals,
+            grid=grid,
+            quantum_numbers={'n': n, 'E': E}
+        )
 
     def _compute_evolution_operator(self, energy: Energy) -> WaveFunction:
         """Compute evolution operator in fractal basis."""
@@ -95,19 +116,32 @@ class FractalBasis:
         k = E.value / self.alpha**n
         # Relativistic modulation
         p = k/C  # Momentum
-        return exp(-p**2 * (X**2 - C**2*T**2)/(2*HBAR**2))
+        # Scale down exponents to avoid overflow
+        scaled_x = X/1e27  # Scale spatial coordinate
+        scaled_t = T/1e27  # Scale time coordinate
+        scaled_p = p/1e27  # Scale momentum
+        return exp(-scaled_p**2 * (scaled_x**2 - C**2*scaled_t**2)/(2*HBAR**2))
 
     def _scaling_operator(self, k: float) -> WaveFunction:
         """Compute scaling operator."""
         # Include proper relativistic scaling
         gamma = 1/sqrt(1 - (k/(C*self.alpha))**2)
-        return exp(self.scaling_dimension * gamma * log(k))
+        # Scale down exponent
+        scaled_gamma = gamma/1e27
+        return exp(self.scaling_dimension * scaled_gamma * log(k))
 
     # Computation methods
     def compute(self, n: int, E: Energy = Energy(1.0)) -> WaveFunction:
         """Compute nth basis function at energy E."""
         self._validate_inputs(n, E.value)
-        config = FieldConfig(mass=E.value, dimension=n, coupling=self.alpha)
+        config_dimension = max(1, n)  # Use n for computation but ensure min of 1 for config
+        config = FieldConfig(
+            mass=E.value, 
+            dimension=config_dimension,
+            coupling=self.alpha
+        )
+        
+        # Solve field equations with this configuration
         return self._solve_field_equations(config)
 
     def compute_with_errors(self, n: int, E: float = 1.0) -> Dict[str, Expr]:

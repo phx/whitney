@@ -357,9 +357,19 @@ class TestTheoreticalPredictions:
         """
         energies = np.logspace(2, 4, 10)
         for E in energies:
-            amplitude = field.compute_scattering_amplitude(Energy(E))
-            # Optical theorem requires |A| ≤ 1
-            assert abs(amplitude) <= 1.0
+            # Create initial and final state wavefunctions
+            psi1 = field._solve_field_equations(
+                FieldConfig(mass=E, dimension=1, coupling=0.1)
+            )
+            psi2 = field._solve_field_equations(
+                FieldConfig(mass=E, dimension=1, coupling=0.1)
+            )
+            
+            # Compute scattering amplitude
+            amplitude = field.compute_scattering_amplitude(psi1, psi2)
+            
+            # Check unitarity bound |A| ≤ 1
+            assert abs(amplitude) <= 1.0, f"Unitarity violated at E={E} GeV"
 
     def test_fractal_recursion(self, field):
         """

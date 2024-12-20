@@ -14,7 +14,7 @@ from core.physics_constants import (
     M_PLANCK,
     ALPHA_REF
 )
-from core.types import Energy, NumericValue
+from core.types import NumericValue, WaveFunction, FieldConfig
 from core.contexts import numeric_precision, field_config
 import os
 from typing import Dict, List, Tuple, Optional

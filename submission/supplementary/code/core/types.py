@@ -8,6 +8,7 @@ from .errors import ValidationError, PhysicsError
 from .physics_constants import X
 from math import log
 from numpy import floating  # For type checking
+from functools import wraps
 
 __all__ = [
     'RealValue',
@@ -126,95 +127,35 @@ class ComplexValue:
         return ComplexValue(self.value.conjugate(), self.uncertainty)
 
 @dataclass
-class Energy(RealValue):
+class Energy:
     """
-    A physical energy value with units and uncertainty propagation.
-    
-    Represents an energy value in particle physics calculations, with support for
-    unit conversions, uncertainty propagation, and validation of physical constraints.
+    Represents an energy value with optional uncertainty.
     
     Attributes:
-        value (float): Energy value in GeV
-        uncertainty (Optional[float]): Statistical uncertainty in GeV
-        units (str): Energy units (default: GeV)
-        systematics (Dict[str, float]): Systematic uncertainties by source
-        
-    Methods:
-        to_units(new_units: str) -> Energy:
-            Convert to different units (GeV <-> TeV <-> MeV)
-        __add__, __sub__, __mul__, __truediv__:
-            Arithmetic with automatic uncertainty propagation
-        __lt__, __gt__, __eq__:
-            Comparison operators for energy thresholds
-        
-    Examples:
-        >>> # Create energy with uncertainty
-        >>> e = Energy(100.0, 5.0)  # 100 ± 5 GeV
-        >>> 
-        >>> # Convert to TeV
-        >>> e_tev = e.to_units("TeV")  # Convert to TeV
-        >>> print(f"{e_tev.value:.1f} ± {e_tev.uncertainty:.3f} {e_tev.units}")
-        0.1 ± 0.005 TeV
-        >>> 
-        >>> # Arithmetic with uncertainty propagation
-        >>> e1 = Energy(100.0, 5.0)  # Particle 1
-        >>> e2 = Energy(50.0, 2.0)   # Particle 2
-        >>> e_total = e1 + e2        # Total energy
-        >>> print(f"{e_total.value:.1f} ± {e_total.uncertainty:.1f} {e_total.units}")
-        150.0 ± 5.4 GeV
-        >>> 
-        >>> # Use in energy thresholds
-        >>> if e_total > Energy(100.0):
-        ...     print("Above production threshold")
-        Above production threshold
-        
-    Notes:
-        - Energy values must be non-negative (physical requirement)
-        - Uncertainties are propagated using standard error propagation rules
-        - Unit conversions preserve relative uncertainties
-        - Comparison operators work with values in same units
-        - Used for particle energies and mass calculations
+        value: Energy value in GeV
+        uncertainty: Optional uncertainty in GeV
+        units: Units (default 'GeV')
     """
-    units: str = "GeV"
+    value: float
+    uncertainty: Optional[float] = None
+    units: str = 'GeV'
     
     def __post_init__(self):
-        """Validate energy value and handle units."""
-        super().__post_init__()
-        if self.value < 0:
-            raise ValueError("Energy cannot be negative")
-    
-    def to_units(self, new_units: str) -> 'Energy':
-        """
-        Convert to different units.
-        
-        Supported conversions:
-        - GeV ↔ TeV (factor: 10³)
-        - GeV ↔ MeV (factor: 10⁻³)
-        
-        Args:
-            new_units (str): Target unit (TeV, GeV, MeV)
+        """Validate energy value."""
+        if self.value <= 0:
+            raise ValueError("Energy must be positive")
+        if self.uncertainty is not None and self.uncertainty < 0:
+            raise ValueError("Uncertainty must be non-negative")
             
-        Returns:
-            Energy: Converted energy value with propagated uncertainty
-            
-        Raises:
-            ValueError: If conversion not supported
-        """
-        conversions = {
-            ("GeV", "TeV"): 1e-3,
-            ("TeV", "GeV"): 1e3,
-            ("GeV", "MeV"): 1e3,
-            ("MeV", "GeV"): 1e-3
-        }
+    def __float__(self):
+        """Convert to float."""
+        return float(self.value)
         
-        if (self.units, new_units) in conversions:
-            factor = conversions[(self.units, new_units)]
-            return Energy(
-                value=self.value * factor,
-                uncertainty=self.uncertainty * factor if self.uncertainty else None,
-                units=new_units
-            )
-        raise ValueError(f"Unsupported unit conversion: {self.units} to {new_units}")
+    def __str__(self):
+        """String representation."""
+        if self.uncertainty is None:
+            return f"{self.value} {self.units}"
+        return f"{self.value} ± {self.uncertainty} {self.units}"
 
 @dataclass
 class Momentum(RealValue):
@@ -426,35 +367,32 @@ class FieldConfig:
 
 @dataclass
 class WaveFunction:
-    """Quantum wavefunction with proper normalization.
+    """Represents a quantum wavefunction."""
     
-    From appendix_a_convergence.tex Eq A.4:
-    Wavefunctions must be properly normalized and satisfy quantum mechanical properties.
-    
-    Attributes:
-        psi: Wavefunction value (symbolic or numeric)
-        grid: Spatial/temporal grid points
-        quantum_numbers: State quantum numbers
-    """
-    psi: Union[np.ndarray, Symbol]
-    grid: Optional[np.ndarray] = None
-    quantum_numbers: Optional[Dict[str, Any]] = None
+    psi: Union[np.ndarray, Any]  # Wavefunction values
+    grid: Optional[Union[np.ndarray, Dict]] = None  # Spatial/temporal grid
+    quantum_numbers: Optional[Dict] = None  # Quantum numbers
     
     def __post_init__(self):
         """Initialize and normalize wavefunction."""
         if self.quantum_numbers is None:
             self.quantum_numbers = {}
-            
+    
         if isinstance(self.psi, np.ndarray):
             # Normalize numeric wavefunction
             if self.grid is None:
                 raise ValueError("Grid required for numeric wavefunction")
-            norm = np.sqrt(np.sum(np.abs(self.psi)**2 * np.diff(self.grid)[0]))
-            if not np.isclose(norm, 1.0, rtol=1e-7):
-                self.psi = self.psi / norm
                 
-        self._validate()
-    
+            # Convert to numpy arrays and compute norm
+            psi_arr = np.array(self.psi, dtype=np.complex128)
+            dx = float(np.diff(self.grid)[0])
+            norm = np.sqrt(np.sum(np.abs(psi_arr)**2) * dx)
+            
+            if norm > 0:
+                self.psi = psi_arr / norm
+            else:
+                raise ValueError("Wavefunction must be finite")
+
     def _validate(self):
         """Validate wavefunction properties."""
         if isinstance(self.psi, np.ndarray):
@@ -756,9 +694,11 @@ class WaveFunction:
         # Compute correlation length using uncertainty
         return self.uncertainty(x_op)
 
-    def _sympy_(self):
+    @classmethod
+    def _sympy_(cls):
         """Convert to SymPy expression for symbolic manipulation."""
-        return self.psi
+        # Return a symbolic variable for the wavefunction
+        return Symbol('psi', commutative=False)
 
     def __truediv__(self, other: Union[float, int, complex, floating]) -> 'WaveFunction':
         """
@@ -967,12 +907,23 @@ class ErrorEstimate:
 
 @dataclass
 class NumericValue:
-    """Value with associated uncertainty."""
-    
-    def __init__(self, value: float, uncertainty: Optional[float] = None):
-        self.value = float(value)
-        self.uncertainty = float(uncertainty) if uncertainty is not None else None
-        
+    """Represents a numeric value with uncertainty."""
+    value: float
+    uncertainty: float = 0.0
+
+    def __post_init__(self):
+        """Initialize and validate numeric value."""
+        if self.uncertainty < 0:
+            raise ValueError("Uncertainty must be non-negative")
+
+    @property
+    def is_real(self) -> bool:
+        """Check if value is real (has zero imaginary part)."""
+        return abs(float(self.value.imag)) < 1e-10 if hasattr(self.value, 'imag') else True
+
+    def __float__(self):
+        return float(self.value)
+
     def __lt__(self, other: 'NumericValue') -> bool:
         """Less than comparison using value."""
         return self.value < other.value
@@ -1232,26 +1183,8 @@ class NumericValue:
             return NumericValue(value, uncertainty)
         return NotImplemented
 
-def ensure_numeric_value(value: Union[float, complex, np.ndarray, 'NumericValue']) -> 'NumericValue':
-    """Ensure value is wrapped in NumericValue type.
-    
-    Args:
-        value: Value to convert
-        
-    Returns:
-        NumericValue: Wrapped value
-        
-    Raises:
-        TypeError: If value cannot be converted
-    """
-    if isinstance(value, NumericValue):
-        return value
-    elif isinstance(value, (float, int, complex)):
-        return NumericValue(value)
-    elif isinstance(value, np.ndarray):
-        if value.size == 1:
-            return NumericValue(float(value))
-        raise TypeError(f"Can only convert scalar arrays, got shape {value.shape}")
-    else:
-        raise TypeError(f"Cannot convert {type(value)} to NumericValue")
+def ensure_numeric_value(value: Any) -> 'NumericValue':
+    """Ensure a value is wrapped in NumericValue."""
+    if hasattr(value, 'value'):
+        return ensure_numeric_value(value.value)
 

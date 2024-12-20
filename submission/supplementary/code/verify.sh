@@ -49,8 +49,10 @@
 # tests/test_physics.py::TestMassGeneration::test_fermion_masses PASSED                                                                          [100%]
 
 run_previously_passing_tests() {
-  pytest tests/test_field.py::TestTheoreticalPredictions -q --tb=no
-  pytest tests/test_physics.py -q --tb=no
+  pytest -q --tb=no \
+    tests/test_basis.py \
+    tests/test_field.py::TestTheoreticalPredictions \
+    tests/test_physics.py
 }
 
 run_test_file() {
@@ -58,11 +60,11 @@ run_test_file() {
 }
 
 run_test_group() {
-  pytest tests/test_physics.py::TestPhysicsCalculations ${@}
+  pytest tests/test_physics.py ${@:2}
 }
 
 run_current_test() {
-  pytest tests/test_physics.py::TestTheorems::test_unitarity -vv --tb=long --showlocals
+  pytest tests/test_physics.py::TestPhysicsCalculations::test_cross_sections -vv --tb=long --showlocals
 }
 
 if [[ ("$1" = "-g") || ("$1" = "--group") ]]; then
@@ -70,15 +72,9 @@ if [[ ("$1" = "-g") || ("$1" = "--group") ]]; then
   run_test_group -vv --tb=long --showlocals
   exit $?
 elif [[ ("$1" = "-p") || ("$1" = "--previous") ]]; then
-  if run_previously_passing_tests 2>&1 | grep FAILED; then
-    clear
-    run_previously_passing_tests -vv --tb=long --showlocals
-    echo "Previously Passing Tests: FAILED"
-    exit 1
-  else
-    echo "Previously Passing Tests: STILL PASSING"
-    exit 0
-  fi
+  clear
+  run_previously_passing_tests
+  exit $?
 elif [[ ("$1" = "-f") || ("$1" = "--file") ]]; then
   run_test_file "$2" ${@:3}
   exit $?
