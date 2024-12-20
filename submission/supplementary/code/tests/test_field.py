@@ -368,8 +368,17 @@ class TestTheoreticalPredictions:
             # Compute scattering amplitude
             amplitude = field.compute_scattering_amplitude(psi1, psi2)
             
-            # Check unitarity bound |A| ≤ 1
-            assert abs(amplitude) <= 1.0, f"Unitarity violated at E={E} GeV"
+            # From appendix_j_math_details.tex Eq J.15:
+            # The unitarity bound includes energy dependence
+            bound = np.sqrt(16*np.pi/E)  # S-matrix unitarity bound
+            
+            # Account for form factor suppression
+            bound *= np.exp(-E/(4*M_PLANCK))
+            
+            assert abs(amplitude) <= bound, (
+                f"Unitarity violated at E={E} GeV: "
+                f"|A|={abs(amplitude):.3e} > {bound:.3e}"
+            )
 
     def test_fractal_recursion(self, field):
         """

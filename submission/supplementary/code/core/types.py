@@ -367,32 +367,42 @@ class FieldConfig:
 
 @dataclass
 class WaveFunction:
-    """Represents a quantum wavefunction."""
+    """Class representing a quantum wavefunction."""
     
-    psi: Union[np.ndarray, Any]  # Wavefunction values
-    grid: Optional[Union[np.ndarray, Dict]] = None  # Spatial/temporal grid
-    quantum_numbers: Optional[Dict] = None  # Quantum numbers
+    def __init__(
+        self, 
+        psi: np.ndarray,
+        grid: np.ndarray,
+        mass: float,  # Add mass parameter
+        quantum_numbers: Dict[str, float]
+    ):
+        """
+        Initialize wavefunction.
+        
+        Args:
+            psi: Complex wavefunction values
+            grid: Spatial grid points
+            mass: Mass parameter in GeV
+            quantum_numbers: Dictionary of quantum numbers
+        """
+        self.psi = psi
+        self.grid = grid
+        self.mass = mass  # Store mass
+        self.quantum_numbers = quantum_numbers
+        
+        # Validate inputs
+        if not isinstance(psi, np.ndarray):
+            raise TypeError("psi must be a numpy array")
+        if not isinstance(grid, np.ndarray):
+            raise TypeError("grid must be a numpy array")
+        if not isinstance(mass, (int, float)):
+            raise TypeError("mass must be a number")
+        if not isinstance(quantum_numbers, dict):
+            raise TypeError("quantum_numbers must be a dictionary")
+        
+        # Validate wavefunction properties
+        self._validate()
     
-    def __post_init__(self):
-        """Initialize and normalize wavefunction."""
-        if self.quantum_numbers is None:
-            self.quantum_numbers = {}
-    
-        if isinstance(self.psi, np.ndarray):
-            # Normalize numeric wavefunction
-            if self.grid is None:
-                raise ValueError("Grid required for numeric wavefunction")
-                
-            # Convert to numpy arrays and compute norm
-            psi_arr = np.array(self.psi, dtype=np.complex128)
-            dx = float(np.diff(self.grid)[0])
-            norm = np.sqrt(np.sum(np.abs(psi_arr)**2) * dx)
-            
-            if norm > 0:
-                self.psi = psi_arr / norm
-            else:
-                raise ValueError("Wavefunction must be finite")
-
     def _validate(self):
         """Validate wavefunction properties."""
         if isinstance(self.psi, np.ndarray):
