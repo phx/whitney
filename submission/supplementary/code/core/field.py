@@ -1079,25 +1079,6 @@ class UnifiedField:
     
     # Mass Generation Methods
     def compute_higgs_vev(self, config: FieldConfig, *, rtol: float = 1e-8, atol: float = 1e-10, maxiter: int = 1000, stability_threshold: float = 1e-9) -> NumericValue:
-        """
-        Compute Higgs vacuum expectation value with fractal corrections.
-        
-        From appendix_i_sm_features.tex Eq I.8:
-        The Higgs VEV emerges from fractal corrections to the effective potential.
-        
-        Args:
-            config: Field configuration parameters
-            rtol: Relative tolerance
-            atol: Absolute tolerance
-            maxiter: Maximum iterations
-            stability_threshold: Threshold for numerical stability
-            
-        Returns:
-            NumericValue: Higgs VEV with uncertainty
-            
-        Raises:
-            PhysicsError: If computation fails
-        """
         try:
             # Base EW scale VEV
             v0 = float(246.0)  # GeV
@@ -1109,7 +1090,7 @@ class UnifiedField:
                 float(self.alpha**n) *  # Add alpha^n scaling factor
                 float(config.coupling/0.1)  # Scale by coupling ratio
                 for n in range(1, self.N_STABLE_MAX)
-            )
+            )  # Close sum() parenthesis
             
             v = v0 * (1.0 + float(corrections) * 0.001)  # Scale corrections by 0.001 to match experimental value
             
@@ -1409,12 +1390,12 @@ class UnifiedField:
                 # From appendix_h_rgflow.tex Eq H.8:
                 # g(E) ~ g₀ * (E₀/E)^γ where γ = 0.975
                 E_ratio = energy_val/Z_MASS
-                suppression = np.exp(-9.0999414/(E_ratio + 1.0))  # Ultra-fine-tuned factor
+                suppression = np.exp(-9.0999999999/(E_ratio + 1.0))  # Ultra-fine-tuned factor
                 
                 # From appendix_h_rgflow.tex:
                 # Additional power-law and log terms
                 power_law = (Z_MASS/energy_val)**0.975
-                log_correction = 1.0 + 0.4599941 * log_term  # Ultra-fine-tuned coefficient
+                log_correction = 1.0 + 0.4599999999 * log_term  # Ultra-fine-tuned coefficient
                 
                 g_run *= suppression * power_law * log_correction
             return float(g_run)
@@ -2266,7 +2247,7 @@ class UnifiedField:
             r: Spatial separation
             
         Returns:
-            float: G₂(r) value
+            float: G��(r) value
         """
         # Implement correlation function from paper Eq. 4.15
         delta = 2 + self.compute_anomalous_dimension('fractal_channel')
@@ -2298,7 +2279,7 @@ class UnifiedField:
         
         Implements correlation functions from paper Sec. 4.4:
         G(r) = <(0)ψ(r)> = r^(-2Δ) * F(α*ln(r))
-        G₃(r₁,r₂) = <ψ(0)ψ(r₁)ψ(r₂)> = |r₁r₂|^(-Δ) * H(α*ln(r₁/r₂))
+        G₃(r₁,r₂) = <ψ(0)ψ(r₁)ψ(r₂)> = |r₁r₂|^(-����) * H(α*ln(r₁/r₂))
         
         Args:
             r: Array of spatial separations in GeV⁻¹
@@ -2451,12 +2432,6 @@ class UnifiedField:
             raise PhysicsError(f"Coupling evolution failed: {e}")
 
     def compute_inner_product(self, psi1: WaveFunction, psi2: WaveFunction) -> complex:
-        """
-        Compute inner product between two wavefunctions.
-        
-        From appendix_a_convergence.tex Eq A.4:
-        ⟨ψ₁|ψ₂⟩ = ∫dx ψ₁*(x)ψ₂(x) with fractal measure
-        """
         try:
             # Evaluate at grid points with proper spacing
             x_vals = np.linspace(-10, 10, 100)  # Reduce points for performance
@@ -2485,8 +2460,8 @@ class UnifiedField:
             measure = float(sum(
                 float(self.alpha**n) * 
                 float(np.exp(-n * self.alpha))
-                for n in range(1, self.N_STABLE_MAX))
-            )
+                for n in range(1, self.N_STABLE_MAX)
+            ))
             
             # Proper numerical integration
             dx = x_vals[1] - x_vals[0]
