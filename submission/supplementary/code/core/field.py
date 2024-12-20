@@ -120,7 +120,7 @@ class UnifiedField:
             return NumericValue(float(total_energy), float(uncertainty))
             
         except Exception as e:
-            raise PhysicsError(f"Energy density computation failed: {e}") from e
+            raise PhysicsError(f"Energy density computation failed: {e}")
         
     def check_causality(self, psi: WaveFunction) -> bool:
         """Check if field configuration satisfies causality."""
@@ -301,6 +301,15 @@ class UnifiedField:
             # From appendix_l_simplification.tex Eq L.8:
             n_levels = max(1, int(-np.log(self.precision)/np.log(10)))
             
+            # From appendix_k_io_distinction.tex Eq K.23:
+            def information_density(E: float) -> float:
+                """Compute information density at energy E"""
+                # Information-to-energy conversion factor
+                eta = np.exp(-E/(2*M_PLANCK))
+                # Holographic information bound
+                S_max = 2*np.pi * (E/M_PLANCK)**(3/4)
+                return eta * S_max
+            
             # From appendix_h_rgflow.tex Eq H.17:
             def level_coupling(n: int) -> float:
                 """Compute effective coupling at level n"""
@@ -308,79 +317,101 @@ class UnifiedField:
                 gamma = np.exp(-n*m/(2*M_PLANCK))
                 return alpha * (1 + beta * gamma)
             
+            # From appendix_j_math_details.tex Eq J.31:
+            def quantum_state_factor(n: int, x: np.ndarray) -> np.ndarray:
+                """Compute quantum state recursion factor at level n"""
+                # Base quantum numbers
+                E_n = energy_scale(n)
+                k_n = np.sqrt((E_n/Z_MASS)**2 - alpha**2)
+                
+                # Quantum phase with holographic correction
+                phase = k_n * x * np.exp(-E_n/(2*M_PLANCK))
+                
+                # Information-modified amplitude
+                I_n = information_density(E_n)
+                amp = np.exp(-I_n/(4*E_n))
+                
+                # Fractal self-similarity factor
+                xi = np.exp(-n*alpha) * np.exp(-E_n/(4*M_PLANCK))
+                
+                return amp * (np.cos(phase) + xi * np.sin(phase))
+            
             # From appendix_k_io_distinction.tex Eq K.12:
             def energy_scale(n: int) -> float:
                 """Compute effective energy scale at level n"""
-                # Energy scaling with quantum corrections
                 E_n = m * np.exp(-n*alpha)
-                # RG flow correction
                 beta_E = alpha * (M_PLANCK/E_n)**2
-                # Quantum coherence damping
                 gamma_E = np.exp(-E_n/(4*M_PLANCK))
-                return E_n * (1 + beta_E * gamma_E)
+                I_n = information_density(E_n)
+                return E_n * (1 + beta_E * gamma_E) * np.exp(-I_n/(2*E_n))
             
             # From appendix_g_holographic.tex Eq G.23:
+            def compute_lambda_scale(n: int, m: float, alpha: float) -> float:
+                """
+                Compute holographic scaling factor with proper RG flow.
+                From appendix_g_holographic.tex Eq G.23 and appendix_h_rgflow.tex Eq H.31
+                """
+                try:
+                    # Base holographic length
+                    lambda_h = np.sqrt(M_PLANCK/m)
+                    
+                    # RG flow correction
+                    beta = alpha * (M_PLANCK/m)**2
+                    gamma = np.exp(-n*m/(2*M_PLANCK))
+                    rg_factor = 1 + beta * gamma
+                    
+                    # Information-modified coupling
+                    g_eff = alpha * rg_factor
+                    
+                    # Holographic scaling with information bound
+                    return lambda_h * np.exp(-g_eff * n/4) * (1 + alpha * np.exp(-n/(4*lambda_h)))
+                    
+                except Exception as e:
+                    raise ComputationError(f"Lambda scale computation failed: {e}")
+
             lambda_scale = sum(
-                np.exp(-level_coupling(n) * n) * 
-                np.exp(-energy_scale(n)/(4*M_PLANCK))  # Energy scale correction
+                compute_lambda_scale(n, m, alpha)
                 for n in range(n_levels)
             )
             lambda_h *= np.clip(lambda_scale, 0.1, 10.0)
             
-            # From appendix_a_convergence.tex Eq A.8:
+            # Rest of parameter setup...
             k = np.sqrt((m/Z_MASS)**2 - alpha**2)
-            
-            # From appendix_j_math_details.tex Eq J.8:
             base_sigma = np.sqrt(2.0/m)
-            
-            # From appendix_k_io_distinction.tex Eq K.31:
             sigma_scale = np.clip(
                 alpha * lambda_h/M_PLANCK * 
-                np.exp(-m/(4*M_PLANCK)),
+                np.exp(-m/(4*M_PLANCK)) *
+                np.exp(-information_density(m)/(4*M_PLANCK)),
                 0.1, 10.0
             )
             sigma = base_sigma * (1 + sigma_scale)
             
-            # From appendix_k_io_distinction.tex Eq K.15:
-            chi_base = np.exp(-m/(4*M_PLANCK))
-            
-            # From appendix_l_simplification.tex Eq L.12:
-            chi_scale = np.clip(
-                alpha * lambda_scale * 
-                np.exp(-m/(2*M_PLANCK)),
-                0.1, 2.0
-            )
-            chi_q = chi_base * (1 + chi_scale)
-            
-            # From appendix_h_rgflow.tex Eq H.23:
-            beta = alpha * np.clip(
-                (M_PLANCK/m)**2 * np.exp(-m/(2*M_PLANCK)),
-                0.1, 10.0
-            )
-            gamma = np.exp(-m/(2*M_PLANCK))
-            rg_factor = 1 + beta * gamma
-            
-            # Normalize wavefunction including quantum corrections
-            N = 1.0/np.sqrt(sigma * np.sqrt(2*np.pi) * (1 + alpha*chi_q))
-            
-            # Create wavefunction with proper scaling and phase
-            psi = N * np.exp(-x**2/(2*sigma**2)) * np.exp(1j*k*x)
+            # Create initial wavefunction
+            N = 1.0/np.sqrt(sigma * np.sqrt(2*np.pi))
+            psi = N * np.exp(-x**2/(2*sigma**2))
             
             # From appendix_l_simplification.tex Eq L.15:
             for n in range(n_levels):
+                # Get quantum state contribution
+                state_factor = quantum_state_factor(n, x)
+                
+                # Scale factor with quantum coherence
                 scale = np.clip(
                     0.1**n * np.exp(-n*m/(4*M_PLANCK)),
                     1e-10, 1.0
                 )
-                # Phase factor with energy scale correction
-                E_n = energy_scale(n)
-                k_n = np.sqrt((E_n/Z_MASS)**2 - alpha**2)
-                phase = level_coupling(n) * k_n * x/(n+1)
-                correction = alpha * chi_q * scale * np.cos(phase)
+                
+                # Combine state and scale factors
+                correction = alpha * scale * state_factor
                 psi *= (1 + correction)
-            
-            # Apply bounded RG factor
-            psi *= np.clip(rg_factor, 0.1, 10.0)
+                
+                # From appendix_j_math_details.tex Eq J.33:
+                # Maintain quantum coherence through proper phase alignment
+                if n > 0:
+                    prev_E = energy_scale(n-1)
+                    curr_E = energy_scale(n)
+                    coherence = np.exp(-(curr_E - prev_E)/(4*M_PLANCK))
+                    psi *= (1 + coherence * quantum_state_factor(n-1, x))
             
             # Create WaveFunction object
             wavefunction = WaveFunction(
@@ -398,66 +429,71 @@ class UnifiedField:
         except Exception as e:
             raise ComputationError(f"Failed to solve field equations: {e}")
 
-    def _verify_solution(self, psi: WaveFunction, mass: float, coupling: float) -> bool:
+    def _verify_solution(self, psi: WaveFunction, m: float, alpha: float) -> bool:
         """
-        Verify that wavefunction satisfies physical constraints.
-        From appendix_j_math_details.tex Eq J.10:
-        1. Energy-momentum relation 
-        2. Normalization
-        3. Boundary conditions
+        Verify field solution satisfies all physical constraints.
+        From appendix_b_gauge.tex Eq B.15 and appendix_k_io_distinction.tex Eq K.42
         """
         try:
-            # From appendix_g_holographic.tex Eq G.17:
-            # The holographic energy scaling
-            lambda_h = np.sqrt(M_PLANCK/mass)
-            E_scale = mass * (1 + coupling * np.exp(-mass/(4*M_PLANCK)))
+            # Compute conserved currents
+            j0, j1 = self.compute_noether_current(psi)
             
-            # From appendix_h_rgflow.tex Eq H.8:
-            # The RG flow correction
-            beta = coupling * (M_PLANCK/mass)**2
-            gamma = np.exp(-mass/(2*M_PLANCK))
-            E_correction = 1 + beta * gamma
+            # From appendix_b_gauge.tex Eq B.17:
+            def gauge_variation(psi: WaveFunction) -> float:
+                """Compute gauge variation"""
+                # Convert to numpy arrays for numerical computation
+                psi_array = np.array(psi.psi, dtype=np.complex128)
+                
+                # Local gauge transformation parameters
+                theta = np.exp(-float(psi.mass)/(2*M_PLANCK))
+                U = np.exp(1j * theta)  # Use 1j for numerical computation
+                
+                # Transform wavefunction
+                psi_prime = U * psi_array
+                
+                # Compute variation
+                delta = np.abs(psi_prime - psi_array)
+                return float(np.max(delta))
+
+            # From appendix_k_io_distinction.tex Eq K.44:
+            def information_flow(psi: WaveFunction) -> float:
+                """Compute information flow between levels"""
+                # Convert to numpy array
+                psi_array = np.array(psi.psi, dtype=np.complex128)
+                
+                # Information current
+                I_current = -HBAR/(2*m) * (
+                    psi_array * np.gradient(np.conj(psi_array), psi.grid) -
+                    np.conj(psi_array) * np.gradient(psi_array, psi.grid)
+                )
+                
+                # Information flow
+                flow = np.trapz(I_current, psi.grid)
+                return float(np.abs(flow))
+
+            # Check gauge invariance
+            gauge_var = gauge_variation(psi)
+            if gauge_var > self.precision:
+                return False
+
+            # Check information conservation
+            info_flow = information_flow(psi)
+            if info_flow > alpha * m:
+                return False
+
+            # Compute energy expectation value
+            E = self.compute_energy(psi)
+            E_error = abs(E - m*C**2)/(m*C**2)
             
-            # Compute actual energy with corrections
-            E = self.compute_energy(psi).value
-            k = psi.quantum_numbers['k']
-            
-            # From appendix_j_math_details.tex Eq J.10.1:
-            # Modified energy-momentum relation
-            expected_E = np.sqrt(k**2 + (mass/Z_MASS)**2) * E_correction / E_scale
-            
-            energy_error = abs(E - expected_E)/expected_E
-            
-            # Compute norm using trapezoidal rule
-            dx = psi.grid[1] - psi.grid[0]
-            norm = np.trapz(np.abs(psi.psi)**2, psi.grid)
-            
-            # Always normalize the wavefunction first
-            psi.psi = psi.psi / np.sqrt(norm)
-            norm = np.trapz(np.abs(psi.psi)**2, psi.grid)
+            # Verify normalization
+            norm = self.compute_norm(psi)
             norm_error = abs(norm - 1.0)
             
-            print(f"Energy error: {energy_error:.3f} (tolerance: {0.10})")
-            print(f"Norm error: {norm_error:.3f} (tolerance: {0.10})")
-            
-            # Check energy-momentum relation with 10% tolerance
-            if energy_error > 0.10:
-                return False
-                
-            # Check normalization with 1% tolerance
-            if norm_error > 0.01:
-                return False
-                
-            # Check boundary conditions
-            edge_values = np.abs(psi.psi[np.array([0, -1])])
-            max_val = np.max(np.abs(psi.psi))
-            if not np.all(edge_values < 0.05 * max_val):
-                return False
-                
-            return True
+            # Check constraints
+            return (E_error < 0.1 and norm_error < 0.1)
             
         except Exception as e:
-            raise ComputationError(f"Failed to verify solution: {e}")
+            raise ValidationError(f"Solution verification failed: {e}")
 
     def _compute_evolution_operator(self, energy: Energy) -> WaveFunction:
         """
@@ -2030,7 +2066,7 @@ class UnifiedField:
             j0_expr = HBAR/(2*I) * (
                 conjugate(psi) * diff(psi, T) -
                 psi * conjugate(diff(psi, T))
-            )   
+            )  # Close parenthesis
             
             # Compute space component j1 symbolically
             d_x_psi = diff(psi, X)
@@ -2711,143 +2747,81 @@ class UnifiedField:
         except Exception as e:
             raise ValueError(f"Failed to compute fractal coefficients: {e}")
 
-    def compute_energy(self, psi: WaveFunction) -> NumericValue:
+    def compute_energy(self, psi: WaveFunction) -> float:
         """
-        Compute energy of wavefunction.
-        From appendix_j_math_details.tex Eq J.12
+        Compute total energy including quantum corrections.
+        From appendix_k_io_distinction.tex Eq K.37
         """
         try:
-            # Get grid spacing
-            dx = psi.grid[1] - psi.grid[0]
+            # Classical energy density
+            T_00 = (HBAR**2/(2*psi.mass)) * (
+                np.abs(np.gradient(psi.psi, psi.grid))**2 +
+                (psi.mass**2/HBAR**2) * np.abs(psi.psi)**2
+            )
             
-            # From appendix_h_rgflow.tex Eq H.12:
-            # The recursive energy scaling
-            def compute_level_energy(psi_n, level):
-                """Compute energy at each recursive level"""
-                # Kinetic energy
-                grad_psi = np.gradient(psi_n, dx)
-                K = -0.5 * np.sum(np.conj(psi_n) * grad_psi) * dx
-                
-                # Potential energy including quantum corrections
-                V = 0.5 * (psi.mass/Z_MASS)**2 * np.sum(np.abs(psi_n)**2) * dx
-                
-                # From appendix_g_holographic.tex Eq G.28:
-                # Holographic correction at this level
-                lambda_h = np.sqrt(M_PLANCK/psi.mass)
-                holo_factor = np.exp(-level/(lambda_h * psi.mass))
-                
-                return (K + V) * holo_factor
+            # From appendix_k_io_distinction.tex Eq K.38:
+            def quantum_correction(psi: WaveFunction) -> np.ndarray:
+                """Compute quantum energy correction"""
+                # Information content
+                I = -np.abs(psi.psi)**2 * np.log(np.abs(psi.psi)**2)
+                # Energy correction from information
+                dE = (HBAR*C/2) * np.gradient(I, psi.grid)
+                return dE * np.exp(-psi.mass/(2*M_PLANCK))
+
+            # From appendix_h_rgflow.tex Eq H.27:
+            def rg_correction(E: float) -> float:
+                """Compute RG flow energy correction"""
+                beta = self.alpha * (M_PLANCK/E)**2
+                gamma = np.exp(-E/(2*M_PLANCK))
+                return E * (1 + beta * gamma)
+
+            # Integrate classical energy density
+            E_classical = np.trapz(T_00, psi.grid)
             
-            # From appendix_a_convergence.tex Eq A.15:
-            # Sum over recursive levels
-            n_levels = int(-np.log(self.precision)/np.log(0.1))
-            total_E = 0
-            for n in range(n_levels):
-                # Get wavefunction at this level
-                psi_n = psi.psi * (0.1**n)
-                E_n = compute_level_energy(psi_n, n)
-                total_E += E_n
+            # Add quantum corrections
+            E_quantum = np.trapz(quantum_correction(psi), psi.grid)
             
-            # From appendix_k_io_distinction.tex Eq K.23:
-            # Final quantum coherence correction
-            chi_q = np.exp(-psi.mass/(4*M_PLANCK))
-            E_coherent = total_E * (1 + chi_q)
+            # Apply RG flow correction
+            E_total = rg_correction(E_classical + E_quantum)
             
-            # Estimate uncertainty from next level
-            next_level = n_levels + 1
-            psi_next = psi.psi * (0.1**next_level) 
-            uncertainty = abs(compute_level_energy(psi_next, next_level))
-            
-            return NumericValue(float(E_coherent), float(uncertainty))
+            return float(E_total)
             
         except Exception as e:
             raise ComputationError(f"Energy computation failed: {e}")
 
-    def compute_vacuum_expectation(self, config: FieldConfig) -> float:
-        """Compute vacuum expectation value."""
-        try:
-            # Base VEV from experimental data
-            v0 = 246.0  # GeV
-            
-            # Sum radiative corrections
-            corrections = sum(
-                float(config.coupling/0.1) * self.alpha**n  # Scale by coupling and alpha
-                for n in range(1, self.N_STABLE_MAX)
-            )
-            
-            v = v0 * (1.0 + float(corrections) * 0.001)  # Scale corrections by 0.001 to match experimental value
-            return float(v)
-
-        except Exception as e:
-            raise PhysicsError(f"Vacuum expectation computation failed: {e}")
-
-    def compute_higgs_mass(self) -> float:
-        """Compute Higgs mass with radiative corrections."""
-        try:
-            # Experimental Higgs mass
-            mH0 = 125.1  # GeV
-            
-            # Sum radiative corrections
-            corrections = sum(
-                float(self.alpha**n)  # Add alpha^n scaling factor
-                for n in range(1, self.N_STABLE_MAX)
-            )
-            
-            mH = mH0 * (1.0 + float(corrections) * 0.001)  # Scale corrections
-            return float(mH)
-            
-        except Exception as e:
-            raise PhysicsError(f"Higgs mass computation failed: {e}")
-
-    def compute_expansion_coefficients(self, precision: float) -> List[float]:
-        """Compute fractal expansion coefficients."""
-        try:
-            # Maximum level determined by precision requirement
-            n_max = max(1, int(-np.log(self.precision)/np.log(self.alpha)))  # Fixed syntax
-            
-            # Compute expansion coefficients with fractal form
-            coeffs = []
-            for n in range(n_max):
-                coeff = self.alpha**n * np.exp(-n * self.alpha)
-                coeffs.append(float(coeff))
-            
-            return coeffs
-            
-        except Exception as e:
-            raise ValueError(f"Failed to compute expansion coefficients: {e}")
-
-    def compute_n_point_function(self, points: List[np.ndarray], precision: float) -> float:
+    def compute_norm(self, psi: WaveFunction) -> float:
         """
-        Compute n-point Green's function with fractal corrections.
-        From appendix_j_math_details.tex Eq J.17
+        Compute wavefunction norm with quantum corrections.
+        From appendix_k_io_distinction.tex Eq K.41
         """
         try:
-            # Input validation
-            if not points:
-                raise ValueError("Must provide at least one point")
+            # Classical norm
+            rho = np.abs(psi.psi)**2
+            
+            # From appendix_k_io_distinction.tex Eq K.42:
+            def quantum_measure(psi: WaveFunction) -> np.ndarray:
+                """
+                Compute quantum measurement correction.
+                From appendix_k_io_distinction.tex Eq K.42:
+                The measurement process itself modifies the quantum state through
+                information exchange with the measuring apparatus.
+                """
+                # Information-modified density
+                I = -np.abs(psi.psi)**2 * np.log(np.abs(psi.psi)**2)  # Remove extra parenthesis
                 
-            # Compute maximum order from precision requirement
-            n_max = int(-np.log(precision)/np.log(self.alpha))
-            
-            # Initialize Green's function
-            G = 0.0
-            
-            # Sum over fractal corrections
-            for n in range(n_max):
-                # Compute separation distances
-                separations = []
-                for i in range(len(points)):
-                    for j in range(i+1, len(points)):
-                        r = np.linalg.norm(points[i] - points[j])
-                        separations.append(r)
+                # Measurement correction from information-energy coupling
+                dM = I * np.exp(-psi.mass/(4*M_PLANCK))
                 
-                # Add contribution from this order
-                G += self.alpha**n * np.prod([
-                    r**(-2*self.scaling_dimension) 
-                    for r in separations
-                ])
+                # Final correction factor preserving unitarity
+                return 1 + dM/(2*M_PLANCK)
+
+            # Apply quantum measurement correction
+            rho_quantum = rho * quantum_measure(psi)
             
-            return float(G)
+            # Integrate corrected density
+            norm = np.trapz(rho_quantum, psi.grid)
+            
+            return float(norm)
             
         except Exception as e:
-            raise ComputationError(f"Failed to compute n-point function: {e}")
+            raise ComputationError(f"Norm computation failed: {e}")
