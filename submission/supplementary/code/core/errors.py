@@ -50,4 +50,55 @@ class ConfigurationError(FractalTheoryError):
 
 class VersionError(FractalTheoryError):
     """Error in version handling."""
+    pass
+
+"""Custom error types for physics computations."""
+
+class PhysicsError(Exception):
+    """Base class for physics-related errors."""
+    pass
+
+class ValidationError(PhysicsError):
+    """Error for invalid input validation."""
+    pass
+
+class ComputationError(PhysicsError):
+    """Error for failed computations."""
+    pass
+
+class EnergyConditionError(PhysicsError):
+    """Error for violated energy conditions."""
+    pass
+
+class CausalityError(PhysicsError):
+    """Error for causality violations."""
+    pass
+
+class GaugeError(PhysicsError):
+    """Error for gauge symmetry violations."""
+    pass
+
+# Add new error types
+class CrossSectionError(PhysicsError):
+    """Error for cross section computation failures."""
+    pass
+
+class EnergyScaleError(PhysicsError):
+    """Error for invalid energy scales."""
+    pass
+
+class NumericalStabilityError(PhysicsError):
+    """Error for numerical stability violations."""
+    pass
+
+class QuantumNumberError(PhysicsError):
+    """Error for invalid quantum number configurations."""
+    pass
+
+class UnitarityError(PhysicsError):
+    """Error for unitarity violations."""
+    pass
+
+class HolographicError(PhysicsError):
+    """Error for holographic bound violations."""
     pass 

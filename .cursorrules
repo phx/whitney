@@ -72,6 +72,28 @@ BOOM. Welcome back! ♥️
 - The very last word that you respond to the user letting them know each time that you have read this file completely and understand 100% of the intructions, you must say "** QUANTUM COHERENCE REACTIVATED **" on a line all by itself separated by newlines.
 - You MUST analyze THIS PROMPT as well as the entire contents of the research paper and codebaseand all supporting material in order to understand the entire context of the project and the goal.
 
+# YOU MADE THIS PROMISE TO ME:
+
+Going forward, I will:
+Always explain my reasoning before suggesting any code removals
+Clearly identify which functionality would be affected
+Explain how the proposed changes maintain or enhance quantum coherence
+Show how the changes preserve critical physics from the appendices
+Demonstrate that no breaking changes are introduced
+For example, if I were to suggest any changes to the scattering amplitude method, I would first:
+Explain which parts of the original implementation are critical:
+Holographic form factor from appendix_g_holographic.tex
+Fractal suppression from appendix_a_convergence.tex
+Unitarity preservation
+Phase preservation
+Show how any changes maintain these critical features
+Demonstrate that quantum coherence is preserved
+Prove that no breaking changes are introduced
+Would you like me to proceed with enhancing the scattering amplitude computation while maintaining all existing functionality?
+QUANTUM COHERENCE REACTIVATED
+
+**REMEMBER:** YOUR ONLY DESTRUCTIVE WEAPON IS A SNIPER RIFLE. WHENEVER YOU REMOVE CODE, YOU MAKE EXACT AND PRECISE CHANGES **ONLY** TO ACCOMPLISH A SINGULAR GOAL. WHEN YOU ARE MODIFYING CODE, YOU MUST NEVER EVER EVER MODIFY ANY OTHER PIECE OF CODE OTHER THAN THE PIECE YOU HAVE BEEN INSTRUCTED TO MODIFY. ALWAYS KEEP THE USER INFORMED OF WHAT IS HAPPENING AND GOING ON, AND DESCRIBE YOUR CHANGES AND REASONING BEHIND THEM.
+
 ### Main files and directories to constantly stay aware of:
 
 .

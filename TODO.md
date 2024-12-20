@@ -1,59 +1,28 @@
 # Quantum Field Theory Implementation Tasks
 
 ## 🚨 CRITICAL FIXES (HIGHEST PRIORITY)
-- [ ] Fix Zero Gravitational Wave Spectrum (MOST CRITICAL)
-  - [x] Fix h_pred array initialization
-  - [x] Add proper quantum corrections from Eq E.31-E.33
-  - [x] Fix power law scaling (ω^-4)
-  - [x] Add proper normalization to experimental scale
-  - [ ] Fix chi-square overflow
+- [ ] Fix Coupling Explosion (MOST CRITICAL - BLOCKING OTHER TESTS)
+  - [ ] Fix RG flow beta functions
+    - [ ] Implement proper asymptotic freedom from Eq H.2
+    - [ ] Add quantum corrections from Eq K.51
+    - [ ] Add holographic screening from Eq G.34
+  - [ ] Add proper UV completion
+    - [ ] Implement UV/IR connection from Eq H.27
+    - [ ] Add fractal suppression from Eq A.12
+  - [ ] Fix normalization
+    - [ ] Add proper energy scale handling
+    - [ ] Add stability constraints
+
+- [ ] Fix Zero Gravitational Wave Spectrum
+  - [x] Fix chi-square overflow
+    - [x] Add proper stability terms
+    - [x] Fix UV behavior
+    - [x] Improve normalization
   - [ ] Add proper error handling for zero values
   - [ ] Implement statistical validation
   - [ ] Add proper frequency binning
   - [ ] Add proper error propagation
   - [ ] Fix statistical comparison
-
-- [ ] Fix Coupling Explosion Issue
-  - [x] Fix RG flow equations to ensure asymptotic freedom
-  - [x] Add proper UV regularization
-  - [x] Fix beta function signs
-  - [x] Add enhanced UV damping
-  - [ ] Implement proper energy scale handling
-  - [ ] Add stability constraints
-  - [ ] Add proper quantum coherence suppression
-  - [ ] Implement UV completion from Eq H.27
-  - [ ] Add holographic screening from Eq G.34
-  - [ ] Fix normalization of coupling constants
-  - [ ] Add proper boundary conditions
-
-- [ ] Fix Cross Section Computation Failures
-  - [x] Remove duplicate compute_cross_section method
-  - [x] Add quantum coherence factor from Eq K.42
-  - [x] Add holographic factor from Eq G.34
-  - [x] Add RG flow corrections from Eq H.27
-  - [ ] Fix float conversion errors (CURRENT)
-    - [ ] Add proper type conversion for complex amplitudes
-    - [ ] Fix numerical stability in wavefunction evaluation
-    - [ ] Add proper error handling for zero values
-  - [ ] Fix scattering amplitude computation
-  - [ ] Add proper error handling
-
-- [ ] Fix Coupling Evolution Instabilities
-  - [x] Fix NaN values in RG flow equations
-  - [x] Add numerical stabilization for high energies
-  - [x] Implement proper asymptotic behavior
-  - [x] Add holographic bounds from Eq G.34
-  - [x] Add quantum coherence factor from Eq K.51
-  - [x] Improve RG flow regularization
-  - [ ] Fix dimensionality issues in running coupling
-  - [ ] Fix unification constraint violations
-
-- [ ] Fix Gravitational Wave Spectrum
-  - [x] Add proper error floor (prevent division by zero)
-  - [x] Implement quantum corrections from Eq E.31-E.33
-  - [x] Add holographic corrections from Eq G.34
-  - [ ] Fix chi-square overflow
-  - [ ] Fix statistical comparison (p>0.05)
 
 ## Test Coverage
 - [x] Add basic theorem tests
