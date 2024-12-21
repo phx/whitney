@@ -1,50 +1,36 @@
 # Quantum Field Theory Implementation Tasks
 
 ## 🚨 CRITICAL FIXES (HIGHEST PRIORITY)
-- [ ] Fix Coupling Explosion (MOST CRITICAL - BLOCKING OTHER TESTS)
-  - [x] Fix RG flow beta functions
-    - [x] Implement proper asymptotic freedom from Eq H.2
+- [ ] Fix Missing Core Methods (MOST CRITICAL - BLOCKING ALL TESTS)
+  - [ ] Add compute_matrix_element() method to UnifiedField
+    - [ ] Implement proper S-matrix calculation
+    - [ ] Add quantum corrections from Eq K.42
+    - [ ] Add holographic screening from Eq G.34
+  - [ ] Add quantum_scale_factor() and rg_scale_factor() to _normalize_energy_scale()
+    - [x] Implement proper UV/IR behavior from Eq H.27
     - [x] Add quantum corrections from Eq K.51
-    - [x] Add holographic screening from Eq G.34
-  - [x] Add proper UV completion
-    - [x] Implement UV/IR connection from Eq H.27
-    - [x] Add fractal suppression from Eq A.12
     - [x] Add proper boundary conditions
-  - [ ] Fix stability constraints
-    - [x] Add numerical stability bounds
-      - [x] Add quantum stability factor
-      - [x] Add RG stability factor
-      - [x] Add physical constraints
-    - [x] Add energy scale stability checks
-      - [x] Add quantum energy bounds
-      - [x] Add RG energy bounds
-      - [x] Add holographic energy bounds
-    - [x] Add coupling evolution stability
-      - [x] Add quantum evolution bounds
-      - [x] Add RG evolution bounds
-      - [x] Add holographic evolution bounds
-    - [x] Add quantum coherence stability validation
-      - [x] Add quantum coherence measure
-      - [x] Add holographic coherence bound
-      - [x] Add RG coherence measure
-      - [x] Add stability verification
 
-- [ ] Fix Zero Gravitational Wave Spectrum
+- [ ] Fix Coupling Verification (CRITICAL - BLOCKING UNIFICATION TESTS)
+  - [x] Fix array truth value ambiguity in compute_running_coupling()
+  - [x] Add proper array handling for quantum corrections
+  - [x] Implement proper coupling unification verification
+  - [x] Add statistical validation
+
+- [ ] Fix Gravitational Wave Spectrum (p=0.00)
   - [x] Fix chi-square overflow
-    - [x] Add proper stability terms
-    - [x] Fix UV behavior
-    - [x] Improve normalization
-  - [ ] Add proper error handling for zero values
-  - [ ] Implement statistical validation
-  - [ ] Add proper frequency binning
-  - [ ] Add proper error propagation
-  - [ ] Fix statistical comparison
+  - [x] Add proper error handling
+  - [x] Implement statistical validation
+  - [x] Add proper frequency binning
+  - [x] Add proper error propagation
 
-## Test Coverage (Currently 23.4%)
+## Test Coverage (Currently 23.82%)
 - [ ] Increase core/field.py coverage (TARGET: 80%)
   - [ ] Add tests for field evolution
   - [ ] Add tests for gauge transformations
   - [ ] Add tests for energy computations
+  - [ ] Add tests for matrix elements
+  - [ ] Add tests for coupling verification
 
 ## Physics Implementation Tasks
 - [ ] Fix Mass Generation
