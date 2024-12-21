@@ -31,3 +31,8 @@ ALPHA_REF = 1/128.9  # Reference alpha value
 GAMMA_1 = 0.01       # First gamma factor
 GAMMA_2 = 0.02       # Second gamma factor
 GAMMA_3 = 0.03       # Third gamma factor
+
+# Add neutrino mixing angles after existing constants
+theta_12 = 0.5843  # Solar angle θ₁₂ ≈ 33.5°
+theta_23 = 0.785   # Atmospheric angle θ₂₃ ≈ 45°
+theta_13 = 0.148   # Reactor angle θ₁₃ ≈ 8.5°
