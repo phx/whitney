@@ -34,7 +34,14 @@ def test_causality():
                 assert abs(val) < 1e-6
 
 def test_holographic_bound():
-    """Test holographic entropy bound."""
+    """
+    Test holographic entropy bound.
+    
+    From appendix_g_holographic.tex Eq G.45:
+    The entropy bound requires:
+    S ≤ A/(4ℏG)
+    where A is the area of the bounding surface.
+    """
     field = UnifiedField()
     R = 1.0  # Radius
     S = field.compute_entropy(R)
@@ -43,7 +50,14 @@ def test_holographic_bound():
     assert S.value <= area/(4*HBAR*G)
 
 def test_fractal_recursion():
-    """Test fractal recursion relations."""
+    """
+    Test fractal recursion relations.
+    
+    From appendix_d_scale.tex Eq D.25:
+    The fractal structure requires:
+    ψₙ₊₁/ψₙ = α
+    where α is the fine structure constant.
+    """
     field = UnifiedField()
     # Test adjacent levels
     n1 = field.compute_fractal_recursion(1)
@@ -52,7 +66,14 @@ def test_fractal_recursion():
     assert abs(n2/n1 - field.alpha) < 1e-6
 
 def test_ward_identity():
-    """Test Ward identity for current conservation."""
+    """
+    Test Ward identity for current conservation.
+    
+    From appendix_h_rgflow.tex Eq H.15:
+    Current conservation requires:
+    ∂μJμ = 0
+    where Jμ is the Noether current.
+    """
     field = UnifiedField()
     psi = field.compute(n=0, E=Energy(1.0))
     # Compute current divergence
@@ -65,7 +86,14 @@ def test_ward_identity():
     M_PLANCK  # High energy
 ])
 def test_energy_scaling(E):
-    """Test energy scaling relations."""
+    """
+    Test energy scaling relations.
+    
+    From appendix_h_rgflow.tex Eq H.30:
+    The effective dimension scales as:
+    d_eff = 4 - γ(E)
+    where γ(E) is the anomalous dimension.
+    """
     field = UnifiedField()
     psi = field.compute(n=0, E=Energy(E))
     # Check scaling dimension

@@ -1,12 +1,15 @@
 """Physical constants and fundamental quantities."""
 
 from sympy import Symbol, I, pi
+import numpy as np
 
 # Fundamental constants
-HBAR = 1.0545718e-34  # Reduced Planck constant (J⋅s)
-C = 2.99792458e8      # Speed of light (m/s)
-G = 6.67430e-11       # Gravitational constant (m³/kg⁻¹/s⁻²)
-M_PLANCK = 1.22089e19    # Planck mass (GeV)
+HBAR = 1.054571817e-34  # Reduced Planck constant (J⋅s)
+C = 299792458.0  # Speed of light (m/s)
+G = 6.67430e-11  # Gravitational constant (m³/kg⋅s²)
+
+# Derived constants
+M_P = np.sqrt(HBAR*C/G)  # Planck mass (kg) from appendix_c_gravity.tex Eq C.8
 
 # Energy scales
 Z_MASS = 91.1876      # Z boson mass (GeV)
