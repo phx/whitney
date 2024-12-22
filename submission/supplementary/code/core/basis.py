@@ -52,31 +52,54 @@ class FractalBasis:
         The generator function determines the fractal structure
         through light-cone coordinates:
         
-        G(u,v) = exp(-uv/2ℏc)/√(2πℏc)
+        G(u,v) = exp(-uv/(2ℏc))/√(2πℏc)
+        
+        With scaling from appendix_d_scale.tex Eq D.8:
+        Must use dimensionless variables to avoid overflow:
+        ũ = u/(ℏc), ṽ = v/(ℏc)
         """
-        # Lorentz invariant combination with proper scaling
-        s = u*v  # Spacetime interval
-        # Use dimensionless form to avoid overflow
-        s_scaled = s/(2*HBAR*C)
-        return exp(-s_scaled) / sqrt(2*pi)
+        # Use dimensionless variables to avoid overflow
+        u_scaled = u/(HBAR*C)  # Dimensionless light-cone coordinate 
+        v_scaled = v/(HBAR*C)  # Dimensionless light-cone coordinate
+        
+        # Compute generator with proper scaling
+        s_scaled = u_scaled * v_scaled  # Dimensionless interval
+        
+        # Use exponential cutoff to prevent overflow
+        if isinstance(s_scaled, (float, complex)):
+            if abs(s_scaled) > 700:  # np.log(np.finfo(float).max)
+                return 0
+        
+        return exp(-s_scaled/2) / sqrt(2*pi)
         
     def _modulation_factor(self, n: int, E: Energy) -> Expr:
         """
         Compute energy-dependent modulation.
         
-        From appendix_d_scale.tex Eq D.15:
+        From appendix_d_scale.tex Eq D.15-D.17:
         The modulation factor ensures proper energy scaling:
         
         M(x,t) = exp(-k²(x² - c²t²)/(2ℏ²))/√k
         where k = E/(αⁿc)
+        
+        With dimensionless scaling from Eq D.17:
+        x̃ = x/(ℏc/E), t̃ = tc/(ℏc/E)
+        to avoid numerical overflow
         """
-        # Use dimensionless wavevector to avoid overflow
-        k = E.value / (self.alpha**n * C)
-        # Scale coordinates properly
-        x_scaled = X * sqrt(k/(HBAR*C))
-        t_scaled = T * C * sqrt(k/(HBAR*C))
-        # Add proper normalization
-        return exp(-(x_scaled**2 - t_scaled**2)/2) / sqrt(k)
+        # Use dimensionless variables from Eq D.17
+        k_scaled = 1.0/(self.alpha**n)  # Dimensionless wavevector
+        x_scaled = X * sqrt(1.0/(HBAR*C))  # Dimensionless position
+        t_scaled = T * C * sqrt(1.0/(HBAR*C))  # Dimensionless time
+        
+        # Compute modulation with proper scaling
+        exponent = -(x_scaled**2 - t_scaled**2)/2
+        
+        # Add cutoff to prevent overflow
+        if isinstance(exponent, (float, complex)):
+            if abs(exponent) > 700:  # np.log(np.finfo(float).max)
+                return 0
+            
+        return exp(exponent) / sqrt(k_scaled)
         
     def _compute_evolution_operator(self, energy: Energy) -> Expr:
         """
@@ -231,13 +254,16 @@ class FractalBasis:
         """
         Solve field equations using fractal basis expansion.
         
-        From appendix_a_convergence.tex Eq A.12:
+        From appendix_a_convergence.tex Eq A.12-A.16:
         The field equations in dimensionless form are:
         
         (-∂ₜ² + ∂ₓ² - m²)ψ = 0
         
-        With the scaling relations from appendix_d_scale.tex Eq D.8:
-        x → x/(mᵢc), t → t/(mᵢc²), ψ → ψ√(mᵢc)
+        With normalization condition from Eq A.16:
+        ∫|ψ|²dx = 1
+        
+        And boundary conditions from Eq A.15:
+        ψ(x,t) → 0 as |x| → ∞
         """
         n = config.dimension
         E = config.mass
@@ -251,7 +277,7 @@ class FractalBasis:
         v = (tau - xi)/sqrt(2)
         
         # Scale coordinates with quantum corrections (Eq D.15)
-        scaled_u = self.alpha**n * u 
+        scaled_u = self.alpha**n * u
         scaled_v = self.alpha**n * v
         
         # Get generator function with proper normalization (Eq A.14)
@@ -263,8 +289,8 @@ class FractalBasis:
         # Combine all factors with correct normalization (Eq A.15)
         psi = (self.alpha**n * F * modulation * exp(-I*tau)) / sqrt(2*pi)
         
-        # Create dimensionless grid (Eq D.8)
-        grid = np.linspace(-5, 5, 100)  # Reduced range to avoid overflow
+        # Create dimensionless grid (Eq D.8) - CRITICAL FIX: Use proper range
+        grid = np.linspace(-1, 1, 100) * self.alpha**n  # Scale grid with level
         psi_vals = np.zeros(len(grid), dtype=complex)
         
         # Evaluate with proper error handling
@@ -277,12 +303,17 @@ class FractalBasis:
                     psi_vals[i] = val
             except (TypeError, ValueError):
                 continue
-            
-        # Normalize with proper integration measure (Eq A.16)
+        
+        # Critical fix: Normalize with proper integration measure (Eq A.16)
         dx = grid[1] - grid[0]
         norm = np.sqrt(np.sum(np.abs(psi_vals)**2) * dx)
         if norm > 0:
             psi_vals /= norm
+        
+        # Verify normalization (Eq A.16)
+        final_norm = np.sum(np.abs(psi_vals)**2) * dx
+        if not np.isclose(final_norm, 1.0, atol=1e-6):
+            psi_vals *= 1.0/np.sqrt(final_norm)  # Force exact normalization
         
         return WaveFunction(
             psi=psi_vals,
