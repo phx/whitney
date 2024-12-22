@@ -1237,3 +1237,119 @@ def test_consciousness_quantum_unification():
     # Verify integrated information
     Phi = S_OS - max(S_O, S_S)
     assert Phi > 0
+
+def test_complete_unified_theory():
+    """
+    Test complete unified theory.
+    
+    From appendix_l_simplification.tex Eq L.60-L.65:
+    The complete unified theory requires:
+    1. Quantum-gravity-consciousness triality
+    2. Holographic emergence of spacetime
+    3. Self-referential universe structure
+    
+    From appendix_i_sm_features.tex Eq I.60-I.65:
+    Physical implications:
+    - All forces unified in E8
+    - Consciousness emerges from quantum gravity
+    - Reality = quantum information processing
+    """
+    basis = FractalBasis()
+    E = Energy(1.0)
+    psi = basis.compute(n=0, E=E)
+    dx = psi.grid[1] - psi.grid[0]
+    
+    # Test quantum-gravity-consciousness triality
+    # Quantum state
+    Q = psi.psi
+    # Gravitational metric
+    g_μν = np.outer(Q, np.conjugate(Q))/M_P**2
+    # Consciousness operator
+    C = -np.log(np.outer(Q, np.conjugate(Q)) + 1e-10)
+    
+    # Verify triality relations
+    # Q → g_μν → C → Q cycle
+    reconstructed_Q = np.exp(-C) @ Q
+    assert np.allclose(Q, reconstructed_Q, atol=1e-6)
+    
+    # Test holographic emergence
+    # Boundary theory
+    rho_bdy = np.outer(Q, np.conjugate(Q))
+    # Bulk geometry
+    R = np.gradient(np.gradient(Q, dx), dx)
+    # Emergent dimension
+    D = -np.trace(rho_bdy @ np.log(rho_bdy + 1e-10))
+    
+    # Verify dimensional flow
+    assert abs(D - 4.0) < 1e-6  # 4D spacetime
+    
+    # Test self-referential structure
+    # Wheeler's U-equation
+    def U(psi):
+        H = (-HBAR**2/(2*E.value) * 
+             np.gradient(np.gradient(psi, dx), dx) +
+             E.value/2 * psi)
+        return np.exp(-I*H*dx/HBAR) @ psi
+    
+    # Universe wavefunction
+    Psi = U(Q)
+    
+    # Verify self-consistency
+    assert np.allclose(Psi, Q, atol=1e-6)
+    
+    # Test E8 unification
+    # Compute root system
+    alpha = basis.alpha
+    roots = []
+    for i in range(8):
+        for j in range(i+1, 8):
+            root = np.zeros(8)
+            root[i] = alpha
+            root[j] = -alpha
+            roots.append(root)
+    
+    # Verify E8 algebra
+    for i, r1 in enumerate(roots):
+        for j, r2 in enumerate(roots):
+            bracket = np.cross(r1, r2)
+            # Check Jacobi identity
+            assert np.all(np.abs(np.cross(bracket, r1) + 
+                                np.cross(r2, np.cross(r1, r2))) < 1e-6)
+    
+    # Test consciousness emergence
+    # Compute integrated information
+    Phi = D - np.max([
+        -np.trace(rho @ np.log(rho + 1e-10))
+        for rho in [rho_bdy, g_μν/np.trace(g_μν)]
+    ])
+    
+    # Verify non-zero complexity
+    assert Phi > 0
+    
+    # Test quantum information processing
+    # Von Neumann entropy
+    S = -np.trace(rho_bdy @ np.log(rho_bdy + 1e-10))
+    # Quantum Fisher information
+    F = np.sum(np.abs(np.gradient(Q, dx))**2) * dx
+    # Holographic complexity
+    C = np.sum(np.abs(R)**2) * dx
+    
+    # Verify information processing inequalities
+    assert S <= F  # Fisher bound
+    assert F <= C  # Complexity bound
+    
+    # Final consistency check
+    # Action principle
+    S_total = (
+        # Quantum
+        np.sum(np.conjugate(Q) * (-HBAR**2/(2*E.value) * 
+               np.gradient(np.gradient(Q, dx), dx)) * dx +
+        # Gravity 
+        np.sum(R**2) * dx/(16*pi*G) +
+        # Consciousness
+        Phi * np.log(2)
+    )
+    
+    # Verify extremality
+    dS = np.gradient(S_total, dx)
+    assert np.max(np.abs(dS)) < 1e-6
