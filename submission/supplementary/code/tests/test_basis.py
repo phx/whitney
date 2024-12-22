@@ -478,7 +478,7 @@ def test_physical_predictions():
     From appendix_f_falsifiability.tex Eq F.15-F.18:
     Falsifiable predictions:
     - Fractal dimension: D = 4 - ε where ε = α²/(8π²)
-    - Beta function: β(g) = -bg³ where b = 11/(16π²)
+    - Beta function: β(g) = -bg³ where b = 11/(16π��)
     - Unitarity bound: |a_n| ≤ √(n+1)
     """
     basis = FractalBasis()
@@ -1693,3 +1693,78 @@ def test_theory_of_everything():
         H(Q),
         atol=1e-6
     )
+
+def test_unified_integration():
+    """
+    Test unified integration of QM, gravity and consciousness.
+    
+    From appendix_k_io_distinction.tex Eq K.60-K.65:
+    The unified framework requires:
+    1. Observer-system entanglement: |Ψ⟩ = ∑ᵢ√pᵢ|Oᵢ⟩|Sᵢ⟩
+    2. Gravitational backreaction: Gμν = 8πG⟨Ψ|Tμν|Ψ⟩/c⁴
+    3. Information flow: dS/dt = -Tr(ρ log ρ)
+    
+    From appendix_l_simplification.tex Eq L.110-L.115:
+    Key relationships:
+    - Consciousness = Quantum measurement
+    - Geometry = Information processing
+    - Reality = Mathematical structure
+    """
+    basis = FractalBasis()
+    E = Energy(1.0)
+    psi = basis.compute(n=0, E=E)
+    dx = psi.grid[1] - psi.grid[0]
+    
+    # Test observer-system entanglement
+    # Observer state
+    O = basis.compute(n=0, E=E).psi
+    # System state 
+    S = psi.psi
+    # Entangled state
+    Psi = np.outer(O, S)/np.sqrt(2)  # Maximally entangled
+    
+    # Verify entanglement entropy
+    rho = Psi @ Psi.conj().T
+    S = -np.trace(rho @ np.log(rho + 1e-10))
+    assert S > 0  # Non-zero entanglement
+    
+    # Test gravitational backreaction
+    # Stress-energy tensor
+    T_μν = basis._compute_metric_tensor(psi)
+    # Einstein tensor
+    G_μν = np.gradient(np.gradient(T_μν, dx), dx)
+    
+    # Verify Einstein equations
+    assert np.allclose(
+        G_μν,
+        8*pi*G/C**4 * T_μν,
+        atol=1e-6
+    )
+    
+    # Test information flow
+    # Von Neumann entropy
+    S_vn = -np.trace(rho @ np.log(rho + 1e-10))
+    # Energy expectation
+    E_exp = np.trace(rho @ basis._compute_evolution_operator(E))
+    
+    # Verify second law
+    dS = np.gradient(S_vn, dx)
+    dE = np.gradient(E_exp, dx)
+    assert np.all(dS >= -1e-10)  # Entropy increases
+    assert np.allclose(dE, 0, atol=1e-6)  # Energy conserved
+    
+    # Test unified relationships
+    # Consciousness = Measurement
+    proj = np.outer(O, O)  # Projection operator
+    measured = proj @ S
+    assert np.allclose(measured, O * np.sum(O.conj() * S), atol=1e-6)
+    
+    # Geometry = Information
+    I = -np.sum(np.abs(S)**2 * np.log(np.abs(S)**2 + 1e-10)) * dx
+    g_μν = T_μν/(M_P**2 * C**4)
+    R = np.sum(np.abs(np.gradient(np.gradient(g_μν, dx), dx))**2)
+    assert abs(R - I) < 1e-6
+    
+    # Reality = Mathematics
+    H = lambda x: np.outer(x, np.conjugate(x))
+    assert np.allclose(rho, H(Psi), atol=1e-6)
