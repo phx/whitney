@@ -1039,3 +1039,106 @@ def test_complete_unification():
     assert np.max(np.abs(np.gradient(F_μν, dx))) < 1e-6
     assert np.max(np.abs(DW)) < 1e-6
     assert np.max(np.abs(DG)) < 1e-6
+
+def test_quantum_gravity_unification():
+    """
+    Test quantum gravity unification.
+    
+    From appendix_c_gravity.tex Eq C.25-C.30:
+    The unified framework requires:
+    1. Wheeler-DeWitt equation: H|Ψ⟩ = 0
+    2. Holographic entanglement: S_EE = A/4G_N
+    3. Gravitational path integral: Z = ∫DgDψ exp(iS[g,ψ]/ℏ)
+    
+    From appendix_k_io_distinction.tex Eq K.30-K.35:
+    Quantum consistency requires:
+    - Bulk reconstruction: ⟨O(x)O(y)⟩_CFT = ⟨ϕ(x)ϕ(y)⟩_bulk
+    - Modular Hamiltonian: K = -log ρ
+    - Quantum extremal surfaces: ∂_x(S_EE + A/4G_N) = 0
+    """
+    basis = FractalBasis()
+    E = Energy(1.0)
+    psi = basis.compute(n=0, E=E)
+    dx = psi.grid[1] - psi.grid[0]
+    
+    # Test Wheeler-DeWitt equation
+    # Compute gravitational Hamiltonian
+    H_grav = (
+        -HBAR**2 * np.gradient(np.gradient(psi.psi, dx), dx)/(2*M_P**2) +
+        M_P**2/2 * R**2
+    )
+    
+    # Verify physical state condition
+    assert np.max(np.abs(H_grav @ psi.psi)) < 1e-6
+    
+    # Test holographic entanglement
+    # Compute reduced density matrix
+    rho = np.outer(psi.psi, np.conjugate(psi.psi))
+    eigenvals = np.linalg.eigvalsh(rho)
+    S_EE = -np.sum(eigenvals * np.log(eigenvals + 1e-10))
+    
+    # Compute area in Planck units
+    x_planck = HBAR/(E.value*C)
+    A = 4*pi*x_planck**2
+    
+    # Verify Ryu-Takayanagi formula
+    assert abs(S_EE - A/(4*G)) < 1e-6
+    
+    # Test gravitational path integral
+    # Compute classical action
+    S_cl = np.sum(
+        np.conjugate(psi.psi) * (
+            -HBAR**2/(2*E.value) * np.gradient(np.gradient(psi.psi, dx), dx) +
+            E.value/2 * psi.psi
+        )
+    ) * dx
+    
+    # Compute quantum corrections
+    S_quantum = HBAR/2 * np.log(np.linalg.det(
+        -np.gradient(np.gradient(psi.psi, dx), dx)/(2*pi*HBAR)
+    ))
+    
+    # Verify semiclassical expansion
+    Z = np.exp(I*S_cl/HBAR - S_quantum)
+    assert abs(np.abs(Z) - 1) < 1e-6
+    
+    # Test bulk reconstruction
+    # Compute boundary correlator
+    G_bdy = np.zeros((len(psi.grid), len(psi.grid)), dtype=complex)
+    for i, x1 in enumerate(psi.grid):
+        for j, x2 in enumerate(psi.grid):
+            G_bdy[i,j] = psi.psi[i] * np.conjugate(psi.psi[j])
+    
+    # Compute bulk propagator
+    G_bulk = np.zeros_like(G_bdy)
+    for i, x1 in enumerate(psi.grid):
+        for j, x2 in enumerate(psi.grid):
+            dx = abs(x1 - x2)
+            if dx > 0:
+                G_bulk[i,j] = np.exp(-dx*E.value/HBAR)/(4*pi*dx)
+    
+    # Verify bulk-boundary correspondence
+    assert np.allclose(G_bdy, G_bulk, atol=1e-6)
+    
+    # Test modular flow
+    # Compute modular Hamiltonian
+    K = -np.log(rho + 1e-10)
+    
+    # Verify modular evolution
+    s = 2*pi  # Modular parameter
+    U_s = np.exp(-I*s*K)
+    evolved = U_s @ psi.psi
+    
+    # Check KMS condition
+    assert np.allclose(evolved, psi.psi, atol=1e-6)
+    
+    # Test quantum extremal surfaces
+    # Compute generalized entropy
+    S_gen = S_EE + A/(4*G)
+    
+    # Verify extremality condition
+    dS = np.gradient(S_gen, dx)
+    d2S = np.gradient(dS, dx)
+    
+    # Check quantum focusing
+    assert np.all(d2S >= -1e-10)
