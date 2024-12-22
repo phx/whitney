@@ -12,7 +12,7 @@ from .physics_constants import (
     ALPHA_VAL, X, E, T, P, Z_MASS,
     GAMMA_1, GAMMA_2, GAMMA_3,
     g1_REF, g2_REF, g3_REF,
-    ALPHA_REF, HBAR, C, G, M_PLANCK
+    ALPHA_REF, HBAR, C, G, M_P
 )
 from .transforms import lorentz_boost, gauge_transform
 from .types import NumericValue, WaveFunction, FieldConfig, Energy
@@ -105,7 +105,7 @@ class FractalBasis:
         through proper relativistic scaling.
         """
         # Relativistic factor with quantum corrections
-        gamma = 1/sqrt(1 - (k*C/(M_PLANCK*C**2))**2)
+        gamma = 1/sqrt(1 - (k*C/(M_P*C**2))**2)
         return exp(self.scaling_dimension * gamma * log(k/self.alpha))
         
     def compute_with_errors(self, n: int, E: float = 1.0) -> Dict[str, NumericValue]:
@@ -302,9 +302,28 @@ class FractalBasis:
         )
         return self._solve_field_equations(config)
 
-    def gamma5(self):
-        """Return gamma5 matrix for chiral transformations."""
-        N = len(self.grid)
+    def gamma5(self, psi: WaveFunction = None) -> np.ndarray:
+        """
+        Return gamma5 matrix for chiral transformations.
+        
+        From appendix_i_sm_features.tex Eq I.42:
+        The gamma5 matrix in the fractal basis is:
+        γ⁵ = diag(+1,...,+1,-1,...,-1)
+        where the number of +1/-1 entries is determined by
+        the dimension of the spinor space.
+        
+        Args:
+            psi: Optional wavefunction to determine matrix size.
+                If None, uses default grid size.
+                
+        Returns:
+            np.ndarray: The gamma5 matrix in the fractal basis.
+        """
+        if psi is None:
+            N = 100  # Default size from _solve_field_equations
+        else:
+            N = len(psi.psi)
+        
         gamma = np.zeros((N,N), dtype=complex)
         for i in range(N//2):
             gamma[i,i] = 1

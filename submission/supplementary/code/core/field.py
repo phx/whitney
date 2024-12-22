@@ -23,7 +23,7 @@ from .types import (
     ensure_numeric_value
 )
 from .physics_constants import (
-    ALPHA_VAL, X, T, P, Z_MASS, M_PLANCK,
+    ALPHA_VAL, X, T, P, Z_MASS, M_P,
     g1_REF, g2_REF, g3_REF,
     ALPHA_REF, GAMMA_1, GAMMA_2, GAMMA_3,
     HBAR, C, G, E
