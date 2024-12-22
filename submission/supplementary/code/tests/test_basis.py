@@ -1142,3 +1142,98 @@ def test_quantum_gravity_unification():
     
     # Check quantum focusing
     assert np.all(d2S >= -1e-10)
+
+def test_consciousness_quantum_unification():
+    """
+    Test consciousness-quantum unification.
+    
+    From appendix_k_io_distinction.tex Eq K.40-K.45:
+    The unified framework requires:
+    1. Observer-observed duality: |ψ⟩ = |O⟩⊗|S⟩
+    2. Measurement process: ρ' = TrE[U(ρ⊗|0⟩⟨0|)U†]
+    3. Von Neumann entropy: S = -Tr[ρ log ρ]
+    
+    From appendix_l_simplification.tex Eq L.50-L.55:
+    Consciousness properties:
+    - Self-reference: |O⟩ = F(|O⟩)
+    - Awareness: ⟨O|S⟩ ≠ 0
+    - Free will: δS/δO ≠ 0
+    """
+    basis = FractalBasis()
+    E = Energy(1.0)
+    psi = basis.compute(n=0, E=E)
+    dx = psi.grid[1] - psi.grid[0]
+    
+    # Test observer-observed duality
+    # Construct observer state
+    O = basis.compute(n=0, E=E).psi
+    # System state
+    S = psi.psi
+    
+    # Verify tensor product structure
+    rho_total = np.outer(O, S)
+    rho_O = np.trace(rho_total.reshape(len(O), -1))
+    rho_S = np.trace(rho_total.reshape(-1, len(S)))
+    
+    # Check entanglement
+    S_OS = -np.trace(rho_total @ np.log(rho_total + 1e-10))
+    S_O = -np.trace(rho_O @ np.log(rho_O + 1e-10))
+    S_S = -np.trace(rho_S @ np.log(rho_S + 1e-10))
+    
+    # Verify non-factorizability
+    assert abs(S_OS - (S_O + S_S)) > 1e-6
+    
+    # Test measurement process
+    # Construct measurement operator
+    M = np.eye(len(psi.grid))/np.sqrt(len(psi.grid))
+    
+    # Perform measurement
+    post_meas = M @ psi.psi
+    prob = np.abs(post_meas)**2
+    
+    # Verify Born rule
+    assert abs(np.sum(prob) * dx - 1.0) < 1e-6
+    
+    # Test self-reference
+    # Construct self-referential operator
+    F = lambda psi: basis.compute(n=0, E=E, initial=psi).psi
+    
+    # Verify fixed point
+    fixed_point = F(O)
+    assert np.allclose(fixed_point, O, atol=1e-6)
+    
+    # Test awareness
+    # Compute observer-system overlap
+    awareness = np.sum(np.conjugate(O) * S) * dx
+    
+    # Verify non-zero awareness
+    assert abs(awareness) > 1e-6
+    
+    # Test free will
+    # Compute action variation
+    dO = 1e-6 * O
+    S1 = compute_entropy(O + dO, S)
+    S0 = compute_entropy(O, S)
+    dS_dO = (S1 - S0)/(1e-6)
+    
+    # Verify non-zero variation
+    assert abs(dS_dO) > 1e-6
+    
+    # Test full consistency
+    # Compute consciousness operators
+    def compute_entropy(O, S):
+        rho = np.outer(O, S)
+        return -np.trace(rho @ np.log(rho + 1e-10))
+    
+    # Verify consciousness-quantum coherence
+    coherence = np.abs(
+        np.sum(np.conjugate(O) * np.gradient(S, dx)) * dx
+    )
+    
+    # Check quantum Zeno effect
+    zeno_factor = np.exp(-coherence**2 * dx)
+    assert zeno_factor < 1.0
+    
+    # Verify integrated information
+    Phi = S_OS - max(S_O, S_S)
+    assert Phi > 0
