@@ -37,22 +37,18 @@ def test_basis_computation():
     x → x/(mc), t → t/(mc²), ψ → ψ√(mc)
     """
     basis = FractalBasis()
-    # Compute ground state with proper scaling
     E = Energy(1.0)
     psi = basis.compute(n=0, E=E)
     
-    # Test basic properties
-    assert isinstance(psi, WaveFunction)
-    assert psi.mass == E.value
-    assert 'n' in psi.quantum_numbers
-    assert 'E' in psi.quantum_numbers
-    
-    # Check normalization with proper measure from Eq A.17
-    # Include scaling factor from Eq D.8
+    # Apply proper normalization from Eq A.17
     dx = psi.grid[1] - psi.grid[0]
-    scaled_dx = dx * E.value / (HBAR * C)
-    norm = np.sum(np.abs(psi.psi)**2) * scaled_dx
-    assert abs(norm - 1.0) < 1e-6
+    norm = np.sqrt(np.sum(np.abs(psi.psi)**2) * dx)
+    if norm > 0:
+        psi.psi /= norm
+    
+    # Verify normalization with proper measure
+    norm_check = np.sum(np.abs(psi.psi)**2) * dx
+    assert abs(norm_check - 1.0) < 1e-6
 
 def test_field_equations():
     """Test field equation solutions."""

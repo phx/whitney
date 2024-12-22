@@ -311,4 +311,40 @@ class FractalBasis:
             gamma[i+N//2,i+N//2] = -1
         return gamma
 
+    def _compute_metric_tensor(self, psi: WaveFunction) -> np.ndarray:
+        """
+        Compute metric tensor from quantum state.
+        
+        From appendix_c_gravity.tex Eq C.15:
+        The metric emerges from the quantum state as:
+        
+        g_μν = ⟨ψ|T_μν|ψ⟩/(M_P²c⁴)
+        
+        where T_μν is the stress-energy tensor and M_P is the Planck mass.
+        """
+        # Compute stress-energy tensor
+        dx = psi.grid[1] - psi.grid[0]
+        T_μν = np.zeros((4,4,len(psi.grid)), dtype=complex)
+        
+        # T₀₀ = Energy density
+        T_μν[0,0] = (np.abs(np.gradient(psi.psi, dx))**2 + 
+                     (psi.mass/HBAR)**2 * np.abs(psi.psi)**2)
+        
+        # T₀ᵢ = Momentum density 
+        for i in range(1,4):
+            T_μν[0,i] = T_μν[i,0] = np.real(
+                np.conjugate(psi.psi) * np.gradient(psi.psi, dx)
+            )
+        
+        # Tᵢⱼ = Stress tensor
+        for i in range(1,4):
+            for j in range(1,4):
+                T_μν[i,j] = (np.gradient(psi.psi, dx)[i-1] * 
+                            np.conjugate(np.gradient(psi.psi, dx)[j-1]))
+                
+        # Convert to metric via Einstein equations
+        g_μν = np.sum(T_μν, axis=2)/(M_P**2 * C**4)
+        
+        return g_μν
+
     # Add other required methods...
