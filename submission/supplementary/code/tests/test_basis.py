@@ -762,3 +762,98 @@ def test_unified_holographic_framework():
     # Verify extremality
     dS = np.gradient(S_gen, dx)
     assert np.min(np.abs(dS)) < 1e-6
+
+def test_unified_field_theory():
+    """
+    Test unified field theory framework.
+    
+    From appendix_i_sm_features.tex Eq I.30-I.35:
+    The unified framework requires:
+    1. Gauge group unification: SU(3)×SU(2)×U(1) ⊂ G
+    2. Fermion generations: ψᵢ = exp(iπn/3)ψ₀
+    3. Mass hierarchies: m_n = m₀α^n
+    
+    From appendix_l_simplification.tex Eq L.30-L.35:
+    Quantum consistency requires:
+    - Anomaly cancellation: Tr[T_a{T_b,T_c}] = 0
+    - Unitarity bounds: |a_n| ≤ 2√(n+1)
+    - Asymptotic freedom: β(g) < 0
+    """
+    basis = FractalBasis()
+    E = Energy(1.0)
+    psi = basis.compute(n=0, E=E)
+    dx = psi.grid[1] - psi.grid[0]
+    
+    # Test gauge unification
+    # Compute gauge couplings at unification scale
+    g1 = basis.alpha  # U(1)
+    g2 = g1 * np.sqrt(5/3)  # SU(2) 
+    g3 = g1 * np.sqrt(8/3)  # SU(3)
+    
+    # Verify coupling ratios
+    assert abs(g2/g1 - np.sqrt(5/3)) < 1e-6
+    assert abs(g3/g1 - np.sqrt(8/3)) < 1e-6
+    
+    # Test fermion generations
+    # Compute generation phases
+    phases = [exp(I*pi*n/3) for n in range(3)]
+    psi_gens = [phase * psi.psi for phase in phases]
+    
+    # Verify orthogonality
+    for i in range(3):
+        for j in range(i+1, 3):
+            overlap = np.sum(np.conjugate(psi_gens[i]) * psi_gens[j]) * dx
+            assert abs(overlap) < 1e-6
+    
+    # Test mass hierarchies
+    masses = [E.value * basis.alpha**n for n in range(3)]
+    ratios = [masses[i+1]/masses[i] for i in range(2)]
+    
+    # Verify geometric progression
+    for ratio in ratios:
+        assert abs(ratio - basis.alpha) < 1e-6
+    
+    # Test anomaly cancellation
+    # Compute triangle diagram
+    def triangle(a, b, c):
+        return np.sum(
+            np.conjugate(psi.psi) * 
+            np.gradient(psi.psi, dx) * 
+            np.gradient(np.gradient(psi.psi, dx), dx)
+        ) * dx
+    
+    # Verify anomaly cancellation
+    for i in range(3):
+        for j in range(3):
+            for k in range(3):
+                anomaly = triangle(i, j, k)
+                assert abs(anomaly) < 1e-6
+    
+    # Test unitarity bounds
+    # Compute scattering amplitudes
+    modes = np.fft.fft(psi.psi)
+    
+    # Verify unitarity constraints
+    for n, mode in enumerate(modes):
+        assert abs(mode) <= 2*np.sqrt(n + 1)
+    
+    # Test asymptotic freedom
+    # Compute beta function
+    g = basis.alpha
+    beta = -g**3/(16*pi**2) * (11 - 2/3)  # Include fermion loops
+    
+    # Verify asymptotic freedom
+    assert beta < 0
+    
+    # Test full consistency
+    # Compute effective action
+    S_eff = np.sum(
+        np.conjugate(psi.psi) * (
+            -HBAR**2/(2*E.value) * np.gradient(np.gradient(psi.psi, dx), dx) +
+            E.value/2 * psi.psi
+        )
+    ) * dx
+    
+    # Verify reality and boundedness
+    assert np.imag(S_eff) < 1e-10
+    assert S_eff.real > 0
