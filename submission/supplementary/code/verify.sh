@@ -60,12 +60,12 @@ run_test_file() {
 }
 
 run_test_group() {
-  pytest tests/test_physics.py ${@:2}
+  pytest tests/test_basis.py ${@:2}
 }
 
 run_current_test() {
   python generate_data.py
-  pytest tests/test_predictions.py -vv --tb=long --showlocals
+  pytest tests/test_basis.py::test_initialization -vv --tb=long --showlocals
 }
 
 if [[ ("$1" = "-g") || ("$1" = "--group") ]]; then
