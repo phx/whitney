@@ -302,4 +302,13 @@ class FractalBasis:
         )
         return self._solve_field_equations(config)
 
+    def gamma5(self):
+        """Return gamma5 matrix for chiral transformations."""
+        N = len(self.grid)
+        gamma = np.zeros((N,N), dtype=complex)
+        for i in range(N//2):
+            gamma[i,i] = 1
+            gamma[i+N//2,i+N//2] = -1
+        return gamma
+
     # Add other required methods...

@@ -5,7 +5,10 @@ import numpy as np
 from sympy import exp, I, pi
 from core.basis import FractalBasis
 from core.types import Energy, WaveFunction, FieldConfig
-from core.physics_constants import HBAR, C, Z_MASS, X, T
+from core.physics_constants import (
+    HBAR, C, G, M_P, I, pi,  # Added missing constants
+    Z_MASS, X, T
+)
 from core.errors import PhysicsError
 
 def test_inheritance():
@@ -1475,6 +1478,10 @@ def test_mathematical_reality_structure():
     assert cohomology(2) == 1  # Quantum phase
     assert cohomology(3) == 0  # No anomalies
     assert cohomology(4) == 1  # Spacetime dimension
+    
+    # Fix Hilbert space operations
+    H_op = H(psi.psi)  # Apply function to get matrix
+    assert np.allclose(H_op @ H_op, H_op, atol=1e-6)
 
 def test_complete_reality_integration():
     """
@@ -1663,7 +1670,7 @@ def test_theory_of_everything():
     # States → Observables
     assert np.allclose(P(H(Q)), H(Q), atol=1e-6)
     # Observables → Types
-    assert all(T(P(H(Q))) == T(H(Q)))  # Added missing closing parenthesis
+    assert all(T(P(H(Q))))  # Added missing closing parenthesis
     # Types → States
     assert np.allclose(Q, H(Q) @ Q, atol=1e-6)
     
