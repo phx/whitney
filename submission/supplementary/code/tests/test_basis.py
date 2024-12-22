@@ -940,3 +940,102 @@ def test_standard_model_features():
     assert beta_g1 > 0  # U(1) not asymptotically free
     assert beta_g2 < 0  # SU(2) asymptotically free
     assert beta_g3 < 0  # SU(3) asymptotically free
+
+def test_complete_unification():
+    """
+    Test complete unification of forces and symmetries.
+    
+    From appendix_i_sm_features.tex Eq I.50-I.55:
+    Complete unification requires:
+    1. E8 gauge structure: G = E8
+    2. Triality: SO(8) → SU(3)×SU(2)×U(1)
+    3. Generation structure from octonions
+    
+    From appendix_l_simplification.tex Eq L.40-L.45:
+    Quantum gravity unification:
+    - AdS/CFT correspondence exact
+    - Holographic RG = Einstein equations
+    - Emergence of all forces from geometry
+    """
+    basis = FractalBasis()
+    E = Energy(1.0)
+    psi = basis.compute(n=0, E=E)
+    dx = psi.grid[1] - psi.grid[0]
+    
+    # Test E8 structure
+    # Compute root system
+    alpha = basis.alpha
+    roots = []
+    for i in range(8):
+        for j in range(i+1, 8):
+            root = np.zeros(8)
+            root[i] = alpha
+            root[j] = -alpha
+            roots.append(root)
+    
+    # Verify Cartan matrix
+    A = np.zeros((8,8))
+    for i in range(8):
+        for j in range(8):
+            A[i,j] = 2*np.dot(roots[i], roots[j])/np.dot(roots[j], roots[j])
+    
+    # Check E8 properties
+    assert np.allclose(A @ A.T, np.eye(8)*2, atol=1e-6)
+    
+    # Test triality
+    # Compute spinor decomposition
+    psi_8s = np.array([basis.compute(n=n, E=E).psi for n in range(8)])
+    
+    # Verify SO(8) triality relations
+    for i in range(8):
+        for j in range(8):
+            for k in range(8):
+                gamma = basis.clifford_algebra(i,j,k)
+                triality = np.sum(psi_8s[i] * gamma @ psi_8s[j] * psi_8s[k]) * dx
+                assert abs(triality) < 1e-6
+    
+    # Test octonion structure
+    # Construct octonion multiplication table
+    oct = np.zeros((8,8,8))
+    for i in range(7):
+        for j in range(i+1, 7):
+            k = (i + 1 + j//2) % 7
+            if j % 2 == 0:
+                k = (k + 3) % 7
+            oct[i+1,j+1,k+1] = 1
+            oct[j+1,k+1,i+1] = 1
+            oct[k+1,i+1,j+1] = 1
+    
+    # Verify generation structure
+    for i in range(3):
+        gen = np.sum(oct[i+1,:,:] @ psi_8s, axis=0)
+        assert np.allclose(gen, psi_gens[i], atol=1e-6)
+    
+    # Test holographic unification
+    # Compute boundary theory
+    Z_boundary = np.trace(rho)
+    
+    # Compute bulk gravity
+    R = np.gradient(np.gradient(psi.psi, dx), dx)
+    S_gravity = np.sum(R**2) * dx/(16*pi*G)
+    
+    # Verify exact correspondence
+    assert abs(np.log(Z_boundary) + S_gravity/HBAR) < 1e-6
+    
+    # Test emergence of forces
+    # Compute geometric connection
+    Gamma = np.gradient(g_μν, dx)
+    
+    # Extract gauge fields
+    A_μ = Gamma[0,:,:]  # U(1)
+    W_μν = Gamma[1:4,:,:]  # SU(2)
+    G_μνρ = Gamma[4:,:,:]  # SU(3)
+    
+    # Verify Yang-Mills equations
+    F_μν = np.gradient(A_μ, dx) - np.gradient(A_μ, dx).T
+    DW = np.gradient(W_μν, dx) + np.cross(W_μν, W_μν, axis=0)
+    DG = np.gradient(G_μνρ, dx) + np.cross(G_μνρ, G_μνρ, axis=0)
+    
+    assert np.max(np.abs(np.gradient(F_μν, dx))) < 1e-6
+    assert np.max(np.abs(DW)) < 1e-6
+    assert np.max(np.abs(DG)) < 1e-6
