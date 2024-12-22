@@ -36,3 +36,7 @@ GAMMA_3 = 0.03       # Third gamma factor
 theta_12 = 0.5843  # Solar angle θ₁₂ ≈ 33.5°
 theta_23 = 0.785   # Atmospheric angle θ₂₃ ≈ 45°
 theta_13 = 0.148   # Reactor angle θ₁₃ ≈ 8.5°
+
+# Add Z boson mass constant
+# Z boson mass in GeV from PDG 2023
+M_Z = 91.1876  # GeV
