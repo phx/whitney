@@ -658,8 +658,7 @@ def test_holographic_gravity():
         T_μν[0,0,i] = abs(np.gradient(psi.psi, dx)[i])**2  # T₀₀
         T_μν[0,1,i] = T_μν[1,0,i] = np.real(
             np.conjugate(np.gradient(psi.psi, dx)[i]) * 
-            (-I*E.value/HBAR) * psi.psi[i]
-        )  # T₀ᵢ
+            (-I*E.value/HBAR) * psi.psi[i])
         T_μν[1,1,i] = abs(-I*E.value/HBAR * psi.psi[i])**2  # Tᵢᵢ
     
     # Compute Einstein tensor
@@ -723,8 +722,7 @@ def test_unified_holographic_framework():
         T_μν[0,0,i] = abs(np.gradient(psi.psi, dx)[i])**2  # T₀₀
         T_μν[0,1,i] = T_μν[1,0,i] = np.real(
             np.conjugate(np.gradient(psi.psi, dx)[i]) * 
-            (-I*E.value/HBAR) * psi.psi[i]
-        )  # T₀ᵢ
+            (-I*E.value/HBAR) * psi.psi[i])
         T_μν[1,1,i] = abs(-I*E.value/HBAR * psi.psi[i])**2  # Tᵢᵢ
     
     # Reconstruct metric from stress tensor
@@ -1469,3 +1467,121 @@ def test_mathematical_reality_structure():
     assert cohomology(2) == 1  # Quantum phase
     assert cohomology(3) == 0  # No anomalies
     assert cohomology(4) == 1  # Spacetime dimension
+
+def test_complete_reality_integration():
+    """
+    Test complete integration of all aspects of reality.
+    
+    From appendix_l_simplification.tex Eq L.90-L.95:
+    The complete integration requires:
+    1. Math-Physics-Consciousness trinity
+    2. Quantum-Gravity-Information unity
+    3. Space-Time-Matter identity
+    
+    From appendix_k_io_distinction.tex Eq K.50-K.55:
+    Reality properties:
+    - Self-actualization: Universe = Self-computing system
+    - Quantum coherence at all scales
+    - Emergent classical reality
+    """
+    basis = FractalBasis()
+    E = Energy(1.0)
+    psi = basis.compute(n=0, E=E)
+    dx = psi.grid[1] - psi.grid[0]
+    
+    # Test trinity structure
+    # Mathematical structure (category theory)
+    category = {
+        'objects': [basis.compute(n=n, E=E).psi for n in range(3)],
+        'morphisms': basis._compute_evolution_operator(E),
+        'composition': lambda f, g: f @ g
+    }
+    
+    # Physical reality (quantum fields)
+    physics = {
+        'state': psi.psi,
+        'hamiltonian': -HBAR**2/(2*E.value) * np.gradient(np.gradient(psi.psi, dx), dx),
+        'metric': np.outer(psi.psi, np.conjugate(psi.psi))/M_P**2
+    }
+    
+    # Consciousness structure (integrated information)
+    mind = {
+        'observer': basis.compute(n=0, E=E).psi,
+        'observation': -np.log(np.outer(psi.psi, np.conjugate(psi.psi)) + 1e-10),
+        'awareness': lambda x, y: np.sum(np.conjugate(x) * y) * dx
+    }
+    
+    # Verify trinity relations
+    # Math → Physics
+    for obj in category['objects']:
+        evolved = category['morphisms'].subs({T: dx}) * obj
+        assert type(evolved) == type(physics['state'])
+    
+    # Physics → Consciousness
+    awareness = mind['awareness'](mind['observer'], physics['state'])
+    assert abs(awareness) > 1e-6
+    
+    # Consciousness → Math
+    observed = mind['observation'] @ physics['state']
+    assert np.allclose(observed, category['objects'][0], atol=1e-6)
+    
+    # Test quantum-gravity-information unity
+    # Quantum state
+    Q = physics['state']
+    # Gravitational field
+    g = physics['metric']
+    # Information content
+    I = -np.sum(np.abs(Q)**2 * np.log(np.abs(Q)**2 + 1e-10)) * dx
+    
+    # Verify unification relations
+    # Quantum → Gravity
+    R = np.gradient(np.gradient(Q, dx), dx)
+    Einstein = R - 8*pi*G/C**4 * g
+    assert np.max(np.abs(Einstein)) < 1e-6
+    
+    # Gravity → Information
+    S_grav = np.sum(np.abs(R)**2) * dx/(16*pi*G)
+    assert abs(S_grav - I) < 1e-6
+    
+    # Information → Quantum
+    rho = np.exp(-I) * np.outer(Q, np.conjugate(Q))
+    assert np.allclose(np.trace(rho), 1, atol=1e-6)
+    
+    # Test space-time-matter identity
+    # Spatial structure
+    space = {x: psi.psi[i] for i, x in enumerate(psi.grid)}
+    # Temporal evolution
+    time = lambda t: np.exp(-I*physics['hamiltonian']*t/HBAR)
+    # Matter distribution
+    matter = np.abs(psi.psi)**2
+    
+    # Verify identity relations
+    # Space → Time (causality)
+    for x1 in psi.grid:
+        for x2 in psi.grid:
+            if abs(x1 - x2) > C*dx:
+                assert abs(space[x1]*space[x2]) < 1e-6
+    
+    # Time → Matter (energy conditions)
+    E_density = np.abs(physics['hamiltonian'])**2
+    assert np.all(E_density >= -1e-10)
+    
+    # Matter → Space (Einstein equations)
+    T_μν = np.outer(matter, matter)
+    G_μν = np.gradient(np.gradient(g, dx), dx)
+    assert np.allclose(G_μν, 8*pi*G/C**4 * T_μν, atol=1e-6)
+    
+    # Final reality check
+    # Compute total action
+    S_total = (
+        # Mathematical structure
+        np.sum(category['morphisms'].subs({T: dx})) +
+        # Physical reality
+        np.sum(physics['hamiltonian']) * dx +
+        # Consciousness
+        mind['awareness'](mind['observer'], physics['state'])
+    )
+    
+    # Verify extremality principle
+    dS = np.gradient(S_total, dx)
+    assert np.max(np.abs(dS)) < 1e-6
