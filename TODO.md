@@ -1,28 +1,24 @@
 # Quantum Field Theory Implementation Tasks
 
 ## 🚨 CRITICAL FIXES (HIGHEST PRIORITY)
-- [ ] Fix Missing Core Methods (MOST CRITICAL - BLOCKING ALL TESTS)
-  - [ ] Add compute_matrix_element() method to UnifiedField
-    - [ ] Implement proper S-matrix calculation
-    - [ ] Add quantum corrections from Eq K.42
-    - [ ] Add holographic screening from Eq G.34
-  - [ ] Add quantum_scale_factor() and rg_scale_factor() to _normalize_energy_scale()
-    - [x] Implement proper UV/IR behavior from Eq H.27
-    - [x] Add quantum corrections from Eq K.51
-    - [x] Add proper boundary conditions
+- [ ] Fix Quantum Coherence Violations (BLOCKING ALL TESTS)
+  - [ ] Correct coupling evolution at high energies
+  - [ ] Fix quantum coherence measure sign
+  - [ ] Implement proper UV/IR transition
+  - [ ] Add holographic screening from appendix_g_holographic.tex Eq G.34
+  - [ ] Add quantum corrections from appendix_k_io_distinction.tex Eq K.51
 
-- [ ] Fix Coupling Verification (CRITICAL - BLOCKING UNIFICATION TESTS)
-  - [x] Fix array truth value ambiguity in compute_running_coupling()
-  - [x] Add proper array handling for quantum corrections
-  - [x] Implement proper coupling unification verification
-  - [x] Add statistical validation
+- [ ] Fix Data Dependencies (BLOCKING TESTS)
+  - [ ] Add missing gw_spectrum.npy data file
+  - [ ] Add compute_scattering_amplitude method
+  - [ ] Fix array handling in coupling verification
+  - [ ] Add proper error propagation
 
-- [ ] Fix Gravitational Wave Spectrum (p=0.00)
-  - [x] Fix chi-square overflow
-  - [x] Add proper error handling
-  - [x] Implement statistical validation
-  - [x] Add proper frequency binning
-  - [x] Add proper error propagation
+- [ ] Fix Scale Dependencies (CRITICAL)
+  - [ ] Correct UV/IR transition in quantum corrections
+  - [ ] Fix holographic screening at intermediate scales
+  - [ ] Implement proper RG flow stability
+  - [ ] Add proper boundary conditions
 
 ## Test Coverage (Currently 23.82%)
 - [ ] Increase core/field.py coverage (TARGET: 80%)
