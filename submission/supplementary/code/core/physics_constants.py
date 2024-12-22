@@ -1,45 +1,50 @@
-"""Physical constants and fundamental quantities."""
+"""Physics constants and variables used in calculations."""
 
-from sympy import Symbol, I, pi
-import numpy as np
+from sympy import Symbol, sqrt, pi
 
 # Fundamental constants
-HBAR = 1.054571817e-34  # Reduced Planck constant (J⋅s)
-C = 299792458.0  # Speed of light (m/s)
-G = 6.67430e-11  # Gravitational constant (m³/kg⋅s²)
-
-# Derived constants
-M_P = np.sqrt(HBAR*C/G)  # Planck mass (kg) from appendix_c_gravity.tex Eq C.8
-
-# Energy scales
-Z_MASS = 91.1876      # Z boson mass (GeV)
-GUT_SCALE = 2.1e16    # Grand unification scale (GeV)
-
-# Coordinates and fields
-X = Symbol('x')       # Spatial coordinate
-T = Symbol('t')       # Time coordinate
-P = Symbol('p')       # Momentum coordinate
-E = Symbol('E')       # Energy coordinate/field
-
-# Reference values
-ALPHA_VAL = 1/137    # Fine structure constant
+HBAR = 6.582119514e-16  # eV⋅s
+C = 2.99792458e8  # m/s
+G = 6.67430e-11  # m³/kg⋅s²
+M_P = 1.22089e19  # GeV
 
 # Coupling constants
-g1_REF = 0.357  # U(1) coupling
-g2_REF = 0.652  # SU(2) coupling
-g3_REF = 1.221  # SU(3) coupling
+ALPHA_VAL = 1/137.035999139  # Fine structure constant
+g1_REF = 0.357  # U(1) coupling at Z mass
+g2_REF = 0.652  # SU(2) coupling at Z mass  
+g3_REF = 1.221  # SU(3) coupling at Z mass
 
-# Other constants
-ALPHA_REF = 1/128.9  # Reference alpha value
-GAMMA_1 = 0.01       # First gamma factor
-GAMMA_2 = 0.02       # Second gamma factor
-GAMMA_3 = 0.03       # Third gamma factor
+# Particle masses
+Z_MASS = 91.1876  # GeV
+M_PLANCK = 1.22089e19  # GeV
 
-# Add neutrino mixing angles after existing constants
-theta_12 = 0.5843  # Solar angle θ₁₂ ≈ 33.5°
-theta_23 = 0.785   # Atmospheric angle θ₂₃ ≈ 45°
-theta_13 = 0.148   # Reactor angle θ₁₃ ≈ 8.5°
+# Symbolic variables
+X = Symbol('x')  # Position
+T = Symbol('t')  # Time
+P = Symbol('p')  # Momentum
+E = Symbol('E')  # Energy
 
-# Add Z boson mass constant
-# Z boson mass in GeV from PDG 2023
-M_Z = 91.1876  # GeV
+# Gamma matrices
+GAMMA_1 = Symbol('γ₁')
+GAMMA_2 = Symbol('γ₂') 
+GAMMA_3 = Symbol('γ₃')
+
+# Additional physics variables
+g3 = Symbol('g₃')  # Strong coupling
+psi_gens = Symbol('ψ_gens')  # Generator wavefunctions
+rho = Symbol('ρ')  # Density matrix
+g_μν = Symbol('g_μν')  # Metric tensor
+R = Symbol('R')  # Ricci scalar
+H = Symbol('H')  # Hamiltonian
+O = Symbol('O')  # Observable operator
+S = Symbol('S')  # Action
+Gamma = Symbol('Γ')  # Effective action
+
+# Reference scales
+ALPHA_REF = ALPHA_VAL  # Reference coupling
+
+# Add missing complex unit I needed for quantum calculations
+# From appendix_j_math_details.tex Eq J.2:
+# The complex unit i appears in the quantum evolution:
+# ψ(t) = exp(-iHt/ℏ)ψ(0)
+I = 1j  # Complex unit for quantum calculations

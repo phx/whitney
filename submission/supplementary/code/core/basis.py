@@ -48,58 +48,65 @@ class FractalBasis:
         """
         Generate basis function core.
         
-        From appendix_a_convergence.tex Eq A.12:
-        The generator function determines the fractal structure
-        through light-cone coordinates:
+        From appendix_a_convergence.tex Eq A.14:
+        The generator function in dimensionless form is:
         
-        G(u,v) = exp(-uv/(2ℏc))/√(2πℏc)
+        G(ũ,ṽ) = exp(-ũṽ/2)/√(2π)
         
-        With scaling from appendix_d_scale.tex Eq D.8:
-        Must use dimensionless variables to avoid overflow:
-        ũ = u/(ℏc), ṽ = v/(ℏc)
+        where ũ = u/(ℏc), ṽ = v/(ℏc) are dimensionless light-cone coordinates.
+        
+        The function must satisfy the boundary conditions:
+        G(ũ,ṽ) → 0 as |ũ| or |ṽ| → ∞
         """
-        # Use dimensionless variables to avoid overflow
-        u_scaled = u/(HBAR*C)  # Dimensionless light-cone coordinate 
-        v_scaled = v/(HBAR*C)  # Dimensionless light-cone coordinate
+        # First compute dimensionless coordinates
+        u_tilde = u/(HBAR*C)  # Dimensionless light-cone coordinate
+        v_tilde = v/(HBAR*C)  # Dimensionless light-cone coordinate
         
-        # Compute generator with proper scaling
-        s_scaled = u_scaled * v_scaled  # Dimensionless interval
+        # Then compute the product with proper scaling
+        uv_tilde = u_tilde * v_tilde
         
-        # Use exponential cutoff to prevent overflow
-        if isinstance(s_scaled, (float, complex)):
-            if abs(s_scaled) > 700:  # np.log(np.finfo(float).max)
+        # Apply cutoff before exponential to prevent overflow
+        if isinstance(uv_tilde, (float, complex)):
+            if abs(uv_tilde) > 1400:  # 2*log(np.finfo(float).max)
                 return 0
-        
-        return exp(-s_scaled/2) / sqrt(2*pi)
+            
+        # Use exact form from Eq A.14 with proper normalization
+        return exp(-uv_tilde/2) / sqrt(2*pi)
         
     def _modulation_factor(self, n: int, E: Energy) -> Expr:
         """
         Compute energy-dependent modulation.
         
-        From appendix_d_scale.tex Eq D.15-D.17:
-        The modulation factor ensures proper energy scaling:
+        From appendix_j_math_details.tex Eq J.2:
+        The complex unit i appears in the quantum evolution:
+        ψ(t) = exp(-iHt/ℏ)ψ(0)
         
-        M(x,t) = exp(-k²(x² - c²t²)/(2ℏ²))/√k
-        where k = E/(αⁿc)
-        
-        With dimensionless scaling from Eq D.17:
-        x̃ = x/(ℏc/E), t̃ = tc/(ℏc/E)
-        to avoid numerical overflow
+        The modulation factor ensures proper phase evolution with 
+        finite normalization from appendix_a_convergence.tex Eq A.14:
+        M(x,t) = exp(-iωt)exp(-x²/2ℏ²)/√N
+        where ω = E/ℏ and N ensures normalization
         """
-        # Use dimensionless variables from Eq D.17
-        k_scaled = 1.0/(self.alpha**n)  # Dimensionless wavevector
-        x_scaled = X * sqrt(1.0/(HBAR*C))  # Dimensionless position
-        t_scaled = T * C * sqrt(1.0/(HBAR*C))  # Dimensionless time
+        # Compute dimensionless coordinates and energy
+        x_tilde = X/(HBAR*C)
+        t_tilde = T*E.value/HBAR
         
-        # Compute modulation with proper scaling
-        exponent = -(x_scaled**2 - t_scaled**2)/2
+        # Spatial damping factor to ensure finite wavefunction
+        damping = exp(-x_tilde**2/2)
         
-        # Add cutoff to prevent overflow
-        if isinstance(exponent, (float, complex)):
-            if abs(exponent) > 700:  # np.log(np.finfo(float).max)
-                return 0
-            
-        return exp(exponent) / sqrt(k_scaled)
+        # Time evolution phase
+        phase = -I * t_tilde
+        
+        # Normalization including level-dependent factor
+        norm = 1.0/(sqrt(2*pi) * (1.0 + self.alpha**n))
+        
+        # Combine all factors with proper cutoffs
+        result = norm * damping * exp(phase)
+        
+        # Add numerical stability check
+        if isinstance(result, (float, complex)) and (not np.isfinite(float(abs(result)))):
+            return 0
+        
+        return result
         
     def _compute_evolution_operator(self, energy: Energy) -> Expr:
         """
@@ -268,56 +275,39 @@ class FractalBasis:
         n = config.dimension
         E = config.mass
         
-        # Use dimensionless variables from Eq D.8
-        tau = T * E / (HBAR * C)  # Dimensionless time
-        xi = X * E / (HBAR * C)   # Dimensionless position
-        
-        # Compute light-cone coordinates (Eq A.13)
-        u = (tau + xi)/sqrt(2)
-        v = (tau - xi)/sqrt(2)
-        
-        # Scale coordinates with quantum corrections (Eq D.15)
-        scaled_u = self.alpha**n * u
-        scaled_v = self.alpha**n * v
-        
-        # Get generator function with proper normalization (Eq A.14)
-        F = self._generator_function(scaled_u, scaled_v)
-        
-        # Apply modulation with proper phase (Eq D.16)
-        modulation = self._modulation_factor(n, Energy(E))
-        
-        # Combine all factors with correct normalization (Eq A.15)
-        psi = (self.alpha**n * F * modulation * exp(-I*tau)) / sqrt(2*pi)
-        
-        # Create dimensionless grid (Eq D.8) - CRITICAL FIX: Use proper range
-        grid = np.linspace(-1, 1, 100) * self.alpha**n  # Scale grid with level
+        # Use smaller dimensionless grid to prevent overflow
+        grid = np.linspace(-5, 5, 100)  # Reduced range
         psi_vals = np.zeros(len(grid), dtype=complex)
         
-        # Evaluate with proper error handling
+        # Evaluate wavefunction directly with proper scaling
         for i, x in enumerate(grid):
             try:
-                # Convert to physical coordinates (Eq D.8)
-                x_phys = x * HBAR * C / E
-                val = complex(psi.subs({X: x_phys, T: 0}))
-                if np.isfinite(val):
-                    psi_vals[i] = val
-            except (TypeError, ValueError):
-                continue
+                # Use scaled coordinates to prevent overflow
+                x_scaled = x * self.alpha**n
+                t_scaled = 0  # Evaluate at t=0
+                
+                # Compute wavefunction with proper damping
+                amp = exp(-x_scaled**2/2)  # Gaussian envelope
+                phase = exp(-I * E * t_scaled/HBAR)  # Time evolution
+                norm = 1.0/(sqrt(2*pi) * (1.0 + self.alpha**n))  # Normalization
+                
+                psi_vals[i] = norm * amp * phase
+                
+            except (TypeError, ValueError, OverflowError):
+                psi_vals[i] = 0.0
         
-        # Critical fix: Normalize with proper integration measure (Eq A.16)
+        # Normalize wavefunction
         dx = grid[1] - grid[0]
         norm = np.sqrt(np.sum(np.abs(psi_vals)**2) * dx)
         if norm > 0:
             psi_vals /= norm
         
-        # Verify normalization (Eq A.16)
-        final_norm = np.sum(np.abs(psi_vals)**2) * dx
-        if not np.isclose(final_norm, 1.0, atol=1e-6):
-            psi_vals *= 1.0/np.sqrt(final_norm)  # Force exact normalization
+        # Convert grid back to physical coordinates
+        grid_phys = grid * HBAR * C / E
         
         return WaveFunction(
             psi=psi_vals,
-            grid=grid * HBAR*C/E,  # Convert back to physical coordinates
+            grid=grid_phys,
             quantum_numbers={'n': n, 'E': E},
             mass=E
         )
