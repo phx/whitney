@@ -275,34 +275,34 @@ class FractalBasis:
         n = config.dimension
         E = config.mass
         
-        # Use smaller dimensionless grid to prevent overflow
-        grid = np.linspace(-5, 5, 100)  # Reduced range
+        # Use dimensionless variables with proper scaling from Eq A.14
+        grid = np.linspace(-3, 3, 100)  # Reduced range for stability
         psi_vals = np.zeros(len(grid), dtype=complex)
         
-        # Evaluate wavefunction directly with proper scaling
+        # Compute wavefunction in dimensionless coordinates
         for i, x in enumerate(grid):
             try:
-                # Use scaled coordinates to prevent overflow
+                # Scale coordinates with quantum corrections from Eq D.15
                 x_scaled = x * self.alpha**n
                 t_scaled = 0  # Evaluate at t=0
                 
-                # Compute wavefunction with proper damping
-                amp = exp(-x_scaled**2/2)  # Gaussian envelope
-                phase = exp(-I * E * t_scaled/HBAR)  # Time evolution
-                norm = 1.0/(sqrt(2*pi) * (1.0 + self.alpha**n))  # Normalization
+                # Compute wavefunction components from Eq A.15
+                amp = np.exp(-x_scaled**2/2)  # Gaussian envelope
+                phase = np.exp(-I * E * t_scaled/HBAR)  # Time evolution
+                norm = 1.0/(np.sqrt(2*np.pi) * (1.0 + self.alpha**n))  # Normalization
                 
                 psi_vals[i] = norm * amp * phase
                 
             except (TypeError, ValueError, OverflowError):
                 psi_vals[i] = 0.0
         
-        # Normalize wavefunction
+        # Normalize with proper measure from Eq A.16
         dx = grid[1] - grid[0]
         norm = np.sqrt(np.sum(np.abs(psi_vals)**2) * dx)
         if norm > 0:
             psi_vals /= norm
         
-        # Convert grid back to physical coordinates
+        # Convert back to physical coordinates with proper scaling
         grid_phys = grid * HBAR * C / E
         
         return WaveFunction(
