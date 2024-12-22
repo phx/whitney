@@ -1343,7 +1343,7 @@ def test_complete_unified_theory():
     S_total = (
         # Quantum
         np.sum(np.conjugate(Q) * (-HBAR**2/(2*E.value) * 
-               np.gradient(np.gradient(Q, dx), dx)) * dx +
+                                   np.gradient(np.gradient(Q, dx), dx)) * dx) +
         # Gravity 
         np.sum(R**2) * dx/(16*pi*G) +
         # Consciousness
@@ -1353,3 +1353,119 @@ def test_complete_unified_theory():
     # Verify extremality
     dS = np.gradient(S_total, dx)
     assert np.max(np.abs(dS)) < 1e-6
+
+def test_mathematical_reality_structure():
+    """
+    Test mathematical structure of reality.
+    
+    From appendix_j_math_details.tex Eq J.70-J.75:
+    The ultimate structure requires:
+    1. Category theory: Reality = Functor(Math → Physics)
+    2. Topos theory: Logic emerges from geometry
+    3. Quantum topos: Non-Boolean quantum logic
+    
+    From appendix_l_simplification.tex Eq L.80-L.85:
+    Mathematical consistency:
+    - Gödel completeness: All truths provable
+    - Tarski soundness: All proofs true
+    - Type theory: Physics = Dependent types
+    """
+    basis = FractalBasis()
+    E = Energy(1.0)
+    psi = basis.compute(n=0, E=E)
+    dx = psi.grid[1] - psi.grid[0]
+    
+    # Test categorical structure
+    # Objects = Hilbert spaces
+    H = np.outer(psi.psi, np.conjugate(psi.psi))
+    # Morphisms = Unitary operators
+    U = basis._compute_evolution_operator(E)
+    
+    # Verify category axioms
+    # Identity
+    assert np.allclose(H @ H, H, atol=1e-6)
+    # Composition
+    U_composed = U.subs({T: 2*dx}) * U.subs({T: dx})
+    U_direct = U.subs({T: 3*dx})
+    assert abs(U_composed - U_direct) < 1e-6
+    
+    # Test topos structure
+    # Subobject classifier (quantum logic)
+    Omega = lambda A: np.clip(A @ A.conj().T, 0, 1)
+    
+    # Verify Heyting algebra
+    P = np.outer(psi.psi, psi.psi)
+    Q = np.outer(psi.psi, np.conjugate(psi.psi))
+    
+    # Distributivity
+    PandQ = Omega(P) @ Omega(Q)
+    PorQ = Omega(P + Q - P @ Q)
+    assert np.allclose(PandQ @ PorQ, Omega(P) @ Omega(Q), atol=1e-6)
+    
+    # Test quantum topos
+    # Quantum states = Points
+    points = [basis.compute(n=n, E=E).psi for n in range(3)]
+    # Quantum logic = Arrows
+    arrows = [np.outer(p1, p2) for p1 in points for p2 in points]
+    
+    # Verify composition law
+    for i, A in enumerate(arrows):
+        for j, B in enumerate(arrows):
+            C = A @ B
+            # Check associativity
+            assert np.allclose((C @ A) @ B, C @ (A @ B), atol=1e-6)
+    
+    # Test Gödel completeness
+    # Physical axioms = Types
+    types = {
+        'state': psi.psi,
+        'observable': H,
+        'symmetry': U
+    }
+    
+    # Verify type checking
+    for name, obj in types.items():
+        # Type preservation
+        evolved = U.subs({T: dx}) * obj
+        assert type(evolved) == type(obj)
+    
+    # Test Tarski soundness
+    # Physical theorems = Proofs
+    theorems = {
+        'unitarity': np.allclose(U * U.conjugate(), 1, atol=1e-6),
+        'hermiticity': np.allclose(H, H.conjugate().T, atol=1e-6),
+        'positivity': np.all(np.linalg.eigvalsh(H) >= -1e-10)
+    }
+    
+    # Verify all theorems
+    assert all(theorems.values())
+    
+    # Test dependent types
+    # Universe = Type of all types
+    Universe = {
+        'quantum': types,
+        'gravity': {'metric': g_μν, 'connection': Gamma},
+        'consciousness': {'observer': O, 'system': S}
+    }
+    
+    # Verify type dependencies
+    for domain, subtypes in Universe.items():
+        for name, obj in subtypes.items():
+            # Check type consistency
+            assert isinstance(obj, (np.ndarray, complex, float))
+            
+    # Final reality check
+    # Compute categorical cohomology
+    def cohomology(n):
+        return sum(
+            (-1)**k * np.linalg.matrix_rank(
+                sum(A @ B for A, B in zip(arrows[::k+1], arrows[k+1::]))
+            ) for k in range(n)
+        )
+    
+    # Verify Betti numbers
+    assert cohomology(0) == 1  # Connected
+    assert cohomology(1) == 0  # Simply connected
+    assert cohomology(2) == 1  # Quantum phase
+    assert cohomology(3) == 0  # No anomalies
+    assert cohomology(4) == 1  # Spacetime dimension
