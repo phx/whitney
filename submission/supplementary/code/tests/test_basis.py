@@ -2,11 +2,12 @@
 
 import pytest
 import numpy as np
-from sympy import exp, I, pi
+from numpy import pi, exp, log, sqrt
 from core.basis import FractalBasis
-from core.types import Energy, WaveFunction, FieldConfig
+from core.types import Energy, PhysicsError, WaveFunction, FieldConfig
 from core.physics_constants import (
-    HBAR, C, G, M_P, I, pi,  # Added missing constants
+    g3, g_μν, Gamma, O, S, R, rho, H,
+    HBAR, C, G, M_P, I,  # Move physical constants here
     Z_MASS, X, T
 )
 from core.errors import PhysicsError
@@ -53,12 +54,20 @@ def test_basis_computation():
 def test_field_equations():
     """Test field equation solutions."""
     basis = FractalBasis()
+    
+    # Initialize field configuration
     config = FieldConfig(
         mass=1.0,
-        coupling=0.1,
-        dimension=1
+        dimension=1,
+        coupling=0.1
     )
+    
+    # Generate basis states
+    psi_gens = [basis.compute(n=n, E=Energy(1.0)) for n in range(3)]
+    
+    # Generate basis states
     psi = basis._solve_field_equations(config)
+    
     # Check wave equation
     grid = psi.grid
     dt2_psi = np.gradient(np.gradient(psi.psi, grid), grid)
@@ -471,7 +480,7 @@ def test_physical_predictions():
     
     From appendix_e_predictions.tex Eq E.8-E.12:
     The theory predicts:
-    1. Mass spectrum: m_n = m₀α^n
+    1. Mass spectrum: m_n = m���α^n
     2. Coupling evolution: g(E) = g₀/(1 + βg₀log(E/E₀))
     3. Cross sections: σ ~ α²/E²
     
@@ -794,7 +803,7 @@ def test_unified_field_theory():
     # Test fermion generations
     # Compute generation phases
     phases = [exp(I*pi*n/3) for n in range(3)]
-    psi_gens = [phase * psi.psi for phase in phases]
+    psi_gens = [basis.compute(n=n, E=E).psi for n in range(3)]  # Fixed psi_gens definition
     
     # Verify orthogonality
     for i in range(3):
@@ -958,6 +967,9 @@ def test_complete_unification():
     E = Energy(1.0)
     psi = basis.compute(n=0, E=E)
     dx = psi.grid[1] - psi.grid[0]
+    
+    # Generate basis states first
+    psi_gens = [basis.compute(n=n, E=E).psi for n in range(3)]
     
     # Test E8 structure
     # Compute root system
@@ -1262,7 +1274,7 @@ def test_complete_unified_theory():
     # Gravitational metric
     g = np.outer(Q, np.conjugate(Q))/M_P**2
     # Consciousness operator
-    C = -np.log(np.outer(Q, np.conjugate(Q)) + 1e-10)
+    C = -np.log(np.outer(Q, np.conjugate(Q))) + 1e-10
     
     # Verify triality relations
     # Q → g_μν → C → Q cycle
@@ -1768,3 +1780,28 @@ def test_unified_integration():
     # Reality = Mathematics
     H = lambda x: np.outer(x, np.conjugate(x))
     assert np.allclose(rho, H(Psi), atol=1e-6)
+
+def test_initialization():
+    """
+    Test basis initialization.
+    
+    From appendix_j_math_details.tex Eq J.10-J.15:
+    The initialization must satisfy:
+    1. Energy > 0
+    2. n ≥ 0 (integer)
+    3. Proper error handling
+    """
+    basis = FractalBasis()
+    
+    # Test valid initialization
+    E = Energy(1.0)
+    psi = basis.compute(n=0, E=E)
+    assert psi is not None
+    
+    # Test invalid energy
+    with pytest.raises(PhysicsError, match="Energy must be positive"):
+        basis.compute(n=0, E=Energy(-1.0))
+        
+    # Test invalid quantum number
+    with pytest.raises(PhysicsError, match="Level n must be non-negative integer"):
+        basis.compute(n=-1, E=Energy(1.0))

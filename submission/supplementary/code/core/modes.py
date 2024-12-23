@@ -6,8 +6,7 @@ from sympy import exp, I, pi, sqrt
 from dataclasses import dataclass
 
 from .types import Energy, WaveFunction
-from .constants import ALPHA_VAL
-from .physics_constants import HBAR, C
+from .physics_constants import ALPHA_VAL, HBAR, C
 from .enums import ComputationMode
 
 if TYPE_CHECKING:

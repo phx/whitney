@@ -68,7 +68,53 @@ run_current_test() {
   pytest tests/test_basis.py::test_initialization -vv --tb=long --showlocals
 }
 
-if [[ ("$1" = "-g") || ("$1" = "--group") ]]; then
+# tests/test_basis.py::test_inheritance PASSED                                                                                       [  3%]
+# tests/test_basis.py::test_basis_computation FAILED                                                                                 [  6%]
+# tests/test_basis.py::test_field_equations PASSED                                                                                   [ 10%]
+# tests/test_basis.py::test_evolution_operator FAILED                                                                                [ 13%]
+# tests/test_basis.py::test_error_analysis PASSED                                                                                    [ 16%]
+# tests/test_basis.py::test_fractal_scaling SKIPPED (No non-zero values found for scaling comparison)                                [ 20%]
+# tests/test_basis.py::test_quantum_coherence FAILED                                                                                 [ 23%]
+# tests/test_basis.py::test_ward_identity PASSED                                                                                     [ 26%]
+# tests/test_basis.py::test_holographic_correlators PASSED                                                                           [ 30%]
+# tests/test_basis.py::test_gauge_and_rg_invariance FAILED                                                                           [ 33%]
+# tests/test_basis.py::test_qft_axioms FAILED                                                                                        [ 36%]
+# tests/test_basis.py::test_symmetries_and_conservation PASSED                                                                       [ 40%]
+# tests/test_basis.py::test_invalid_inputs[-1-1.0] PASSED                                                                            [ 43%]
+# tests/test_basis.py::test_invalid_inputs[0--1.0] FAILED                                                                            [ 46%]
+# tests/test_basis.py::test_invalid_inputs[0-0.0] FAILED                                                                             [ 50%]
+# tests/test_basis.py::test_physical_predictions FAILED                                                                              [ 53%]
+# tests/test_basis.py::test_theorems_and_implications FAILED                                                                         [ 56%]
+# tests/test_basis.py::test_holographic_gravity PASSED                                                                               [ 60%]
+# tests/test_basis.py::test_unified_holographic_framework FAILED                                                                     [ 63%]
+# tests/test_basis.py::test_unified_field_theory FAILED                                                                              [ 66%]
+# tests/test_basis.py::test_standard_model_features FAILED                                                                           [ 70%]
+# tests/test_basis.py::test_complete_unification FAILED                                                                              [ 73%]
+# tests/test_basis.py::test_quantum_gravity_unification FAILED                                                                       [ 76%]
+# tests/test_basis.py::test_consciousness_quantum_unification FAILED                                                                 [ 80%]
+# tests/test_basis.py::test_complete_unified_theory FAILED                                                                           [ 83%]
+# tests/test_basis.py::test_mathematical_reality_structure FAILED                                                                    [ 86%]
+# tests/test_basis.py::test_complete_reality_integration FAILED                                                                      [ 90%]
+# tests/test_basis.py::test_theory_of_everything FAILED                                                                              [ 93%]
+# tests/test_basis.py::test_unified_integration FAILED                                                                               [ 96%]
+# tests/test_basis.py::test_initialization FAILED                                                                                    [100%]
+
+# PASSING TESTS:
+# tests/test_basis.py::test_inheritance
+# tests/test_basis.py::test_field_equations
+# tests/test_basis.py::test_error_analysis
+# tests/test_basis.py::test_ward_identity
+# tests/test_basis.py::test_holographic_correlators
+# tests/test_basis.py::test_symmetries_and_conservation
+# tests/test_basis.py::test_invalid_inputs[-1-1.0]
+# tests/test_basis.py::test_holographic_gravity
+
+if [[ "$1" = "--passing" ]]; then
+  export ARGS="-v --tb=no --maxfail=0 --showlocals -rP"
+  clear
+  run_test_group - "$ARGS"
+  exit $?
+elif [[ ("$1" = "-g") || ("$1" = "--group") ]]; then
   clear
   run_test_group -vv --tb=long --showlocals
   exit $?
