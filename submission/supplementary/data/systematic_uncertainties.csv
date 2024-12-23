@@ -1,11 +1,2 @@
-Source,Affected_Observables,Estimation_Method,Relative_Uncertainty,Correlation_Length,Control_Samples
-Energy_Scale,"Mass measurements, Energy flow",Z mass calibration,0.0001,Full run,"Z→ee, Z→μμ"
-Angular_Resolution,"Angular distributions, Asymmetries",MC truth comparison,0.0005,Per fill,J/ψ→μμ
-Trigger_Efficiency,"Cross sections, Rare decays",Tag and probe,0.001,Per run,Z→ℓℓ tag-probe
-Luminosity,All rate measurements,Van der Meer scans,0.015,Per fill,Special fills
-PDF_Uncertainty,Production cross sections,NNPDF variations,0.03,Theory only,W/Z ratios
-QCD_Scale,Differential distributions,Scale variations,0.04,Theory only,Multi-jet
-Detector_Alignment,"Track parameters, Vertices",Survey + tracks,0.0002,Monthly,Cosmic rays
-Material_Budget,"Energy loss, Conversions",Gamma conversions,0.01,Constant,Photon conversions
-Pile_up_Effects,"Isolation, Jets",Zero bias events,0.02,Per bunch,Zero bias
-Beam_Conditions,"Luminosity, Backgrounds",Machine parameters,0.01,Per fill,Special runs
+energy_scale,acceptance,model_dependency
+0.02,0.05,0.03

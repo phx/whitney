@@ -1,0 +1,36 @@
+#!/bin/sh
+export PATH=$PATH:/usr/local/bin
+
+/Users/phx/.git-templates/hooks/pre-commit.first
+
+# Git Shell Coloring
+RESTORE='\033[0m'    # Text Reset means no color change
+RED='\033[00;31m'	 # Red color code
+YELLOW='\033[00;33m' # yellow color code
+BLUE='\033[00;34m'   # blue color code
+
+for file in $(git diff --cached --name-only); do
+  echo --------------------------------------------------------------------------------
+  if ! git diff --cached "$file" | grep -q 'delete file mode' >/dev/null 2>&1; then
+    if ssg -gitfile "$file" >/dev/null 2>&1; then
+      echo -e "${RED}*** SECRET(S) FOUND IN COMMIT ***\n"
+      echo -e "${RED}$file contains the following:"
+      ssg -gitfile "$file" | while read line; do
+        secret_name="$(echo "$line" | cut -d':' -f1)"
+        secret_value="$(echo "$line" | cut -d':' -f2- | cut -d' ' -f2-)"
+        sanitized_value="$(echo "$secret_value" | sed 's/\\'/\\\\'/g' | tr -d "\n")"
+        line_number="$(grep -n -- "$sanitized_value" "$file" | cut -d':' -f1 | head -1)"
+        echo -e "${YELLOW}- Line ${line_number}: ${RESTORE}${secret_name}: ${secret_value}"
+      done
+    fi
+    export BLOCK=1
+  fi
+done
+if [ "$BLOCK" = "1" ]; then
+  echo --------------------------------------------------------------------------------
+  echo -e "${YELLOW}[WARNING] ${RESTORE}Commit will be rejected until all secrets are removed."
+  echo -e "\nIf this is a false alarm, use the ${RED}'--no-verify'${RESTORE} option (not advised)."
+  echo --------------------------------------------------------------------------------
+  exit 1
+fi
+

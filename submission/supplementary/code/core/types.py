@@ -9,6 +9,7 @@ from .physics_constants import X
 from math import log
 from numpy import floating  # For type checking
 from functools import wraps
+from enum import Enum, auto
 
 __all__ = [
     'RealValue',
@@ -18,8 +19,24 @@ __all__ = [
     'Momentum',
     'CrossSection',
     'BranchingRatio',
-    'ErrorEstimate'
+    'ErrorEstimate',
+    'FractalMode',
+    'BasisConfig'
 ]
+
+class ComputationMode(Enum):
+    """
+    Computation mode for quantum field calculations.
+    
+    From appendix_j_math_details.tex Eq J.30-J.32:
+    Computation modes determine:
+    1. SYMBOLIC: Exact analytical calculations
+    2. NUMERIC: High-precision numerical integration
+    3. HYBRID: Mixed symbolic-numeric methods
+    """
+    SYMBOLIC = auto()  # Exact analytical calculations
+    NUMERIC = auto()   # Numerical integration
+    HYBRID = auto()    # Mixed methods
 
 @dataclass
 class RealValue:
@@ -142,50 +159,13 @@ class Energy:
     units: str = 'GeV'
     
     def __post_init__(self):
-        """
-        Validate energy value.
-        
-        From appendix_d_scale.tex Eq D.1:
-        The energy weighting function g(E) = e^{-1/(E+1)} requires:
-        1. E + 1 > 0 for well-defined exponential
-        2. E ≥ 0 for physical states
-        """
+        """Validate energy value."""
         if not isinstance(self.value, (int, float)):
             raise TypeError("Energy value must be numeric")
-        if self.value < 0:
-            raise ValueError("Energy must be non-negative")
+        if self.value <= 0:
+            raise ValueError("Energy must be positive")
             
-    def scale_by(self, alpha: float) -> 'Energy':
-        """
-        Scale energy by dimensionless factor.
-        
-        From appendix_d_scale.tex Eq D.8:
-        E → E' = αE under RG flow
-        """
-        return Energy(
-            value=self.value * alpha,
-            uncertainty=self.uncertainty * alpha if self.uncertainty else None,
-            units=self.units
-        )
-        
-    def to_dimensionless(self, hbar: float, c: float) -> float:
-        """
-        Convert to dimensionless value.
-        
-        From appendix_d_scale.tex Eq D.8:
-        E_tilde = E/(ℏc)
-        """
-        return self.value / (hbar * c)
-        
-    def __mul__(self, other: Union[float, int]) -> 'Energy':
-        """Multiply by dimensionless number."""
-        return self.scale_by(float(other))
-        
-    def __rmul__(self, other: Union[float, int]) -> 'Energy':
-        """Right multiply by dimensionless number."""
-        return self.scale_by(float(other))
-        
-    def __truediv__(self, other: Union[float, int, 'Energy']) -> Union[float, 'Energy']:
+    def __truediv__(self, other: Union[float, int, 'Energy']) -> 'Energy':
         """
         Divide energy values while preserving units.
         
@@ -204,6 +184,16 @@ class Energy:
             return self.value / other.value
         else:
             raise TypeError(f"Cannot divide Energy by {type(other)}")
+            
+    def __rtruediv__(self, other: Union[float, int]) -> 'Energy':
+        """Right division for Energy."""
+        if isinstance(other, (float, int)):
+            return Energy(
+                value=other / self.value,
+                uncertainty=other * self.uncertainty / self.value**2 if self.uncertainty else None,
+                units=f'1/{self.units}'
+            )
+        return NotImplemented
 
     def __eq__(self, other: Union[float, int, 'Energy']) -> bool:
         """
@@ -460,111 +450,50 @@ class FieldConfig:
 
 @dataclass
 class WaveFunction:
-    """
-    Class representing a quantum wavefunction.
+    """Class representing a quantum wavefunction."""
     
-    From appendix_a_convergence.tex Eq A.17:
-    The ground state wavefunction must satisfy:
-    1. Normalization: ∫|ψ₀|²dx = 1
-    2. Energy eigenvalue: E₀ = mc²
-    3. Finite support: |ψ₀(|x| > L)| < ε
-    """
-    psi: np.ndarray
-    grid: np.ndarray
-    quantum_numbers: Dict[str, float]
-    
-    def __post_init__(self):
+    def __init__(
+        self, 
+        psi: np.ndarray,
+        grid: np.ndarray,
+        mass: float,  # Add mass parameter
+        quantum_numbers: Dict[str, float]
+    ):
         """
-        Initialize and validate wavefunction.
+        Initialize wavefunction.
         
-        From appendix_j_math_details.tex Eq J.2:
-        ψ(t) = exp(-iHt/ℏ)ψ(0)
+        Args:
+            psi: Complex wavefunction values
+            grid: Spatial grid points
+            mass: Mass parameter in GeV
+            quantum_numbers: Dictionary of quantum numbers
         """
+        self.psi = psi
+        self.grid = grid
+        self.mass = mass  # Store mass
+        self.quantum_numbers = quantum_numbers
+        
+        # Validate inputs
+        if not isinstance(psi, np.ndarray):
+            raise TypeError("psi must be a numpy array")
+        if not isinstance(grid, np.ndarray):
+            raise TypeError("grid must be a numpy array")
+        if not isinstance(mass, (int, float)):
+            raise TypeError("mass must be a number")
+        if not isinstance(quantum_numbers, dict):
+            raise TypeError("quantum_numbers must be a dictionary")
+        
+        # Validate wavefunction properties
         self._validate()
-        self._normalize()
-        
+    
     def _validate(self):
         """Validate wavefunction properties."""
-        if not isinstance(self.psi, np.ndarray):
-            raise TypeError("psi must be a numpy array")
-        if not isinstance(self.grid, np.ndarray):
-            raise TypeError("grid must be a numpy array")
-        if not isinstance(self.quantum_numbers, dict):
-            raise TypeError("quantum_numbers must be a dictionary")
-        if len(self.grid) != len(self.psi):
-            raise ValueError("Grid and wavefunction dimensions must match")
-        if not np.all(np.isfinite(self.psi)):
-            raise ValueError("Wavefunction must be finite")
-            
-    def _normalize(self):
-        """
-        Normalize wavefunction according to sacred two-step process.
-        
-        From appendix_d_scale.tex Eq D.8:
-        The form g(E) = e^{-\frac{1}{E+1}} emerges naturally from requiring:
-        1. Smooth transition between energy scales
-        2. Proper asymptotic behavior
-        3. Consistency with RG flow
-        
-        Starting from the general ansatz g(E) = e^{f(E)}, we require:
-        lim_{E → 0} g(E) = 0 and lim_{E → ∞} g(E) = 1
-        """
-        n = self.quantum_numbers.get('n', 0)
-        E = self.quantum_numbers.get('E', 1.0)
-        alpha = self.quantum_numbers.get('alpha', 1.0)
-        
-        # Primary normalization with energy weighting
-        g_E = np.exp(-1/(E + 1))  # Energy weighting function from Eq D.8
-        norm = g_E/(np.sqrt(2*np.pi) * (1.0 + alpha**n))
-        self.psi *= norm
-        
-        # Secondary normalization after integration
-        dx = self.grid[1] - self.grid[0]
-        integral = np.sum(np.abs(self.psi)**2) * dx
-        if integral > 0:
-            self.psi /= np.sqrt(integral)
-
-    def _validate(self):
-        """Validate wavefunction properties."""
-        if not isinstance(self.psi, np.ndarray):
-            raise TypeError("psi must be a numpy array")
-        if not isinstance(self.grid, np.ndarray):
-            raise TypeError("grid must be a numpy array")
-        if not isinstance(self.quantum_numbers, dict):
-            raise TypeError("quantum_numbers must be a dictionary")
-        if len(self.grid) != len(self.psi):
-            raise ValueError("Grid and wavefunction dimensions must match")
-        if not np.all(np.isfinite(self.psi)):
-            raise ValueError("Wavefunction must be finite")
-            
-    def _normalize(self):
-        """
-        Normalize wavefunction according to sacred two-step process.
-        
-        From appendix_d_scale.tex Eq D.8:
-        The form g(E) = e^{-\frac{1}{E+1}} emerges naturally from requiring:
-        1. Smooth transition between energy scales
-        2. Proper asymptotic behavior
-        3. Consistency with RG flow
-        
-        Starting from the general ansatz g(E) = e^{f(E)}, we require:
-        lim_{E → 0} g(E) = 0 and lim_{E → ∞} g(E) = 1
-        """
-        n = self.quantum_numbers.get('n', 0)
-        E = self.quantum_numbers.get('E', 1.0)
-        alpha = self.quantum_numbers.get('alpha', 1.0)
-        
-        # Primary normalization with energy weighting
-        g_E = np.exp(-1/(E + 1))  # Energy weighting function from Eq D.8
-        norm = g_E/(np.sqrt(2*np.pi) * (1.0 + alpha**n))
-        self.psi *= norm
-        
-        # Secondary normalization after integration
-        dx = self.grid[1] - self.grid[0]
-        integral = np.sum(np.abs(self.psi)**2) * dx
-        if integral > 0:
-            self.psi /= np.sqrt(integral)
-
+        if isinstance(self.psi, np.ndarray):
+            if not np.all(np.isfinite(self.psi)):
+                raise ValueError("Wavefunction must be finite")
+            if self.grid is not None and len(self.grid) != len(self.psi):
+                raise ValueError("Grid and wavefunction dimensions must match")
+                
     @property
     def norm(self) -> float:
         """Compute wavefunction norm."""
@@ -1351,4 +1280,72 @@ def ensure_numeric_value(value: Any) -> 'NumericValue':
     """Ensure a value is wrapped in NumericValue."""
     if hasattr(value, 'value'):
         return ensure_numeric_value(value.value)
+
+@dataclass
+class FractalMode:
+    """
+    Fractal basis mode function.
+    
+    From appendix_b_basis.tex Eq B.4:
+    The mode functions include both oscillatory and
+    damping terms to ensure proper convergence:
+    ψₙ(x) = α^(n/2) exp(-x²/2) exp(ikₙx)
+    
+    Attributes:
+        psi: Complex wavefunction values
+        grid: Spatial grid points
+        n: Mode number
+        alpha: Fractal scaling parameter
+    """
+    psi: np.ndarray
+    grid: np.ndarray
+    n: int
+    alpha: float
+    
+    def __post_init__(self):
+        """Validate fractal mode."""
+        if not isinstance(self.psi, np.ndarray):
+            raise TypeError("psi must be numpy array")
+        if not isinstance(self.grid, np.ndarray):
+            raise TypeError("grid must be numpy array")
+        if len(self.grid) != len(self.psi):
+            raise ValueError("Grid and wavefunction dimensions must match")
+        if not np.allclose(self.grid[[0,-1]], [-3, 3]):  # SACRED: grid range
+            raise ValueError("Grid must span [-3,3]")
+        if not 0 < self.alpha < 1:
+            raise ValueError("Scaling parameter must be between 0 and 1")
+
+@dataclass
+class BasisConfig:
+    """
+    Configuration for fractal basis computations.
+    
+    From appendix_b_basis.tex Eq B.5-B.7:
+    Basis configuration parameters determine:
+    1. Dimension: Spacetime dimension d
+    2. Precision: Numerical computation accuracy
+    3. Max level: Fractal recursion depth
+    
+    Attributes:
+        dimension: Spacetime dimension (default: 4)
+        precision: Numerical precision (default: 1e-10)
+        max_level: Maximum fractal level (default: 10)
+    """
+    dimension: int = 4
+    precision: float = 1e-10
+    max_level: int = 10
+    
+    def __post_init__(self):
+        """Validate basis configuration."""
+        if self.dimension <= 0:
+            raise ValueError("Dimension must be positive")
+        if self.precision <= 0:
+            raise ValueError("Precision must be positive")
+        if self.max_level < 1:
+            raise ValueError("Max level must be at least 1")
+            
+    @property
+    def scaling_dimension(self) -> float:
+        """Compute scaling dimension from spacetime dimension."""
+        return (self.dimension - 2)/2
 

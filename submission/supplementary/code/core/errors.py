@@ -101,4 +101,54 @@ class UnitarityError(PhysicsError):
 
 class HolographicError(PhysicsError):
     """Error for holographic bound violations."""
+    pass
+
+class BasisError(Exception):
+    """
+    Error in fractal basis computations.
+    
+    From appendix_b_basis.tex Eq B.8:
+    Basis errors occur when:
+    1. Invalid basis function parameters
+    2. Normalization failure
+    3. Orthogonality violation
+    4. Grid range violation
+    """
+    pass
+
+class ValidationError(Exception):
+    """Error in validation checks."""
+    pass
+
+class ComputationError(Exception):
+    """Error in numerical computations."""
+    pass
+
+class PhysicsError(Exception):
+    """Error in physics constraints."""
+    pass
+
+class EnergyConditionError(PhysicsError):
+    """Violation of energy conditions."""
+    pass
+
+class CausalityError(PhysicsError):
+    """Violation of causality."""
+    pass
+
+class GaugeError(PhysicsError):
+    """Error in gauge transformations."""
+    pass
+
+class CoherenceError(PhysicsError):
+    """
+    Error in quantum coherence preservation.
+    
+    From appendix_j_math_details.tex Eq J.40-J.42:
+    Coherence violations occur when:
+    1. Phase evolution is non-unitary
+    2. Quantum correlations are lost
+    3. Decoherence exceeds bounds
+    4. Measurement basis is inconsistent
+    """
     pass 

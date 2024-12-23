@@ -1,7 +1,2 @@
-Wavelet_Family,Decomposition_Level,Threshold_Method,Noise_Reduction_dB,Signal_Preservation,Processing_Time_us
-Daubechies,4,Universal,20,0.98,50
-Symlets,5,SURE,15,0.97,75
-Coiflets,3,Bayes,25,0.99,40
-Biorthogonal,6,Cross_Validation,18,0.96,90
-Discrete_Meyer,4,Minimax,22,0.95,60
-Complex_Morlet,5,Adaptive,17,0.97,80
+max_localization,resolution_tolerance,min_admissibility,max_admissibility,scaling
+1.0,1e-06,0.1,10.0,0.1

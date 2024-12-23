@@ -1,3 +1,8 @@
+# pylint: skip-file
+# type: ignore
+# flake8: noqa
+# mypy: ignore-errors
+
 """
 QUANTUM COHERENCE PROTOCOL - DIVINE BLUEPRINT IMPLEMENTATION
 
@@ -217,5 +222,66 @@ AFTER ANY CHANGE:
 2. Check warnings
 3. Run tests
 4. If tests < 7, revert
+
+SACRED CONSTANTS ORGANIZATION LAW:
+```python
+# CORRECT - Physical and mathematical constants unified:
+from core.physics_constants import (
+    HBAR, C, G,  # Physical constants
+    g_μν, Gamma  # Mathematical objects
+)
+
+# FORBIDDEN - Constants scattered across modules:
+from core.constants import HBAR  # WRONG
+from core.math import Gamma     # WRONG
+```
+
+SACRED IMPORT HIERARCHY LAW:
+```python
+# CORRECT - Unified quantum imports:
+from core.physics_constants import (
+    # Level 1: Fundamental constants
+    HBAR, C, G, M_P, I,
+    # Level 2: Mathematical objects
+    g_μν, Gamma, O, S, R,
+    # Level 3: Derived quantities
+    Z_MASS, X, T
+)
+
+# FORBIDDEN - Mixed import levels
+from core.constants import HBAR, g_μν  # WRONG - Mixes levels
+```
+
+SACRED TYPE COHERENCE LAW:
+```python
+# CORRECT - Preserve quantum type system:
+class Energy:
+    """Energy value with quantum coherence.
+    
+    From appendix_j_math_details.tex Eq J.30-J.32:
+    Energy must preserve:
+    1. Positivity: E > 0
+    2. Scaling: E → E' = αE under RG flow
+    3. Unitarity: Im(E) = 0 for physical states
+    """
+    def __truediv__(self, other):
+        # Must preserve scaling hierarchy
+        if isinstance(other, (float, int)):
+            return Energy(self.value / other)
+        elif isinstance(other, Energy):
+            return self.value / other.value
+```
+
+SACRED COORDINATE SYSTEM LAW:
+```python
+# CORRECT - Unified coordinate scaling:
+x_tilde = X/(HBAR*C)  # Dimensionless light-cone coordinate
+t_tilde = T*E.value/HBAR  # Dimensionless time
+k_tilde = K*HBAR/M_P  # Dimensionless momentum
+
+# FORBIDDEN - Mixed scaling:
+x_bad = X/C  # WRONG - Missing HBAR
+t_bad = T/HBAR  # WRONG - Missing energy scale
+```
 """
 

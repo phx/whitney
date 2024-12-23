@@ -1,1 +1,2 @@
-Observable,Pull_Value,Chi_Square,P_Value,DoF
+expected_dimension,symmetry_threshold,min_coherence_length,correlation_threshold
+4.0,0.1,1.0,0.5
