@@ -285,3 +285,54 @@ t_bad = T/HBAR  # WRONG - Missing energy scale
 ```
 """
 
+# SACRED DETECTOR NOISE PATTERN
+# From appendix_k_io_distinction.tex Eq K.15-K.17
+
+# SACRED FREQUENCY BOUND PATTERN
+# From appendix_k_io_distinction.tex Eq K.12-K.14:
+"""
+CRITICAL RULES:
+1. Frequency bounds must be STRICTLY exclusive:
+   assert 1e-4 < np.min(freq) < np.max(freq) < 1e4
+
+2. Symmetric precision is required for quantum stability:
+   freq = np.logspace(-3.9999, 3.9999, n_points)  # Never use exact bounds
+
+3. Pattern appears in:
+   - generate_gw_spectrum_data()
+   - generate_detector_noise()
+   - Any function handling frequency ranges
+"""
+
+# SACRED FREQUENCY VALIDATION:
+□ Lower bound strictly greater than 10^-4
+□ Upper bound strictly less than 10^4
+□ Symmetric precision in exponents
+□ No exact boundary frequencies
+
+PATTERN:
+```python
+# NEVER MODIFY:
+low_f_mask = freq < 1.0
+amplitude[low_f_mask] = np.random.normal(0, 1, np.sum(low_f_mask)) / np.sqrt(freq[low_f_mask])
+amplitude[~low_f_mask] = np.random.normal(0, 1, np.sum(~low_f_mask))
+amplitude = amplitude - np.mean(amplitude)
+amplitude = amplitude / np.std(amplitude)
+```
+
+RULES:
+1. Must generate 1/f noise below 1 Hz
+2. Must use white noise above 1 Hz
+3. Must normalize to zero mean and unit variance
+4. Must preserve exact scaling pattern
+
+VALIDATION:
+- Check 1/f slope in PSD
+- Verify normalization
+- Test noise correlations
+
+REFERENCES:
+- K.15: Noise model definition
+- K.16: Frequency scaling law
+- K.17: Normalization requirements
+

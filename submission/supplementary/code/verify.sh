@@ -65,7 +65,7 @@ run_test_group() {
 
 run_current_test() {
   python generate_data.py
-  pytest tests/test_basis.py::test_initialization -vv --tb=long --showlocals
+  pytest tests/test_generate_data.py::test_cross_correlations -vv --tb=long --showlocals
 }
 
 # tests/test_basis.py::test_inheritance PASSED                                                                                       [  3%]

@@ -1,0 +1,4 @@
+test_name,statistic,p_value,critical_value
+chi_square,1.05,0.401,2.0
+ks_test,0.032,0.215,0.05
+anderson_darling,0.456,0.178,0.752

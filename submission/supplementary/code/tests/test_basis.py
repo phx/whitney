@@ -72,7 +72,7 @@ def test_basis_functions(basis):
         norm = np.sum(np.abs(mode.psi)**2) * (mode.grid[1] - mode.grid[0])
     assert abs(norm - 1.0) < 1e-6
     
-    # Check scaling behavior
+                # Check scaling behavior
     expected_scale = basis.alpha**n
     max_amp = np.max(np.abs(mode.psi))
     assert abs(max_amp - expected_scale) < 1e-6
