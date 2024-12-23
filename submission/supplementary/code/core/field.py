@@ -35,6 +35,14 @@ from .errors import (
     EnergyConditionError, CausalityError, GaugeError
 )
 
+# Define corrections dictionary for field theory computations
+corrections: Dict[str, float] = {
+    'quantum': 1.0/(16*np.pi**2),  # One-loop quantum corrections
+    'gravity': G/(C**4),  # Gravitational corrections
+    'radiative': 1.0/137.0,  # Radiative corrections
+    'strong': 0.1,  # Strong coupling corrections
+}
+
 class UnifiedField(FractalBasis):
     """
     Base class for unified field theory implementation.
@@ -129,5 +137,28 @@ class UnifiedField(FractalBasis):
         if n == 0:
             return 1.0
         return (-1)**(n+1) * factorial(n) / (n * log(1/self.alpha))
+
+    def compute_field_corrections(self, psi: WaveFunction, config: FieldConfig) -> Dict[str, float]:
+        """
+        Compute quantum field theory corrections.
+        
+        From appendix_f_corrections.tex Eq F.12-F.15:
+        The corrections include quantum, gravitational and gauge effects.
+        """
+        results = {}
+        
+        # Quantum corrections
+        results['quantum'] = corrections['quantum'] * np.sum(np.abs(psi.psi)**2)
+        
+        # Gravitational corrections 
+        results['gravity'] = corrections['gravity'] * config.mass * np.sum(np.abs(psi.psi)**2)
+        
+        # Radiative corrections
+        results['radiative'] = corrections['radiative'] * config.coupling**2
+        
+        # Strong coupling corrections
+        results['strong'] = corrections['strong'] * config.coupling
+        
+        return results
 
     # ... (rest of UnifiedField implementation)

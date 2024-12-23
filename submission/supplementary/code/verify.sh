@@ -116,7 +116,7 @@ if [[ "$1" = "--passing" ]]; then
   exit $?
 elif [[ ("$1" = "-g") || ("$1" = "--group") ]]; then
   clear
-  run_test_group -vv --tb=long --showlocals
+  run_test_group -v --tb=short --showlocals
   exit $?
 elif [[ ("$1" = "-p") || ("$1" = "--previous") ]]; then
   clear
