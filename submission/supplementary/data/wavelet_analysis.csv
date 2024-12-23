@@ -1,2 +1,2 @@
-max_localization,resolution_tolerance,min_admissibility,max_admissibility,scaling
-1.0,1e-06,0.1,10.0,0.1
+resolution_tolerance,min_admissibility,max_admissibility,phase_coherence,scale_factor
+1e-06,0.1,10.0,0.99,4.020267434417399e-18

@@ -43,7 +43,7 @@ def generated_data():
     data_dir = Path(__file__).parent.parent.parent / 'data'
     
     # Generate data
-    generate_all_data()
+    generate_all_data(data_dir)
     
     return data_dir
 

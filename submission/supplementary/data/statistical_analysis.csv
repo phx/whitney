@@ -1,2 +1,2 @@
-expected_dimension,symmetry_threshold,min_coherence_length,correlation_threshold
-4.0,0.1,1.0,0.5
+p_value,cohens_d,power,dof,chi_square
+0.01,0.8,0.9,100,105.2

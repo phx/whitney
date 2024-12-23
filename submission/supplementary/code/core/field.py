@@ -27,7 +27,7 @@ from .physics_constants import (
     ALPHA_VAL  # Validation thresholds
 )
 from .types import (
-    Energy, FieldConfig, WaveFunction,
+    Energy, FieldConfig, WaveFunction, 
     NumericValue, CrossSection,
     ComputationMode  # Add computation mode enum
 )
@@ -59,7 +59,7 @@ class UnifiedField:
         self.dimension = dimension
         self.N_STABLE_MAX = max_level
         self.scaling_dimension = (dimension - 2)/2
-
+            
     def compute_energy_density(self, psi: WaveFunction) -> NumericValue:
         """
         Compute energy density with fractal corrections.
@@ -118,9 +118,9 @@ class UnifiedField:
             uncertainty = abs(total_energy * self.alpha**self.N_STABLE_MAX)
             
             return NumericValue(total_energy, uncertainty)
-                
+            
         except Exception as e:
-            raise PhysicsError(f"Energy density computation failed: {e}") 
+            raise PhysicsError(f"Energy density computation failed: {e}")
 
     def _compute_fractal_corrections(self, psi_array: np.ndarray, x_tilde: float) -> float:
         """
@@ -165,7 +165,7 @@ class UnifiedField:
             
         except Exception as e:
             raise PhysicsError(f"Fractal correction computation failed: {e}")
-            
+
     def _compute_fractal_exponent(self, n: int) -> float:
         """
         Compute fractal scaling exponent.

@@ -1,2 +1,2 @@
-cosmic_ray_flux,atmospheric_nu,diffuse_gamma,isotropic_factor
-1e-06,1e-08,1e-07,0.95
+cmb_temperature,neutrino_temp,gw_amplitude,isotropic_factor
+2.725,1.9450119562473323,1e-15,0.95
