@@ -172,6 +172,12 @@ from typing import Dict, List, Tuple, Optional
 from scipy import stats
 from pathlib import Path
 from math import pi
+import logging
+from core.models import Model  # Import the Model class
+
+# Initialize model and logging
+model = Model()  # Create model instance
+logging.basicConfig(level=logging.WARNING)
 
 # Define experimental data
 EXPERIMENTAL_DATA = {
@@ -309,22 +315,39 @@ def generate_coupling_evolution(data_dir: Path) -> None:
     couplings.to_csv(data_dir / 'coupling_evolution.csv', index=False)
 
 def generate_predictions(data_dir: Path) -> None:
-    """Generate prediction data."""
-    predictions = {
-        'observable': ['mass_ratio', 'coupling_ratio', 'phase_shift'],
-        'predicted': [0.23122, 0.652, 1.221],
-        'observed': [0.23120, 0.650, 1.220],
-        'uncertainty': [0.00003, 0.012, 0.021],
-        'cv_score': [0.95, 0.93, 0.91],
-        'parameters': [0.5, 1.0, 1.5]  # Add back parameters column
-    }
+    """
+    Generate model predictions.
     
-    output_file = data_dir / 'predictions.csv'
+    From appendix_k_io_distinction.tex Eq K.31-K.33:
+    The predictions must satisfy:
+    1. Proper scaling behavior
+    2. Unitarity constraints
+    3. Causal structure
+    """
+    # Load input data
+    input_data = np.loadtxt(data_dir / 'input_data.dat')
+    
+    # Generate predictions
+    predictions = []
+    for x in input_data:
+        try:
+            y = model.predict(x)
+            predictions.append({
+                'input': x,
+                'output': y,
+                'confidence': model.confidence(x)
+            })
+        except ValueError as e:
+            logging.warning(f"Failed prediction for {x}: {e}")
+            continue
+            
     df = pd.DataFrame(predictions)
+    output_file = data_dir / 'predictions.csv'
+    
     try:
         df.to_csv(output_file, index=False)
     except IOError as e:
-        raise ValidationError(f"Failed to save predictions: {e}")
+        raise IOError(f"Failed to save predictions to {output_file}: {e}")
 
 def generate_validation_results(data_dir: Path) -> None:
     """
@@ -474,7 +497,7 @@ def calculate_fractal_signatures(output_file: str = '../data/fractal_signatures.
     Implements key fractal signatures from paper Sec. 6:
     
     1. Coupling ratios:
-       R_ij(E) = g�����(E)/gⱼ(E) ~ E^(γ���-γ���)
+       R_ij(E) = g������(E)/gⱼ(E) ~ E^(γ���-γ���)
     
     2. Fractal dimension:
        D(E) = 4 + α*ln(E/M_Z)
@@ -968,7 +991,7 @@ def generate_detector_noise(data_dir: Path) -> None:
     From appendix_k_io_distinction.tex Eq K.15-K.17:
     The detector noise model includes:
     1. White noise floor
-    2. 1/f noise at low frequencies
+    2. 1/f noise at low frequencies 
     3. Resonant features
     """
     # Generate frequency array from 0.1 Hz to 1 kHz
@@ -977,10 +1000,12 @@ def generate_detector_noise(data_dir: Path) -> None:
     # Generate white noise
     white_noise = np.random.normal(0, 1, len(freq))
     
-    # Generate 1/f noise with correct power law
+    # Generate 1/f noise with proper scaling
     # From appendix_k_io_distinction.tex Eq K.16:
-    # S(f) ∝ 1/f for f < 1 Hz
-    pink_noise = np.random.normal(0, 1, len(freq)) * (1.0/freq)
+    # S(f) ∝ 1/f for f < 1 Hz, flat otherwise
+    pink_noise = np.zeros_like(freq)
+    low_f_mask = freq < 1.0
+    pink_noise[low_f_mask] = np.random.normal(0, 1, np.sum(low_f_mask)) * (1.0/np.sqrt(freq[low_f_mask]))
     
     # Center and normalize
     amplitude = white_noise + pink_noise
