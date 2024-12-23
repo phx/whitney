@@ -986,36 +986,28 @@ def generate_detector_noise(data_dir: Path) -> None:
     3. Resonant features
     """
     # Generate frequency array from 0.1 Hz to 1 kHz
-    freq = np.logspace(-1, 3, 1000)  # Start at 0.1 Hz
+    n_points = 1000
+    freq = np.logspace(-1, 3, n_points)  # Start at 0.1 Hz
     
-    # Generate white noise
-    white_noise = np.random.normal(0, 1, len(freq))
+    # Generate frequency domain noise
+    amplitude = np.zeros(n_points)
     
-    # Generate 1/f noise with exact power law scaling
-    # From appendix_k_io_distinction.tex Eq K.16:
-    # S(f) ∝ 1/f for f < 1 Hz, flat otherwise
-    pink_noise = np.zeros_like(freq)
+    # Generate 1/f noise for low frequencies
     low_f_mask = freq < 1.0
-    # Generate exact 1/f noise for f < 1 Hz
-    n_low = np.sum(low_f_mask)
-    phases = np.random.uniform(0, 2*np.pi, n_low)
-    amplitudes = np.sqrt(1.0/freq[low_f_mask])  # Sqrt for power law
-    pink_noise[low_f_mask] = amplitudes * np.exp(1j * phases)
-    pink_noise = 0.05 * np.real(pink_noise)  # Scale and take real part
+    amplitude[low_f_mask] = np.random.normal(0, 1, np.sum(low_f_mask)) / np.sqrt(freq[low_f_mask])
     
-    # Center and normalize
-    amplitude = white_noise + pink_noise
+    # Generate white noise for high frequencies
+    amplitude[~low_f_mask] = np.random.normal(0, 1, np.sum(~low_f_mask))
+    
+    # Normalize
     amplitude = amplitude - np.mean(amplitude)  # Remove mean
     amplitude = amplitude / np.std(amplitude)   # Force unit variance
-    
-    # Generate random phases
-    phase = np.random.uniform(-np.pi, np.pi, len(freq))
     
     # Create output dataframe
     df = pd.DataFrame({
         'frequency': freq,
         'amplitude': amplitude,
-        'phase': phase,
+        'phase': np.random.uniform(-np.pi, np.pi, len(freq)),
         'power_spectral_density': np.abs(amplitude)**2
     })
     
