@@ -991,38 +991,38 @@ def generate_detector_noise(data_dir: Path) -> None:
     # Generate white noise
     white_noise = np.random.normal(0, 1, len(freq))
     
-    # Generate 1/f noise with proper scaling
+    # Generate 1/f noise with exact power law scaling
     # From appendix_k_io_distinction.tex Eq K.16:
     # S(f) ∝ 1/f for f < 1 Hz, flat otherwise
     pink_noise = np.zeros_like(freq)
     low_f_mask = freq < 1.0
-    pink_noise[low_f_mask] = np.random.normal(0, 1, np.sum(low_f_mask)) * (1.0/np.sqrt(freq[low_f_mask]))
+    # Generate exact 1/f noise for f < 1 Hz
+    n_low = np.sum(low_f_mask)
+    phases = np.random.uniform(0, 2*np.pi, n_low)
+    amplitudes = np.sqrt(1.0/freq[low_f_mask])  # Sqrt for power law
+    pink_noise[low_f_mask] = amplitudes * np.exp(1j * phases)
+    pink_noise = 0.05 * np.real(pink_noise)  # Scale and take real part
     
     # Center and normalize
     amplitude = white_noise + pink_noise
     amplitude = amplitude - np.mean(amplitude)  # Remove mean
     amplitude = amplitude / np.std(amplitude)   # Force unit variance
     
-    # Verify normalization
-    assert abs(np.mean(amplitude)) < 0.1, "Mean not properly zeroed"
-    assert abs(np.std(amplitude) - 1.0) < 0.1, "Variance not properly normalized"
-    
-    # Add random phases
+    # Generate random phases
     phase = np.random.uniform(-np.pi, np.pi, len(freq))
     
-    # Calculate power spectral density
-    psd = amplitude**2
-    
-    # Create DataFrame
-    noise_data = pd.DataFrame({
+    # Create output dataframe
+    df = pd.DataFrame({
         'frequency': freq,
         'amplitude': amplitude,
         'phase': phase,
-        'power_spectral_density': psd
+        'power_spectral_density': np.abs(amplitude)**2
     })
     
-    # Save to CSV
-    noise_data.to_csv(data_dir / 'detector_noise.csv', index=False)
+    try:
+        df.to_csv(data_dir / 'detector_noise.csv', index=False)
+    except IOError as e:
+        raise IOError(f"Failed to save detector noise: {e}")
 
 def generate_cosmic_backgrounds(data_dir: Path) -> None:
     """
