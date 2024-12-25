@@ -1,0 +1,30 @@
+\begin{thebibliography}{1}
+
+\bibitem{lep2006}
+{ALEPH Collaboration}, {DELPHI Collaboration}, {L3 Collaboration}, and {OPAL
+  Collaboration}.
+\newblock Precision electroweak measurements on the z resonance.
+\newblock {\em Phys. Rept.}, 427:257--454, 2006.
+
+\bibitem{pdg2022}
+{Particle Data Group}.
+\newblock {Review of Particle Physics}.
+\newblock {\em PTEP}, 2022:083C01, 2022.
+
+\bibitem{planck2020}
+{Planck Collaboration}.
+\newblock {Planck 2018 results. VI. Cosmological parameters}.
+\newblock {\em Astron. Astrophys.}, 641:A6, 2020.
+
+\bibitem{t2k2021}
+{T2K Collaboration}.
+\newblock {Improved constraints on neutrino mixing from the T2K experiment with
+  $3.13\\times10^{21}$ protons on target}.
+\newblock {\em Phys. Rev. D}, 103:112008, 2021.
+
+\bibitem{xenon2018}
+{XENON Collaboration}.
+\newblock {Dark Matter Search Results from a One Ton-Year Exposure of XENON1T}.
+\newblock {\em Phys. Rev. Lett.}, 121:111302, 2018.
+
+\end{thebibliography}

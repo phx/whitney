@@ -21,21 +21,21 @@ wheels/
 *.egg
 
 # Hypothesis
-.hypothesis/
+#.hypothesis/
 
 # pytest
-.pytest_cache/
-htmlcov/
-.coverage
-.coverage.*
-coverage.xml
-*.cover
-.pytest_cache/
+#.pytest_cache/
+#htmlcov/
+#.coverage
+#.coverage.*
+#coverage.xml
+#*.cover
+#.pytest_cache/
 
 # mypy
-.mypy_cache/
-.dmypy.json
-dmypy.json
+#.mypy_cache/
+#.dmypy.json
+#dmypy.json
 
 # Jupyter Notebook
 .ipynb_checkpoints
@@ -56,20 +56,20 @@ venv.bak/
 *.swo
 
 # LaTeX
-*.aux
-*.bbl
-*.blg
-*.log
-*.out
-*.synctex.gz
+#*.aux
+#*.bbl
+#*.blg
+#*.log
+#*.out
+#*.synctex.gz
 
 # Project specific
-data/*.npy
-data/*.npz
+#data/*.npy
+#data/*.npz
 C*.pdf
-figures/*.pdf
-figures/*.png
-results/*.json
+#figures/*.pdf
+#figures/*.png
+#results/*.json
 
 # Temp files
 *.tmp
