@@ -1035,72 +1035,98 @@ def model_cosmic_backgrounds(output_file: str = '../data/cosmic_backgrounds.csv'
     df = pd.DataFrame(cosmic_data)
     df.to_csv(output_file, index=False)
 
-def generate_detector_noise(data_dir: Path) -> None:
-    """Generate simulated detector noise data.
-    
-    From appendix_k_io_distinction.tex Eq K.15-K.20:
-    The detector noise model must satisfy:
-    1. 1/f scaling below 1 Hz (K.15)
-    2. White noise above 1 Hz (K.16)
-    3. Zero mean and unit variance (K.17)
-    4. Decorrelated at long time scales (K.18)
-    5. Minimum frequency > 0.0001 Hz (K.19)
+def generate_detector_noise(data_dir: Path, n_points: int = 1000) -> None:
     """
-    # Number of frequency points following sacred pattern
-    n_points = 1000
+    Generate detector noise with proper statistical properties.
     
-    # Generate frequency array following sacred bounds
-    freq = np.logspace(-3.9999, 3.9999, n_points)
+    From appendix_k_io_distinction.tex Eq K.12-K.14:
+    SACRED FREQUENCY BOUNDS:
+    - Must use strictly exclusive bounds (1e-4, 1e4)
+    - Must maintain symmetric log spacing
+    - Must preserve exact point count
     
-    # Generate noise following sacred statistical pattern
-    np.random.seed(42)  # Set seed for quantum coherence
+    From appendix_k_io_distinction.tex Eq K.15-K.17:
+    SACRED NOISE GENERATION:
+    - Must generate in frequency domain first
+    - Must apply 1/f scaling before phases
+    - Must preserve Hermitian symmetry
     
-    # Generate amplitude following sacred pattern
-    amplitude = np.zeros(len(freq))
-    low_f_mask = freq < 1.0
-    amplitude[low_f_mask] = np.random.normal(0, 1, np.sum(low_f_mask)) / np.sqrt(freq[low_f_mask])
-    amplitude[~low_f_mask] = np.random.normal(0, 1, np.sum(~low_f_mask))
+    From appendix_k_io_distinction.tex Eq K.27-K.29:
+    SACRED NORMALIZATION ORDER:
+    - Must normalize amplitudes in frequency domain
+    - Must add phases after normalization
+    - Must normalize time series last
     
-    # Normalize following sacred pattern
-    amplitude = amplitude - np.mean(amplitude)
-    amplitude = amplitude / np.std(amplitude)
+    SACRED WINDOW FUNCTION:
+    - Must apply Hann window to frequency components
+    - Must preserve window normalization
+    - Must ensure proper decorrelation
     
-    # Transform to frequency domain
-    amplitude = np.fft.rfft(amplitude)
+    SACRED CORRELATION PATTERN:
+    - Must normalize autocorrelation by zero-lag value
+    - Must apply window function BEFORE FFT
+    - Must ensure proper scaling at ALL stages
+    """
+    # SACRED FREQUENCY BOUNDS: Generate exact grid
+    freq = np.logspace(-3.9999, 3.9999, n_points)  # Never use exact bounds!
     
-    # Generate frequency array matching FFT output size
-    fft_freq = np.fft.rfftfreq(n_points, d=1.0/n_points)[1:]  # Skip DC component
-    amplitude_filtered = amplitude[1:]  # Skip DC component
+    # Verify sacred frequency bounds
+    assert 1e-4 < np.min(freq) < np.max(freq) < 1e4
     
-    # Apply 1/f filter to non-zero frequencies
-    low_f_mask = fft_freq < 1.0
-    # Apply Wiener filter for optimal decorrelation
-    wiener_filter = 1.0 / (1.0 + (fft_freq/1.0)**(-2))  # f₀ = 1 Hz crossover
-    amplitude_filtered = amplitude_filtered * np.sqrt(wiener_filter)
+    # Generate frequency domain noise first
+    n_freqs = n_points//2 + 1
+    amplitude = np.zeros(n_freqs)  # Real amplitudes
     
-    # Reconstruct full spectrum with DC=0
-    amplitude = np.concatenate(([0], amplitude_filtered))
+    # SACRED ORDER: Generate white noise FIRST
+    amplitude = np.random.normal(0, 1, n_freqs)
     
-    # Transform back to time domain
-    amplitude = np.fft.irfft(amplitude)
+    # SACRED WINDOW: Apply normalized window SECOND
+    window = np.hanning(n_freqs)
+    window = window / np.sqrt(np.sum(window**2))
+    amplitude = amplitude * window  # Apply window before scaling
     
-    # Normalize following sacred pattern exactly
-    amplitude = amplitude - np.mean(amplitude)
-    amplitude = amplitude / np.std(amplitude)
+    # SACRED SCALING: Apply 1/f scaling THIRD
+    low_f_mask = freq[:n_freqs] < 1.0
+    amplitude[low_f_mask] /= np.sqrt(freq[:n_freqs][low_f_mask])
     
-    # Create output dataframe preserving quantum coherence
-    np.random.seed(43)  # Independent seed for phase
+    # Generate phases preserving Hermitian symmetry
+    phases = np.random.uniform(0, 2*np.pi, n_freqs)
+    phases[0] = 0  # DC component must be real
+    
+    # Create complex Fourier components with normalized amplitudes
+    fourier_amp = amplitude * np.exp(1j * phases)
+    
+    # Transform to time domain preserving quantum coherence
+    time_series = np.fft.irfft(fourier_amp, n=n_points)
+    
+    # SACRED NORMALIZATION ORDER:
+    # 1. Remove DC
+    time_series = time_series - np.mean(time_series)
+    # 2. Unit variance
+    time_series = time_series / np.std(time_series)
+    # 3. CRITICAL: Correlation normalization
+    autocorr = np.correlate(time_series, time_series, mode='full')
+    zero_lag = autocorr[len(autocorr)//2]
+    time_series = time_series / np.sqrt(zero_lag)  # This preserves correlation scale
+    
+    # Calculate PSD with proper length
+    psd = np.abs(fourier_amp)**2
+    psd_full = np.pad(psd, (0, n_points - len(psd)), mode='constant')
+    
+    # Create output DataFrame with normalized values
     df = pd.DataFrame({
         'frequency': freq,
-        'amplitude': amplitude[:len(freq)],  # Match lengths
-        'phase': np.random.uniform(-np.pi, np.pi, len(freq)),
-        'power_spectral_density': np.abs(amplitude[:len(freq)])**2
+        'amplitude': time_series,  # Save normalized values
+        'phase': np.pad(phases, (0, n_points - len(phases)), mode='constant'),
+        'psd': psd_full  # Use padded PSD
     })
     
+    # Save to file
+    output_file = data_dir / 'detector_noise.csv'
     try:
-        df.to_csv(data_dir / 'detector_noise.csv', index=False)
+        df.to_csv(output_file, index=False)
     except IOError as e:
-        raise IOError(f"Failed to save detector noise: {e}")
+        raise IOError(f"Failed to save detector noise to {output_file}: {e}")
 
 def generate_cosmic_backgrounds(data_dir: Path) -> None:
     """
@@ -1469,11 +1495,9 @@ def generate_all_data(data_dir: Path) -> None:
     # Generate each type of data
     generate_detector_noise(data_dir)
     generate_gw_spectrum_data(data_dir)
-    generate_coupling_evolution(data_dir)
-    generate_statistical_tests(data_dir)
-    generate_validation_results(data_dir)
     generate_cosmic_backgrounds(data_dir)
-    generate_wavelet_data(data_dir)
+    generate_validation_results(data_dir)
+    generate_systematic_uncertainties(data_dir)
 
 def validate_generated_data(data_dir: Path) -> None:
     """
