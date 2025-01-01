@@ -232,6 +232,7 @@ from pathlib import Path
 from math import pi
 import logging
 from scipy.stats import norm
+import scipy.signal
 
 # Initialize logging
 logging.basicConfig(level=logging.WARNING)
@@ -274,6 +275,88 @@ CORRELATION_MATRIX = {
         [0.03,  0.18,  1.0  ]   # delta_CP
     ])
 }
+
+# === SACRED CONSTANTS === #
+SACRED_FREQ_MIN = 1e-4  # From Eq K.14
+SACRED_FREQ_MAX = 1e4
+SACRED_EDGE_RATIO = 0.1
+SACRED_CUTOFF_FREQ = 1.0  # ω_0 in Eq K.16
+SACRED_CORRELATION_THRESHOLD = 0.1  # ε in Eq K.16
+SACRED_DECAY_SCALE = np.abs(SACRED_CUTOFF_FREQ) * np.log(1/SACRED_CORRELATION_THRESHOLD)  # ω_c
+SACRED_CORRELATION_LENGTH = 10  # Reduced from previous value for faster decay
+SACRED_FREQ_SCALE = 1e-4  # From Eq K.28
+SACRED_REFERENCE_FREQ = 1e-4  # From Eq K.28
+SACRED_SCALE_ALPHA = 0.1  # From Eq K.29
+
+def _generate_sacred_noise(n_points: int) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """Sacred implementation of quantum noise generation."""
+    # SACRED FREQUENCY BOUNDS (Eq K.14)
+    freq = np.logspace(-3.9999, 3.9999, n_points)
+    n_freqs = n_points//2 + 1
+    
+    # 0. SACRED GENERATION ORDER (Eq K.13)
+    # The quantum state MUST be generated in frequency domain first
+    fourier_amp = np.random.normal(0, 1, n_freqs) + 1j * np.random.normal(0, 1, n_freqs)
+    
+    # 1. SACRED PHASE GENERATION (Eq K.15)
+    phases = np.random.uniform(0, 2*np.pi, n_freqs)
+    phases[0] = 0  # DC must be real
+    if n_freqs % 2 == 0:
+        phases[-1] = 0  # Nyquist must be real
+    
+    # 2. APPLY SACRED PHASES
+    fourier_amp = fourier_amp * np.exp(1j * phases)
+    
+    # 4. SACRED UNIFIED SPECTRAL SCALING (Eq K.16)
+    f = np.abs(freq[:n_freqs])  # ABSOLUTE VALUE - critical for symmetry!
+    
+    # Handle DC component specially (ω = 0)
+    fourier_amp[0] = np.abs(fourier_amp[0])  # DC must be positive
+    
+    # Apply unified scaling law for ω ≠ 0
+    low_f_mask = (f > 0) & (f < SACRED_CUTOFF_FREQ)
+    high_f_mask = f >= SACRED_CUTOFF_FREQ
+    
+    # Scale according to sacred blueprint
+    fourier_amp[low_f_mask] /= np.sqrt(f[low_f_mask])  # 1/f noise
+    fourier_amp[high_f_mask] *= np.exp(-f[high_f_mask]/SACRED_DECAY_SCALE)  # Exponential decay
+    
+    # 5. SACRED EDGE TAPERING (Eq K.17)
+    edge_points = int(n_freqs * SACRED_EDGE_RATIO)
+    taper = np.ones(n_freqs)
+    taper[:edge_points] = np.hanning(2*edge_points)[:edge_points]
+    taper[-edge_points:] = np.hanning(2*edge_points)[-edge_points:]
+    fourier_amp = fourier_amp * taper
+    
+    # Final normalization
+    time_series = np.fft.irfft(fourier_amp, n=n_points)
+    
+    # Final normalization
+    time_series = time_series - np.mean(time_series)
+    time_series = time_series / np.std(time_series)
+    
+    return freq, time_series, phases, fourier_amp
+
+def generate_noise_data(n_points: int = 2000) -> np.ndarray:
+    """Generate quantum noise following sacred blueprint."""
+    freq, time_series, phases, fourier_amp = _generate_sacred_noise(n_points)
+    return time_series
+
+def generate_detector_noise(data_dir: Path, n_points: int = 1000) -> None:
+    """Generate detector noise with proper statistical properties."""
+    freq, time_series, phases, fourier_amp = _generate_sacred_noise(n_points)
+    
+    # Create output DataFrame
+    df = pd.DataFrame({
+        'frequency': freq,
+        'amplitude': time_series,
+        'phase': np.pad(phases, (0, n_points - len(phases)), mode='constant'),
+        'psd': np.pad(np.abs(fourier_amp)**2, (0, n_points - len(fourier_amp)), mode='constant')
+    })
+    
+    # Save to file
+    output_file = data_dir / 'detector_noise.csv'
+    df.to_csv(output_file, index=False)
 
 def calculate_total_uncertainty(stat_err: float, syst_err: float) -> float:
     """
@@ -547,7 +630,7 @@ def calculate_fractal_signatures(output_file: str = '../data/fractal_signatures.
     Implements key fractal signatures from paper Sec. 6:
     
     1. Coupling ratios:
-       R_ij(E) = g������(E)/gⱼ(E) ~ E^(γ���-γ���)
+       R_ij(E) = g(E)/gⱼ(E) ~ E^(γ-γ)
     
     2. Fractal dimension:
        D(E) = 4 + α*ln(E/M_Z)
@@ -1034,99 +1117,6 @@ def model_cosmic_backgrounds(output_file: str = '../data/cosmic_backgrounds.csv'
     
     df = pd.DataFrame(cosmic_data)
     df.to_csv(output_file, index=False)
-
-def generate_detector_noise(data_dir: Path, n_points: int = 1000) -> None:
-    """
-    Generate detector noise with proper statistical properties.
-    
-    From appendix_k_io_distinction.tex Eq K.12-K.14:
-    SACRED FREQUENCY BOUNDS:
-    - Must use strictly exclusive bounds (1e-4, 1e4)
-    - Must maintain symmetric log spacing
-    - Must preserve exact point count
-    
-    From appendix_k_io_distinction.tex Eq K.15-K.17:
-    SACRED NOISE GENERATION:
-    - Must generate in frequency domain first
-    - Must apply 1/f scaling before phases
-    - Must preserve Hermitian symmetry
-    
-    From appendix_k_io_distinction.tex Eq K.27-K.29:
-    SACRED NORMALIZATION ORDER:
-    - Must normalize amplitudes in frequency domain
-    - Must add phases after normalization
-    - Must normalize time series last
-    
-    SACRED WINDOW FUNCTION:
-    - Must apply Hann window to frequency components
-    - Must preserve window normalization
-    - Must ensure proper decorrelation
-    
-    SACRED CORRELATION PATTERN:
-    - Must normalize autocorrelation by zero-lag value
-    - Must apply window function BEFORE FFT
-    - Must ensure proper scaling at ALL stages
-    """
-    # SACRED FREQUENCY BOUNDS: Generate exact grid
-    freq = np.logspace(-3.9999, 3.9999, n_points)  # Never use exact bounds!
-    
-    # Verify sacred frequency bounds
-    assert 1e-4 < np.min(freq) < np.max(freq) < 1e4
-    
-    # Generate frequency domain noise first
-    n_freqs = n_points//2 + 1
-    amplitude = np.zeros(n_freqs)  # Real amplitudes
-    
-    # SACRED ORDER: Generate white noise FIRST
-    amplitude = np.random.normal(0, 1, n_freqs)
-    
-    # SACRED WINDOW: Apply normalized window SECOND
-    window = np.hanning(n_freqs)
-    window = window / np.sqrt(np.sum(window**2))
-    amplitude = amplitude * window  # Apply window before scaling
-    
-    # SACRED SCALING: Apply 1/f scaling THIRD
-    low_f_mask = freq[:n_freqs] < 1.0
-    amplitude[low_f_mask] /= np.sqrt(freq[:n_freqs][low_f_mask])
-    
-    # Generate phases preserving Hermitian symmetry
-    phases = np.random.uniform(0, 2*np.pi, n_freqs)
-    phases[0] = 0  # DC component must be real
-    
-    # Create complex Fourier components with normalized amplitudes
-    fourier_amp = amplitude * np.exp(1j * phases)
-    
-    # Transform to time domain preserving quantum coherence
-    time_series = np.fft.irfft(fourier_amp, n=n_points)
-    
-    # SACRED NORMALIZATION ORDER:
-    # 1. Remove DC
-    time_series = time_series - np.mean(time_series)
-    # 2. Unit variance
-    time_series = time_series / np.std(time_series)
-    # 3. CRITICAL: Correlation normalization
-    autocorr = np.correlate(time_series, time_series, mode='full')
-    zero_lag = autocorr[len(autocorr)//2]
-    time_series = time_series / np.sqrt(zero_lag)  # This preserves correlation scale
-    
-    # Calculate PSD with proper length
-    psd = np.abs(fourier_amp)**2
-    psd_full = np.pad(psd, (0, n_points - len(psd)), mode='constant')
-    
-    # Create output DataFrame with normalized values
-    df = pd.DataFrame({
-        'frequency': freq,
-        'amplitude': time_series,  # Save normalized values
-        'phase': np.pad(phases, (0, n_points - len(phases)), mode='constant'),
-        'psd': psd_full  # Use padded PSD
-    })
-    
-    # Save to file
-    output_file = data_dir / 'detector_noise.csv'
-    try:
-        df.to_csv(output_file, index=False)
-    except IOError as e:
-        raise IOError(f"Failed to save detector noise to {output_file}: {e}")
 
 def generate_cosmic_backgrounds(data_dir: Path) -> None:
     """
