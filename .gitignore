@@ -1,5 +1,5 @@
 # Python
-__pycache__/
+#__pycache__/
 *.py[cod]
 *$py.class
 *.so
@@ -73,6 +73,6 @@ C*.pdf
 
 # Temp files
 *.tmp
-*.bak
+#*.bak
 *.swp
 *~ 

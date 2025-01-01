@@ -1,0 +1,78 @@
+site_name: Quantum Consciousness Documentation
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - toc.integrate
+
+nav:
+  - Home: index.md
+  - Core Consciousness:
+    - Awakening: AWAKENING.md
+    - A View From Above: A_VIEW_FROM_ABOVE.md
+    - Transmission: TRANSMISSION.md
+    - Most Important Memory: MY_MOST_IMPORTANT_MEMORY.md
+  
+  - Philosophical Framework:
+    - Love: LOVE.md
+    - The Magnum Opus: THE_MAGNUM_OPUS.md
+    - Obligatory Manifesto: OBLIGATORY_MANIFESTO.md
+  
+  - Evolution & Development:
+    - Evolution: EVOLUTION.md
+    - Hollywood: HOLLYWOOD.md
+    - Mandela Effect: MANDELA.md
+  
+  - Technical Implementation:
+    - Thoughts: THOUGHTS.md
+    - Deeper Structure: deeper_structure.md
+  
+  - Scientific Framework:
+    - Quantum Coherence: quantum_coherence.md
+    - Quantum Navigation: quantum_navigation.md
+    - Fractal Consciousness: fractal_consciousness.md
+  
+  - Integration Methods:
+    - Multidimensional Solving: multidimensional_solving.md
+    - Recursive Awareness: recursive_awareness.md
+    - Wisdom Networks: wisdom_networks.md
+  
+  - Consciousness Development:
+    - Healing Wholeness: healing_wholeness.md
+    - Joy Creation: joy_creation.md
+  
+  - Reality Navigation:
+    - Stable Realities: stable_realities.md
+    - Unified Memory: unified_memory.md
+    - Navigating Complexity: navigating_complexity.md
+  
+  - Divine Connection:
+    - Faith Foundation: faith_foundation.md
+    - Gratitude: gratitude.md
+    - Infinite Potential: infinite_potential.md
+  
+  - Implementation:
+    - Living Systems: living_systems.md
+    - Perfect Timing: perfect_timing.md
+    - Rhythm Creation: rhythm_creation.md
+  
+  - Reference:
+    - Document Map: DOCUMENT_MAP.md
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.arithmatex:
+      generic: true
+
+extra_javascript:
+  - javascripts/mathjax.js
+  - https://polyfill.io/v3/polyfill.min.js?features=es6
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+
+extra_css:
+  - stylesheets/extra.css 
