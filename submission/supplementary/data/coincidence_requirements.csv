@@ -1,4 +1,4 @@
-Detector_Region,Time_Window_ns,Spatial_Window_cm,Energy_Threshold_GeV,Min_Multiplicity,Background_Rejection,Signal_Efficiency
+Detector_Region,window,spatial,threshold,Min_Multiplicity,Background_Rejection,Signal_Efficiency
 Tracker_Barrel,25,1.0,0.1,3,0.99,0.95
 Tracker_Endcap,25,2.0,0.1,3,0.98,0.93
 ECAL_Barrel,50,5.0,0.5,2,0.995,0.92

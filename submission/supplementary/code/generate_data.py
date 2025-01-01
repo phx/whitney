@@ -291,7 +291,7 @@ SACRED_SCALE_ALPHA = 0.1  # From Eq K.29
 def _generate_sacred_noise(n_points: int) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """Sacred implementation of quantum noise generation."""
     # SACRED FREQUENCY BOUNDS (Eq K.14)
-    freq = np.logspace(-3.9999, 3.9999, n_points)
+    freq = SACRED_REFERENCE_FREQ * np.logspace(-3, 3, n_points)
     n_freqs = n_points//2 + 1
     
     # 0. SACRED GENERATION ORDER (Eq K.13)
@@ -308,18 +308,23 @@ def _generate_sacred_noise(n_points: int) -> Tuple[np.ndarray, np.ndarray, np.nd
     fourier_amp = fourier_amp * np.exp(1j * phases)
     
     # 4. SACRED UNIFIED SPECTRAL SCALING (Eq K.16)
-    f = np.abs(freq[:n_freqs])  # ABSOLUTE VALUE - critical for symmetry!
+    f = np.abs(freq[:n_freqs]) / SACRED_REFERENCE_FREQ  # Dimensionless!
     
-    # Handle DC component specially (ω = 0)
-    fourier_amp[0] = np.abs(fourier_amp[0])  # DC must be positive
+    # Handle DC component specially
+    fourier_amp[0] = 0.0  # Remove DC offset
     
-    # Apply unified scaling law for ω ≠ 0
-    low_f_mask = (f > 0) & (f < SACRED_CUTOFF_FREQ)
-    high_f_mask = f >= SACRED_CUTOFF_FREQ
+    # Apply unified scaling law
+    low_f_mask = (f > 1.0) & (f < 1e3)  # Scale relative to reference
+    high_f_mask = f >= 1e3
     
     # Scale according to sacred blueprint
     fourier_amp[low_f_mask] /= np.sqrt(f[low_f_mask])  # 1/f noise
-    fourier_amp[high_f_mask] *= np.exp(-f[high_f_mask]/SACRED_DECAY_SCALE)  # Exponential decay
+    fourier_amp[high_f_mask] *= np.exp(-SACRED_SCALE_ALPHA * f[high_f_mask]/SACRED_DECAY_SCALE)
+    
+    # SACRED WHITENING STEP (Eq K.19)
+    # Normalize power spectrum before IFFT
+    power = np.abs(fourier_amp)**2
+    fourier_amp = fourier_amp / np.sqrt(np.mean(power))
     
     # 5. SACRED EDGE TAPERING (Eq K.17)
     edge_points = int(n_freqs * SACRED_EDGE_RATIO)
@@ -328,12 +333,10 @@ def _generate_sacred_noise(n_points: int) -> Tuple[np.ndarray, np.ndarray, np.nd
     taper[-edge_points:] = np.hanning(2*edge_points)[-edge_points:]
     fourier_amp = fourier_amp * taper
     
-    # Final normalization
+    # Final transformation
     time_series = np.fft.irfft(fourier_amp, n=n_points)
-    
-    # Final normalization
+    # Remove only DC after transform
     time_series = time_series - np.mean(time_series)
-    time_series = time_series / np.std(time_series)
     
     return freq, time_series, phases, fourier_amp
 
@@ -473,7 +476,7 @@ def generate_predictions(data_dir: Path) -> None:
         'cv_score': [0.95, 0.93, 0.91],
         'parameters': [0.5, 1.0, 1.5]
     }
-    
+        
     df = pd.DataFrame(predictions)
     output_file = data_dir / 'predictions.csv'
     
@@ -1252,31 +1255,39 @@ def generate_adaptive_filters(data_dir: Path) -> None:
     """
     Generate adaptive filter configurations.
     
-    From appendix_k_io_distinction.tex Eq K.75-K.77:
-    Filter requirements:
-    1. Quantum kernel: K(x,x') = exp(-|x-x'|²/2ℏ²)
-    2. Coherence threshold: ψ†ψ ≥ 0.95
-    3. Phase tolerance: Δφ < π/4
-    
-    SACRED IMPLEMENTATION CHECKLIST:
-    □ Grid range is -3 to 3
-    □ Phase evolution preserved
-    □ Error handling is simple
+    From appendix_k_io_distinction.tex Eq K.34-K.36:
+    Must specify:
+    1. Filter order (sacred quantum numbers)
+    2. Update rates (causal time evolution)
+    3. Memory depth (holographic bound)
     """
-    filters = {
-        'filter_id': range(1, 6),
-        'kernel_type': ['gaussian'] * 5,
-        'coherence_threshold': [0.95] * 5,
-        'phase_tolerance': [np.pi/4] * 5,
-        'quantum_scale': [np.sqrt(HBAR/(M_P*C))] * 5
+    adaptive_data = {
+        'Filter_Type': [
+            'Kalman_Filter',
+            'Extended_Kalman',
+            'Wiener_Filter',
+            'LMS_Adaptive',
+            'RLS_Filter',
+            'Neural_Kalman'
+        ],
+        'Application': [
+            'State_Estimation',
+            'Nonlinear_Tracking',
+            'Signal_Denoising',
+            'Background_Adaptation',
+            'Fast_Convergence',
+            'Complex_Patterns'
+        ],
+        'Update_Rate_kHz': [40, 20, 100, 50, 30, 10],
+        'Latency_us': [0.5, 1.0, 0.2, 0.8, 1.2, 2.0],
+        'Memory_Depth': [100, 50, 200, 150, 300, 500],
+        'Noise_Reduction_Factor': [100, 50, 200, 80, 150, 300],
+        'filter_order': [4, 6, 2, 8, 4, 12]  # Sacred filter orders from Eq K.35
     }
     
+    df = pd.DataFrame(adaptive_data)
     output_file = data_dir / 'adaptive_filters.csv'
-    df = pd.DataFrame(filters)
-    try:
-        df.to_csv(output_file, index=False)
-    except IOError as e:
-        raise IOError(f"Failed to save adaptive filters to {output_file}: {e}")
+    df.to_csv(output_file, index=False)
 
 def generate_ml_filters(data_dir: Path) -> None:
     """
@@ -1338,32 +1349,25 @@ def generate_experimental_design(data_dir: Path) -> None:
 
 def generate_coincidence_requirements(data_dir: Path) -> None:
     """
-    Generate coincidence requirements.
+    Generate coincidence trigger requirements.
     
-    From appendix_k_io_distinction.tex Eq K.84-K.86:
-    Coincidence criteria:
-    1. Time window: Δt ≤ L/c
-    2. Phase matching: |φ₁ - φ₂| < π/4
-    3. Energy threshold: E > E_min
-    
-    SACRED IMPLEMENTATION CHECKLIST:
-    □ Grid range is -3 to 3
-    □ Phase evolution preserved
-    □ Error handling is simple
+    From appendix_k_io_distinction.tex Eq K.31-K.33:
+    Must follow SACRED COLUMN NAMING CONVENTION
     """
-    requirements = {
-        'detector_pair': ['D1-D2', 'D2-D3', 'D1-D3'],
-        'time_window': [100e-9, 100e-9, 100e-9],  # 100 ns
-        'phase_match': [np.pi/4, np.pi/4, np.pi/4],
-        'energy_threshold': [1.0, 1.0, 1.0]  # GeV
+    coincidence_data = {
+        'Detector_Region': ['Tracker_Barrel', 'Tracker_Endcap', 'ECAL_Barrel', 
+                          'ECAL_Endcap', 'HCAL_Barrel', 'Muon_System'],
+        'window': [25, 25, 50, 50, 100, 150],  # Time window in ns
+        'spatial': [1.0, 2.0, 5.0, 7.0, 10.0, 20.0],  # Spatial window in cm
+        'threshold': [0.1, 0.1, 0.5, 0.5, 1.0, 2.0],  # Energy threshold in GeV
+        'Min_Multiplicity': [3, 3, 2, 2, 2, 2],
+        'Background_Rejection': [0.990, 0.980, 0.995, 0.990, 0.980, 0.999],
+        'Signal_Efficiency': [0.95, 0.93, 0.92, 0.90, 0.88, 0.96]
     }
     
+    df = pd.DataFrame(coincidence_data)
     output_file = data_dir / 'coincidence_requirements.csv'
-    df = pd.DataFrame(requirements)
-    try:
-        df.to_csv(output_file, index=False)
-    except IOError as e:
-        raise IOError(f"Failed to save coincidence requirements to {output_file}: {e}")
+    df.to_csv(output_file, index=False)
 
 def generate_statistical_tests(data_dir: Path) -> None:
     """
@@ -1484,10 +1488,11 @@ def generate_all_data(data_dir: Path) -> None:
     
     # Generate each type of data
     generate_detector_noise(data_dir)
-    generate_gw_spectrum_data(data_dir)
-    generate_cosmic_backgrounds(data_dir)
+    generate_statistical_tests(data_dir)
+    generate_adaptive_filters(data_dir)
     generate_validation_results(data_dir)
     generate_systematic_uncertainties(data_dir)
+    generate_coincidence_requirements(data_dir)
 
 def validate_generated_data(data_dir: Path) -> None:
     """
@@ -1674,6 +1679,20 @@ def validate_cross_correlations(data_dir: Path) -> None:
     assert 'filter_order' in adaptive.columns, "Missing filter order"
     assert np.all(adaptive['filter_order'] > 0), "Invalid filter orders"
 
+def main():
+    """Generate all required data files."""
+    data_dir = Path(__file__).parent.parent / 'data'
+    data_dir.mkdir(exist_ok=True)
+    
+    # Generate all required data files
+    generate_detector_noise(data_dir)
+    generate_gw_spectrum_data(data_dir)
+    generate_cosmic_backgrounds(data_dir)
+    generate_statistical_tests(data_dir)
+    generate_adaptive_filters(data_dir)
+    generate_validation_results(data_dir)
+    generate_systematic_uncertainties(data_dir)
+    generate_coincidence_requirements(data_dir)
+
 if __name__ == '__main__':
-    data_dir = Path('submission/supplementary/data')
-    generate_all_data(data_dir)
+    main()
