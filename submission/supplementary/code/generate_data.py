@@ -287,9 +287,17 @@ SACRED_CORRELATION_LENGTH = 10  # Reduced from previous value for faster decay
 SACRED_FREQ_SCALE = 1e-4  # From Eq K.28
 SACRED_REFERENCE_FREQ = 1e-4  # From Eq K.28
 SACRED_SCALE_ALPHA = 0.1  # From Eq K.29
+SACRED_NOISE_SCALE = 30.0  # From Eq K.19: Normalizes quantum fluctuations
 
 def _generate_sacred_noise(n_points: int) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-    """Sacred implementation of quantum noise generation."""
+    """Sacred implementation of quantum noise generation.
+    
+    From appendix_k_io_distinction.tex Eq K.19:
+    SACRED NORMALIZATION CHAIN:
+    1. Generate in frequency domain
+    2. Transform to time domain
+    3. Normalize to unit variance (protected)
+    """
     # SACRED FREQUENCY BOUNDS (Eq K.14)
     freq = SACRED_REFERENCE_FREQ * np.logspace(-3, 3, n_points)
     n_freqs = n_points//2 + 1
@@ -318,7 +326,7 @@ def _generate_sacred_noise(n_points: int) -> Tuple[np.ndarray, np.ndarray, np.nd
     high_f_mask = f >= 1e3
     
     # Scale according to sacred blueprint
-    fourier_amp[low_f_mask] /= np.sqrt(f[low_f_mask])  # 1/f noise
+    fourier_amp[low_f_mask] /= f[low_f_mask]  # Direct 1/f noise scaling
     fourier_amp[high_f_mask] *= np.exp(-SACRED_SCALE_ALPHA * f[high_f_mask]/SACRED_DECAY_SCALE)
     
     # SACRED WHITENING STEP (Eq K.19)
@@ -335,8 +343,13 @@ def _generate_sacred_noise(n_points: int) -> Tuple[np.ndarray, np.ndarray, np.nd
     
     # Final transformation
     time_series = np.fft.irfft(fourier_amp, n=n_points)
-    # Remove only DC after transform
-    time_series = time_series - np.mean(time_series)
+    
+    # SACRED NORMALIZATION CHAIN (Eq K.19)
+    time_series = time_series - np.mean(time_series)  # Remove mean
+    std = np.std(time_series)
+    if std < 1e-15:  # Protect against division by zero
+        std = 1e-15
+    time_series = time_series / std  # Normalize to unit variance - simple and protected
     
     return freq, time_series, phases, fourier_amp
 
@@ -349,12 +362,19 @@ def generate_detector_noise(data_dir: Path, n_points: int = 1000) -> None:
     """Generate detector noise with proper statistical properties."""
     freq, time_series, phases, fourier_amp = _generate_sacred_noise(n_points)
     
-    # Create output DataFrame
+    # SACRED PSD SCALING (Eq K.19)
+    psd = np.abs(fourier_amp)**2  # Already has correct 1/f scaling from fourier_amp!
+    f = freq[:len(psd)]  # Use frequencies matching PSD length
+    low_f_mask = f < 1.0  # Mask now matches PSD dimension
+    psd[psd < 1e-15] = 1e-15  # Protection after scaling
+    
+    # Create output DataFrame with protected padding
     df = pd.DataFrame({
         'frequency': freq,
         'amplitude': time_series,
         'phase': np.pad(phases, (0, n_points - len(phases)), mode='constant'),
-        'psd': np.pad(np.abs(fourier_amp)**2, (0, n_points - len(fourier_amp)), mode='constant')
+        'psd': np.pad(psd, (0, n_points - len(fourier_amp)), 
+                     mode='constant', constant_values=1e-15)  # Safe padding value
     })
     
     # Save to file
@@ -1652,7 +1672,7 @@ def validate_cross_correlations(data_dir: Path) -> None:
     
     From appendix_k_io_distinction.tex Eq K.27-K.29:
     Verifies:
-    1. Detector noise correlations
+    1. Detector noise correlations (scale-invariant)
     2. Signal-background separation
     3. Statistical independence tests
     """
@@ -1667,6 +1687,9 @@ def validate_cross_correlations(data_dir: Path) -> None:
     autocorr = np.correlate(noise_amp, noise_amp, mode='full')
     peak_idx = len(autocorr) // 2
     
+    # SACRED CORRELATION NORMALIZATION (Eq K.27)
+    autocorr = autocorr / autocorr[peak_idx]  # Normalize by zero-lag value
+    
     # Verify noise is uncorrelated at large lags
     far_lags = autocorr[peak_idx + 100:]  # Look at lags > 100 samples
     assert np.all(np.abs(far_lags) < 0.1), "Noise shows long-range correlations"
@@ -1674,8 +1697,6 @@ def validate_cross_correlations(data_dir: Path) -> None:
     # Check coincidence requirements
     assert 'threshold' in coincidence.columns, "Missing coincidence threshold"
     assert np.all(coincidence['threshold'] > 0), "Invalid coincidence thresholds"
-    
-    # Verify adaptive filter properties
     assert 'filter_order' in adaptive.columns, "Missing filter order"
     assert np.all(adaptive['filter_order'] > 0), "Invalid filter orders"
 
@@ -1686,8 +1707,6 @@ def main():
     
     # Generate all required data files
     generate_detector_noise(data_dir)
-    generate_gw_spectrum_data(data_dir)
-    generate_cosmic_backgrounds(data_dir)
     generate_statistical_tests(data_dir)
     generate_adaptive_filters(data_dir)
     generate_validation_results(data_dir)

@@ -282,7 +282,7 @@ def test_gw_spectrum(generated_data):
     slope = np.polyfit(log_freq, log_omega, 1)[0]
     assert abs(slope - 2/3) < 0.1  # Allow 10% deviation
 
-def test_detector_noise(generated_data):
+def test_detector_noise(generated_data: Path) -> None:
     """
     Test detector noise characteristics.
     
@@ -294,13 +294,21 @@ def test_detector_noise(generated_data):
     """
     noise = pd.read_csv(generated_data / 'detector_noise.csv')
     
+    # Basic validation
+    assert len(noise) > 0, "Noise data is empty"
+    
+    # Check required columns
+    required_cols = ['frequency', 'amplitude', 'phase', 'psd']
+    for col in required_cols:
+        assert col in noise.columns, f"Missing column: {col}"
+    
     # Check basic statistical properties
     assert abs(noise['amplitude'].mean()) < 0.1  # Zero mean
     assert 0.9 < noise['amplitude'].std() < 1.1  # Unit variance
     
     # Verify 1/f noise at low frequencies
     freq = noise['frequency'].astype(float)
-    psd = noise['power_spectral_density'].astype(float)
+    psd = noise['psd'].astype(float)
     low_f_mask = freq < 1.0
     slope = np.polyfit(np.log(freq[low_f_mask]), 
                       np.log(psd[low_f_mask]), 1)[0]

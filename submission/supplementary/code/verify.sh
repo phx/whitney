@@ -56,16 +56,18 @@ run_previously_passing_tests() {
 }
 
 run_test_file() {
+  python generate_data.py
   pytest tests/"$1" ${@:2}
 }
 
 run_test_group() {
+  python generate_data.py
   pytest tests/test_generate_data.py ${@:2}
 }
 
 run_current_test() {
   python generate_data.py
-  pytest tests/test_generate_data.py::test_cross_correlations -vv --tb=long --showlocals
+  pytest tests/test_generate_data.py::test_detector_noise -vv --tb=long --showlocals
 }
 
 # tests/test_basis.py::test_inheritance PASSED                                                                                       [  3%]
