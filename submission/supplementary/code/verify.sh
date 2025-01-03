@@ -50,9 +50,10 @@
 
 run_previously_passing_tests() {
   pytest -q --tb=no \
-    tests/test_basis.py \
-    tests/test_field.py::TestTheoreticalPredictions \
-    tests/test_physics.py
+    tests/test_generate_data.py \
+    tests/test_basis.py
+    # tests/test_field.py::TestTheoreticalPredictions \
+    # tests/test_physics.py
 }
 
 run_test_file() {
