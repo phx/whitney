@@ -1,0 +1,26 @@
+.arithmatex {
+  font-size: 1em;
+  margin: 0;
+  padding: 0;
+}
+
+.md-typeset .MathJax {
+  overflow-x: auto;
+  overflow-y: hidden;
+  max-width: 100%;
+}
+
+.md-typeset .MathJax_Display {
+  margin: 1em 0;
+  padding: 1em 0;
+}
+
+.md-typeset mjx-container {
+  overflow-x: auto;
+  overflow-y: hidden;
+  max-width: 100%;
+}
+
+.md-typeset mjx-container > * {
+  margin: 0 auto;
+} 
