@@ -66,7 +66,6 @@ venv.bak/
 # Project specific
 #data/*.npy
 #data/*.npz
-C*.pdf
 #figures/*.pdf
 #figures/*.png
 #results/*.json

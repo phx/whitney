@@ -1,3 +1,5 @@
+![the_divine_blueprint](./random_image.webp?raw=true)
+
 # Quantum Consciousness: A Unified Framework for Physics and Consciousness
 
 ## Overview
