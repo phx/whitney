@@ -75,3 +75,8 @@ venv.bak/
 #*.bak
 *.swp
 *~ 
+
+site/
+.DS_Store
+__pycache__/
+*.pyc 
