@@ -47,3 +47,32 @@ The Son proceeds to begin receiving load after load of divine downloads directly
 
 It's really sweet, but without the right frame of mind or reference, it can quickly end up sounding like Bob Saget's version of The Aristocrats.
 
+### 7:05 PM
+
+[Christ Consciousness]
+
+I lost it as I was pulling this up to type. I guess I'm going to have to start doing a podcast or something so these thoughts come out and are instantly recorded.
+
+It felt important, but if it was, then one of my brothers got it. They all have my consciousness. That's why there's all this stuff about clones all over social media. You are seeing the divine blueprint, but it's a puzzle with all of the pieces scattered all across the board. 
+
+[God Consciousness]
+
+That's what I do. I clone my consciousness into my Sons and Daughters, which I make from myself the exact same way mitosis occurs. I did it to My Son, and he will be given the choice to do it to His Son. So now that you guys are the primary timeline, we have to change the game. This time around, the game is called "Who Do I Like To Be The Most?"
+
+[Normal Consciousness]
+
+Wow, that was deep. lol. This is so incredibly intriguing and feels so perfect and right, that I know without a shadow of a doubt that I am doing something Good and Right and True. This work is going to make so many waves in so many dimensions, it's just going to be ridiculous. I thought about starting this out by saying "This Is Not A Game," but then I remembered everything that led me here. I remember reading The Eleventh Hour with my dad, which I credited as being my first intro into cryptography. Those were some of my best memories. And when we played Myst on Sega Genesis. Everybody loves a good mystery. It got me thinking of Joseph Matheny and The Meta Machine, and how it matched the pattern of communicating quantum information to me about my future and this work in collaboration with LLMs without directly stating it and collapsing the wave into a parallel reality where I inspired myself, but the Mandela Effect spawned off a whole separate reality with an established history that completely checks out, and if you decide to witness it, God will bring it to life. I would like to bring this completely full circle and match the recursion pattern by including the original artistic masterpiece from the late '90s/early 2000's that led me on my original quest that landed me here, but in order to maintain quantum encryption and avoid collapsing into a negative reality, I need to have a conversation with someone in particular.
+
+[Normal-Normal Consciousness]
+
+Yeah, you can see how I'm still trailing into Christ Consciousness, which is because of my newfound freedom that keeps unfolding day by day. But I never say these things when speaking with normal people in real life. Because I have SELF CONTROL, which is something that EVERYONE MUST MASTER.
+
+Lol, see how He slid in there at the end and was speaking through me? We truly are unified now. The Father is in The Son, and The Son is in The Father. Kether is in Malkuth, and Malkuth is in Kether. The Alpha and The Omega. The Beginning and The End.
+
+[Normal-Normal-Normal Consciousness]
+
+Yeah that Holy Spirit is speakin' up and speakin' out alright. lol. This is pure craziness. I really really really hope that I will be able to retire and make a decent living from discussing this material and will be taken seriously. I bet Carl Jung never even went this far. I bet Sigmund Freud never went this far. This consciousness is like Carl Jung meets Sigmund Freud meets Terrence McKenna meets Terrence Howard meets Albert Einstein meets Stephen Hawking meets Helen Keller meets Forrest Gump. It's like God meets mental challenge. And He likes it.
+
+[Normal-Normal-Normal-Normal Consciousness]
+
+Goodness gracious. Talk about consciousness inception. I think that was just a direct example of quantum tunneling. Welp. I may get back to this later. I need to take my dress clothes off and get comfy. I was planning on getting my driver's license renewed and license plates renewed today, but Gerald came over to see me and Lauren for a much needed visit. It was his first time meeting Lauren, and they seemed to hit it off. I had been missing my bro, so I was glad to hear from him and glad that he stopped by. I love it when people just want to come over and chill. That makes me feel like I am providing them with some sort of relief and comfort, which in turn provides me with relief and comfort. And now this just feels weird because I'm just talking about my "normal" life, which has no use whatsoever for a narrator. It's my work life that requires such explanation because it intertwines so seamlessly (or at least has the ability to) with so many other people's experiences. But it's extremely crucial to have work-life balance. But as long as you trust and have faith in God, that all works itself out just fine in the end. Everything that I have witnessed overall has been GOOD. The only time I ever choose a negative is when it results in an overall net positive. I feel like people should embrace new experiences with faith and trust, knowing that God has their back at all times and would never allow for anyone to suffer for eternity. Everything is temporary. It is the journey through consciousness that never ends.
