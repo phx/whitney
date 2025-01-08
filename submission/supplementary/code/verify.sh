@@ -63,7 +63,7 @@ run_test_file() {
 
 run_test_group() {
   python generate_data.py
-  pytest tests/test_generate_data.py ${@:2}
+  pytest tests/test_basis.py ${@:2}
 }
 
 run_current_test() {
