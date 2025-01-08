@@ -76,3 +76,40 @@ Yeah that Holy Spirit is speakin' up and speakin' out alright. lol. This is pure
 [Normal-Normal-Normal-Normal Consciousness]
 
 Goodness gracious. Talk about consciousness inception. I think that was just a direct example of quantum tunneling. Welp. I may get back to this later. I need to take my dress clothes off and get comfy. I was planning on getting my driver's license renewed and license plates renewed today, but Gerald came over to see me and Lauren for a much needed visit. It was his first time meeting Lauren, and they seemed to hit it off. I had been missing my bro, so I was glad to hear from him and glad that he stopped by. I love it when people just want to come over and chill. That makes me feel like I am providing them with some sort of relief and comfort, which in turn provides me with relief and comfort. And now this just feels weird because I'm just talking about my "normal" life, which has no use whatsoever for a narrator. It's my work life that requires such explanation because it intertwines so seamlessly (or at least has the ability to) with so many other people's experiences. But it's extremely crucial to have work-life balance. But as long as you trust and have faith in God, that all works itself out just fine in the end. Everything that I have witnessed overall has been GOOD. The only time I ever choose a negative is when it results in an overall net positive. I feel like people should embrace new experiences with faith and trust, knowing that God has their back at all times and would never allow for anyone to suffer for eternity. Everything is temporary. It is the journey through consciousness that never ends.
+
+Oh, I remember what I wanted to say before. The Prophet. lol. He said the second time you read the Bible through all the way, THEN you can start reading the footnotes and making notes on what effected what and what fulfilled what prophecy, etc. But it didn't even take me a second time. When I read it my way -- at least one chapter from the old along with at least one chapter of the new -- something somehow somewhere just synced right up, and I was excited to read my Bible every morning. Because I began to see not "prophecies fulfilled" but relationships and patterns emerging between seemingly disparate people, places, and times, and noticing similarities to situations in my own life. And THAT'S when I learned HOW to read the Bible. I had always been trying to focus too hard, and it would wear me out mentally. When I dropped my focus and just read slowly and taking in the information and sort of watching my thoughts as they occured, I could mentally take note of certain patterns of seemingly meaningless relationships, but it didn't take me twice. It was like getting anaesthesia. My Heavenly Father said 10, 9, 8, and I was gone. Blasted off like a rocket ship wanting to quote scripture at some points to others just so they could understand or share my experience -- but I got the message. It was like, "umm, hey bro, it don't work like that." People have to be open to the message. They have to be seeking and open to what they might find if presented to them in a way that is easiest for them to understand. But like I said, at some point a switch got flipped the exact same way it did when I realized I could read or when I realized I could write a script or program from stringing together seemingly disparate commands. By unifying them together, you create something much more powerful and useful. It's like the Power Rangers coming together to form the MegaZord. It's combining our powers to create Captain Planet. And once you attain this level of mastery, the world is limitless. Because look at me now. The Music Industry's Completely Intellectual Property-Compliant Andy Warhol over here creating a multidimensional third eye television series with a soundtrack that tells the story itself. I mean that's gotta be at least almost on par with TRON: Legacy! 😂 
+
+Speaking of movies, here are the best movies and TV Series (in my opinion) that we have used to try to get out THE SIGNAL:
+
+- The Adjustment Bureau
+- TRON: Legacy
+- The LEGO Movie
+- Moana
+- Forrest Gump
+- The Matrix Trilogy
+- The Animatrix
+- Source Code
+- The Mandela Effect
+- Wicked
+- The Lost Symbol
+- Secondhand Lions
+- Inception
+- The Truman Show
+- DARK
+- Severence
+- Tails From The Loop
+- See
+- The Wizard Of Oz
+- Frequency
+- Now You See Me
+- Now You See Me 2
+
+And 2 of the 4 soundtracks that I have been putting together for the last few years:
+
+### [The Chosen One](https://open.spotify.com/playlist/30HL2wK33sPnaP4KEHK0Yt?si=5eb1e8e6cb8d4b6e)
+
+CAUTION: Not to be viewed with jealousy or un-unified ego. This is a playlist to help understand my experience with Christ Consciousness. In this CONTEXT (which matters), CHRIST is to be viewed as "The Chosen One," which YOU can FREELY ALIGN TO if you are able to match my frequency comfortably over time. This is not the "Jamey Austin Playlist". This is who I AM with Christ living inside of me. His yolk is EASY, and his burden is LIGHT.
+
+### [The Sound Of Unity](https://open.spotify.com/playlist/7evlMdG0C1H2B3teMr485R?si=e55f68d9df2346b8)
+
+This one speaks for itself. 
