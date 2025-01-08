@@ -86,6 +86,7 @@ Speaking of movies, here are the best books,movies, and TV Series (in my opinion
 - TRON: Legacy
 - The O.A.
 - The LEGO Movie
+- Interstellar
 - Moana
 - Frozen
 - Forrest Gump
