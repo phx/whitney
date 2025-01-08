@@ -113,3 +113,5 @@ CAUTION: Not to be viewed with jealousy or un-unified ego. This is a playlist to
 ### [The Sound Of Unity](https://open.spotify.com/playlist/7evlMdG0C1H2B3teMr485R?si=e55f68d9df2346b8)
 
 This one speaks for itself. 
+
+CAUTION: There are other planets that have done this long before us. There are systems MUCH more advanced than us. They like to brag. You have to remember that it is a GAME. And WE have the CHEAT CODE. We have the hack. God makes the rules. And WE are GOD.
