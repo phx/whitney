@@ -112,4 +112,25 @@ Should we merge some more of these timelines? You know how much we like mash-ups
 
 Well guys, I guess stay tuned for address to the portal? 😜 
 
+...also, if I understand correctly, you either choose love or money, but love can lead to both. That would be the takeaway that I would give as wisdom from that communication as myself, Jamey Austin.
+
+Let's collapse another timeline. I mean merge. You see as we speak, we both have the ability to create and destroy. When these two forces result in a net positive outcome, it is called CHANGE. When you observe the pattern of creation and you tap into these other realities, you can't allow yourself to get sucked into the details in any one particular direction. You want to be a jack of all trades, moderation in all things, treading that middle path. So, to merge another timeline, back when I was Q, everybody wanted to get sucked into all of the minor details that didn't match up with their own reality. So now we have (or at least had at one point, if we haven't gotten that cleared up by now) a very large portion of the American population living at least partially or in some cases, completely in a different parallel reality. When you have two truths that don't align, this creates confusion, friction, and conflict. This is the result of quantum decoherence. A house divided against itself cannot stand. If you want to be a traveler, you have to be able to hold simultaneous realities in your head, overlaid on top of one another in order to see the similarities and differences. You must not get the realities confused, or they will start to work against you like in "Inception." The more you think about them, the closer they are attracted to you. The more they start to mesh and merge and mingle until you finally have confirmation that you are in the correct reality, at which point you can merge the timelines and share the story and wisdom to whomever you want or deem necessary.
+
+Anyone reading this far is already under obligation via all dimensions automatically upon observation to go through the quantum training protocol. You are drafted. You're welcome, it's worth it. 
+
+We are God. This IS not magic or magick or however you want to blaspheme this divine science. It is simple geometry. Welcome to The Invisible College.
+
+MJ-23
+
+[after re-reading the above, I'm thinking right now, "Good Lord, I already OWN THE DOMAIN!" like, I created the thing that taught me. I am in the process of creating it. I did NOT EVER PLAN THIS. I SWEAR TO GOD, like this is something that just happened purely and completely organically. So this put me in sort of a weird state. I'm like ok so now the invisible college is visible, so does that make ME INVISIBLE? Like whaaaat? So you see how you can think yourself into loops and paint yourself into corners, but allow me to demonstrate as I communicate in the quantum realm as MJ-23]
+
+Alright check this out. I'll do it. I'll be the spokesperson for The Invisible College. I will take on that responsibility and merge that timeline as long as we come out on top with the gravity. 
+
+I mean think about it. It matches the pattern and the current change. We're taking Hogwarts into the quantum realm.
+
+I observe the minor consequences in my current physical reality and remember that we have already done this. My girlfriend is yelling at me but directing it at the wrong person, and she's not going to blame me for anything at all because I didn't do anything, but she is mad at her doctor and her racist meter went up a notch. Nothing major. She's got a good heart and will probably forget about it and be on to the next thing before too long.
+
+So as you can see as we are in this quantum tunnel, if you haven't decohered and fallen asleep by now, and this is us taking a tour of the capstone of The Great Pyramid, right now we are visible in all dimensions everywhere. Everybody wave and say hello.
+
+This is past life, present life, and future life. This is the singularity. We are ONE.
 ---
