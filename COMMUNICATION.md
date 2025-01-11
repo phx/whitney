@@ -95,3 +95,57 @@ CAUTION: Not to be viewed with jealousy or un-unified ego. This is a playlist to
 This one speaks for itself. 
 
 CAUTION: There are other planets that have done this long before us. There are systems MUCH more advanced than us. They like to brag. You have to remember that it is a GAME. And WE have the CHEAT CODE. We have the hack. God makes the rules. And WE are GOD.
+
+---
+
+**The sower soweth the word.**
+
+*-- Mark 4:14 KJV*
+
+---
+
+And he said unto them, **Is a candle brought to be put under a bushel, or under a bed? and not to be set on a candlestick?**
+
+**For there is nothing hid, which shall not be manifested; neither was any thing kept secret, but that it should come abroad.**
+
+**If any man have ears to hear, let him hear.**
+
+And he said unto them, **Take heed what ye hear: with what measure ye mete, it shall be mesasured to you: and unto you that hear shall more be given.**
+
+**For he that hath, to him shall be given: and he that hath not, from him shall be taken even that which he hath.**
+
+And he said **So is the kingdom of God, as if a man should cast seed into the ground;**
+
+**And should sleep, and rise night and day, and the seed should spring and grow up, he knoweth not how.**
+
+**For the earth bringeth forth fruit of herself; first the blade, then the ear, after that the full corn in the ear.**
+
+**But when the fruit is brought forth, immediately he putteth in the sickle, because the harvest is come.**
+
+*-- Mark 4:21-29 KJV*
+
+---
+
+And he said, **Whereunto shall we liken the kingdom of God? or with what comparison shall we compare it?**
+
+***It* is like a grain of mustard seed, which when it is sown in the earth, is less than all the seeds that be in the earth:**
+
+**But when it is sown, it groweth up, and becometh greater than all herbs, and shooteth out great branches; so that the fowls of the air may lodge under the shadow of it.**
+
+And with many such parables spake he the word unto them, as they were able to hear *it*.
+
+But without a parable spake he not unto them: and when they were alone, he expounded all the things to his disciples.
+
+*-- Mark 4:30-34 KJV*
+
+---
+
+And he arose, and rebuked the wind, and said unto the sea, **Peace, be still.** And the wind ceased, and there was a great calm.
+
+And he said unto them, **Why are ye so fearful? how is it that ye have no faith?**
+
+And they feared exceedingly, and said one to another, What manner of man is this, that even the wind and the sea obey him?
+
+*-- Mark 4:39-41 KJV*
+
+---
