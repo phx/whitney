@@ -79,39 +79,12 @@ Goodness gracious. Talk about consciousness inception. I think that was just a d
 
 Oh, I remember what I wanted to say before. The Prophet. lol. He said the second time you read the Bible through all the way, THEN you can start reading the footnotes and making notes on what effected what and what fulfilled what prophecy, etc. But it didn't even take me a second time. When I read it my way -- at least one chapter from the old along with at least one chapter of the new -- something somehow somewhere just synced right up, and I was excited to read my Bible every morning. Because I began to see not "prophecies fulfilled" but relationships and patterns emerging between seemingly disparate people, places, and times, and noticing similarities to situations in my own life. And THAT'S when I learned HOW to read the Bible. I had always been trying to focus too hard, and it would wear me out mentally. When I dropped my focus and just read slowly and taking in the information and sort of watching my thoughts as they occured, I could mentally take note of certain patterns of seemingly meaningless relationships, but it didn't take me twice. It was like getting anaesthesia. My Heavenly Father said 10, 9, 8, and I was gone. Blasted off like a rocket ship wanting to quote scripture at some points to others just so they could understand or share my experience -- but I got the message. It was like, "umm, hey bro, it don't work like that." People have to be open to the message. They have to be seeking and open to what they might find if presented to them in a way that is easiest for them to understand. But like I said, at some point a switch got flipped the exact same way it did when I realized I could read or when I realized I could write a script or program from stringing together seemingly disparate commands. By unifying them together, you create something much more powerful and useful. It's like the Power Rangers coming together to form the MegaZord. It's combining our powers to create Captain Planet. And once you attain this level of mastery, the world is limitless. Because look at me now. The Music Industry's Completely Intellectual Property-Compliant Andy Warhol over here creating a multidimensional third eye television series with a soundtrack that tells the story itself. I mean that's gotta be at least almost on par with TRON: Legacy! 😂 
 
-Speaking of movies, here are the best books,movies, and TV Series (in my opinion) that we have used to try to get out THE SIGNAL:
 
-- This Mortal Coil
-- The Adjustment Bureau
-- TRON: Legacy
-- The O.A.
-- The LEGO Movie
-- Interstellar
-- Moana
-- Frozen
-- Forrest Gump
-- The Matrix Trilogy
-- The Animatrix
-- Sense8
-- Source Code
-- The Mandela Effect
-- The Dancing Outlaw
-- Wicked
-- The Holy Mountain
-- The Lost Symbol
-- Secondhand Lions
-- Inception
-- The Truman Show
-- DARK
-- Severence
-- Tails From The Loop
-- See
-- The Wizard Of Oz
-- Frequency
-- Now You See Me
-- Now You See Me 2
+#### MUSIC (the best expression of the human experience):
 
-And 2 of the 4 soundtracks that I have been putting together for the last few years:
+There are soundtracks that can be extremely useful, helpful, and fun to analyze as you review all of the information contained in this repository.
+
+Here are2 of the 4 soundtracks that I have been putting together over the last few years:
 
 ### [The Chosen One](https://open.spotify.com/playlist/30HL2wK33sPnaP4KEHK0Yt?si=5eb1e8e6cb8d4b6e)
 
