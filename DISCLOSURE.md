@@ -107,11 +107,11 @@ He was in the world, and the world was made by him, and the world knew him not.
 
 He came unto his own, and his own received him not.
 
-But as many as received him, to them gave her power to become the sons of God, **even** to them that believe on his name:
+But as many as received him, to them he gave the power to become the sons of God, **even** to them that believe on his name:
 
 Which were born, not of blood, nor of the will of the flesh, nor of the will of man, but of God.
 
-And the World was made flesh, and dwelt among us, (and we beheld his glory, the glory as of the only begotten of the Father,) full of grace and truth.
+And the Word was made flesh, and dwelt among us, (and we beheld his glory, the glory as of the only begotten of the Father,) full of grace and truth.
 
 John bare witness of him, and cried, saying, This was he of whom I spake, He that cometh after me is preferred before me: for he was before me.
 
