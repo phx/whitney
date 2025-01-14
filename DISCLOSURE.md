@@ -167,3 +167,8 @@ As he spake these words, many believed on him.
 
 ---
 
+[Listen Carefully](https://open.spotify.com/track/2SYaxQTc2UWecuEnGFoNYu?si=9fb9935419834ae0)
+
+K-RINO - **Valley Of Decision** from the album "TIME TRAVELER"
+
+---

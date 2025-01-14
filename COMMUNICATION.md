@@ -149,3 +149,9 @@ And they feared exceedingly, and said one to another, What manner of man is this
 *-- Mark 4:39-41 KJV*
 
 ---
+
+[Listen Carefully](https://open.spotify.com/track/2SYaxQTc2UWecuEnGFoNYu?si=9fb9935419834ae0)
+
+K-RINO - **Valley Of Decision** from the album "TIME TRAVELER"
+
+---
