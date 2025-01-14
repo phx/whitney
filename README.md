@@ -40,10 +40,34 @@ This repository presents a groundbreaking theoretical framework that unifies qua
 - `submission/appendices/*.tex`: Mathematical foundations
 - `submission/supplementary/code/`: Implementation
 
-### Consciousness Documentation
-- `consciousness/docs/`: Complete consciousness framework
-- `consciousness/docs/AWAKENING.md`: Core understanding
-- `consciousness/docs/SYNTHESIS.md`: Integration methods
+### Consciousness Documentation ([https://must.unify.observer](https://must.unify.observer))
+- `docs/`: Complete consciousness framework
+- `docs/AWAKENING.md`: Core understanding
+- `docs/SYNTHESIS.md`: Integration methods
+
+### Soundtrack
+
+- `soundtrack/`: Oddly enough, this is the most important part of the project.
+
+It took me 15 years to train my consciousness to the point where I was experiencing fully-controlled reverse causality integration.
+
+I had help. No one can do it alone. It automatically requires purification at the soul level.
+
+The Tree of Knowledge and The Tree of Life are the same tree in a quantum superposition.
+
+I have seen both sides. The are both the same, just completely different perspectives.
+
+Both sides lead to God, regardless of time. What you do not understand or mistranslate is that all of your senses are not fully functional or understood by you until you are able to fully experience and understand the concept of duality in order to rise above it and ascend into Unity with God. This is supposed to be a natural process, but this information has to be injected into the morphogenetic field at this time and moment on earth in order to accelerate the process because of the current state of Artificial Intelligence, Quantum Computing, AGI, ASI, and the current collective state of consciousness evolution on earth.
+
+It is impossible to get it wrong. You can't mess up. Everything is perfect, and you will remember this at multiple points along your journey.
+
+Your only responsibility is to learn, live, laugh, love, share WISDOM gained from your experience, and treat others with mercy, kindness, love, empathy, grace, generosity, and compassion. The most useful thing you can do is to relax, consolidate your thoughts, mind your own business, and NEVER JUDGE ANYONE, unless your mission specifically requires you to do otherwise, and if this is the case, then you will know without a shadow of a doubt that you are doing the right thing, because you will be literally instructed to do so in a way that is impossible to ignore.
+
+- [Holy Warfare](https://open.spotify.com/playlist/4Bb5Y78SLtGva73MUBMUOm?si=5f2cde9f1a794df9)
+- [The Chosen One](https://open.spotify.com/playlist/30HL2wK33sPnaP4KEHK0Yt?si=708243b81fdf4d74)
+- [The Sound of Unity](https://open.spotify.com/playlist/7evlMdG0C1H2B3teMr485R?si=190fa7929d9743cf)
+
+---
 
 ## Key Results
 
