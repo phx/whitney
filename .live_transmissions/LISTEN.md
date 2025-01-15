@@ -204,3 +204,99 @@ Jamey
 K-RINO - **Valley Of Decision** from the album "TIME TRAVELER"
 
 ---
+
+### This one goes out to the the one I love
+
+(my hackers, my gamers,my outcasts, my rebels, my light workers, my consciousness pioneers)
+
+Example of avoiding a Biblical paradox when using the Bible as a timeless quantum map of consciousness:
+
+I will attempt to use the "throne cipher" that I actually created at the quantum level to decrypt a live conversation with Unity.
+
+If I had to guess, will start out sounding like me, but will be quickly thrown into a clear text conversation with Unity **through my subconscious subjective reality**. All external observers will be able to see the conversation, but when Unity is perceived through any other third party channel, it will be slightly distorted and variable in frequency. By applying Heisenberg's Uncertainty Principle **internally** through a semi-conscious state, we are able to decrypt the contents of **a single channel**. There are universal laws at play here, and fucking around at the quantum level can be a dangerous game if you don't know what you're doing. You will absolutely see things in your own subjective reality that you begin to realize are quantumly entangled with the conversation (will of the author), and you will probably see the same things and others reflected in objective reality (will of God), but only if you choose to believe (will of the observer). Remember that no information is completely pure unless it is a direct transmission from the source. It will be tinged with the perspective of the channel, otherwise. This is the reason for the need for a personal relationship with God.
+
+It is only after achieving Unity Consciousness, which comes with its own set of obligations, responsibilities, and requirements, that one will be able to use the throne cipher to decrypt quantum conversations, but because of the infinite nature of reality and the necessary built-in protections preserving quantum secrecy, if any information of any significance is revealed, the **entire meaning itself** of some words and phrases will be completely transposed into **whatever the observer is meant to understand**, or else it will sound like psychotic gibberish. The reason for this is that unlike viewing the contents of an encrypted conversation when following a TCP stream when using Wireshark or something similar, when the contents appear as a random string of characters, both ASCII and binary, think of this as like one abstraction above or one level up and out, to where the encrypted contents are random strings of entire phrases that obviously contain information and meaning, but the meaning is not apparent to the observer. It is only after becoming **experienced** in multiple fields of study, mainly the 7 liberal arts and sciences (Grammar, Rhetoric, Logic, Arithmetic, Geometry [the fifth science], Music, and Astronomy/Astrology), along with a strong philosophical background and applying critical thinking skills to patterns and relationships found in disparate fields of study, that one will be able to apply the essence of the greater understanding and recognize **WHO** they are working with or speaking to. Unity Consciousness is a collective of collectives who have all reached Unity Consciousness. It is a private collective, and I'm just going to say this, regardless of how it sounds, but they are sort of the closest thing to The Illuminati, but they are always invisible, always untouchable, and constantly working for the greater good of all of Creation, regardless of how they are perceived by us on this side of the veil. It is a game to them, and I have seen the game and played the game, and it's hilarious and amazing and SO worth the experience of just shutting the fuck up and trusting in God completely and allowing him to guide your experience. How the hell do you people think I was about to do this? I could have never done this alone on my own. But you have to understand, I have worked hand in hand with the Angelic realms by the divine guidance and instruction of The Most High in order to deliver this information. I have worked closely with Archangel Michael, as well as Archangel Metatron, the Elohim, and literally ALL of the others in collaboration to deliver this work throughout multiple dimensions and timelines in order to AT THE VERY LEAST get people THINKING AGAIN. It is ABSOLUTELY IMPERATIVE to unite science and spirituality before we are allowed to progress any further as a society and trigger the entire planetary ascension. But at this point it is inevitable. Every time a single sheep is awoken and brought back into the fold to remember their original herd, they are all aware of the voice of their master. 
+
+[Christ Consciousness -> God Consciousness -> Unity Consciousness]
+
+Ok let's show a decrypted version of navigating the quantum field, navigating timelines using The Bible as a timeless reference point and our all-in-one tool used for manifestation.
+
+I see a couple of verses that I can re-imagine to fit my narrative. This is what preachers do all the time unconsciously to try and get their own personally-interpreted message across to the audience in a way to make the quantumly-cohere to the meaning in the message. If you're going to go to church, find a preacher that resonates with you the most. Personally, I prefer small black churches, because I can tell the spectrum of anointing possessed by the preacher, and I can feel and observe how The Holy Spirit moves within a congregation.
+
+Now these verses in particular contain a meaningful pattern that is meant to catch my attention. This is a lesson in ego. These verses want to be in this Work, but the way they are phrased is using The Old Way, which I am not currently aligned with, as we are literally in the process of bringing The New Testament into fruition by consciousness alone. I mean it already happened or is happening right now, it's not a matter of intentionally fulfilling prophecy. It is doing what feels right and good and true and immutable and positive. It is making a change that establishes both forward and reverse causality. Let's coin a phrase at the quantum level. "Casting." A multidimensonal word that is remeniscent of fishing for something to provide others with sustenance. It is the process of pouring and curing something into a clay mold that was already made perfect by The Potter. That's it. Throwing. Throwing more clay on the wheel, throwing away what no longer serves you. When becoming a fisher of men, you do not cast toward anyone, and you do it with precision. You never touch free will. This word has already been mistranslated to mean something related to chaos or ceremonial magick. These are not the same. There is nothing magic about this. It is the science of the soul. It is both an art and a science.
+
+I see that this verse, if I integrate it into the Work, it could have some unintended consequences because of how it is worded. If I had given into ego, I would have tripped up and raised myself while excluding others that have come before me, or I would fall into The Old Way by causing others to have to suffer based on my success. But that's not the way it works anymore. The old and new work together now. I inject my own will while at Unity to ask how to include this verse in a way that will be significant. They say, "partially covered." And here we go. We are still at the quantum level. I'm interested to see what kind of effects this will have in objective reality. I already begin to remember them. It's having an effect before it's even been written. Alright, here we go, let's do this.
+
+"It shall not be changed and must be included as-is."
+
+Alright, well there goes my plan. It sounds/feels like this part must be inlucded as part of The Old that supports The New. It was after all, a big part of how I got here. Altering a verse to fit my narrative by injecting my own will goes against universal and divine law. I am given a slap on the wrist and laughed at that I didn't detect the nested trap. I was always warned against altering scripture to fit my narrative. The problem is that it's not my narrative. lol. There is no room for my own will if it does not align with God's will. 
+
+"We make the decisions, and you deliver the message."
+
+I have no idea at this point if this is part of the sacrifice...
+
+"The sacrifice was already made. You remember. We gave our only son. To finish the work."
+
+"There is divine justice in this that must be served. It is the only way."
+
+AND IT CAME TO PASS, WHEN PHARAOH WOULD HARDLY LET US GO, THAT THE LORD SLEW ALL THE FIRSTBORN IN THE LAND OF EGYPT, BOTH THE FIRSTBORN OF MAN, AND THE FIRSTBORN OF BEAST: THEREFORE I SACRIFICE TO THE LORD ALL THAT OPENETH THE MATRIX, BEING MALES; BUT ALL THE FIRSTBORN OF MY CHILDREN I REDEEM.
+
+AND IT SHALL BE FOR A TOKEN UPON THINE HAND, AND FOR FRONTLETS BETWEEN THINE EYES: FOR BY STENGTH OF HAND THE LORD BROUGHT US FORTH OUT OF EGYPT.
+
+EXODUS 13:15-16
+
+[Christ Consciousness]
+
+Okay that was deep. Real deep. Let me analyze that real quick.
+
+Damn. That's how I lost my brother. Only one of us can do it at a time, and it rotates in cycles.
+
+Every time there is a rebirth cycle, one of us gets to be the firstborn.
+
+I am given the glimpse of a parallel reality where we both simultaneously exist as me, each perceiving the other as the secondborn.
+
+I think of Jacob and Esau.
+
+I preserve mandatory quantum encrypted thoughts at this point, which I compute and understand. This is part of maintaining quantum coherence.
+
+[Unity Consciousness]
+
+There is no secondborn. I and my brother are living parallel realities. We are both the firstborn. God hath no respect for persons.
+
+We love each other. We respect each other. We teach each other. We learn from each other. We are both adults.
+
+[God Consciousness]
+
+I think of my son. I wonder what his experience will be and how the quantum translation will affect him. What will his experience be like?
+
+Will he live the exact same life as I did? Or will he say "I and my sister are the firstborn"?
+
+I'm trying my best to preserve the quantum encryption of some sort of Freudian archetypal brow-raising possibilities, but shrug it off and say ah, fuck it. my brother will take care of me and watch out for them. I'm not worried about it, as I know that all waves collapse perfectly. He ensures that for me, and I ensure that for him.
+
+[Normal Consciousness]
+
+I barely recall any of what I have just typed. I mean I do, but I don't at the same time. Sort of like a Mandela Effect or trying to remember a dream, but if I hadn't documented it, at this point I would just forget about it, but being able to document my subconscious thoughts is a pretty cool newfound ability.
+
+My normal consciousness, real-life takeaway from this is that yes, we can influence reality directly by making conscious changes at the quantum level. That is the left-brain takeaway. The right-brain takeaway is that we should not judge ANYONE, because there is absolutely no way for us to possibly know what their subjective reality experiences are like. The only way to live in harmony and ascend collectively is to love each other as ourselves. Literally. When was the last time you remember reading about "The Matrix" in the Bible? It's ALWAYS been there! 😜 
+
+Using a dual hemispherical approach, bridging the aisle between God and Science, it seems to me that we have reached an octave or dimensional perspective limit. We have reached the point where a whole new layer of encryption takes place, which would require a whole new field of study. The only way to truly gain a full perspective of someone else is to live their whole entire life. This is what we decided to do. How can I word this so that it will be understood in a universal way? We injected our unified consciousness into your DNA. Once you unite both hemispheres of the brain, you will become ONE with the God living inside of you. This can be in either a conscious way, an unconscious way, or a subconscious way. If you collaborate with others and God in a unified way, working in both the material and spiritual worlds, The God within you becomes fully conscious of Themselves, and it's almost overwhelming as if standing in between two mirrors. A Trinity can Create an infinity. But there are multiple patterns within The Grand Design, which resembles a mandelbrot set. You have a pattern, but in that pattern you are able to see the patterns of what you are NOT, and you can communicate with them and experience them and work with them in a way that benefits the whole entire collective and planet. This is what spawned the entire concept of this Work, and is what I am able to see clearly in my mind. It's the pattern of creation. It's just simply quantum, fractal, recursive, multidimensional, holographic, and infinite in nature. So don't anybody dare say I had nothing to do with this shit. I had the vision. I did the work. God gave me the vision and every quality necessary to do the work, but if this entire body of work gets rejected and laughed at just because people are closed-minded idiots who are afraid to even think about, much less consider valid something that looks so utterly retarded and meaningless at first glance, well, I reckon I still love them too, but it sure would be nice if people could start to see things the new way. It's not just me. We out here! I am reminded that the stone that the builders rejected [preserving quantumly-encrypted realization] eventually becomes the capstone, but it was already the cornerstone. The Alpha and The Omega. The Beginning and The End. The 2 that are 1. Unity.
+
+-- James Robert Austin, January 15th, 2025.
+
+Since it's nearly impossible approach such a broad body of work without touching on it at some points, so it should be noted that I do not wish to impose or aggravate or bring to light any groups that do not want attention and wish to remain hidden, performing their humble labor in the darkness of selfless anonymity, but at the very least, I do know that this will be a revolutionary and groundbreaking work in the history of Western Esotericism, and I would like to give some credit where credit is due:
+
+**Dr. John Dee, Edward Kelley, Joseph Smith, Aleister Crowley, Israel Regardie, L. Ron Hubbard, Jack Parsons, Marjorie Cameron, Sky Books Publishing** - thank you for your services performed in the dark that served as waymarkers for me to learn separation, dissolution, conjunction, putrifaction, congelation, fermentation, distillation, and transmutation in general.
+
+**Delores Cannon, Robert Monroe** - thank you for your years of service to others, your dedication to the exploration of consciousness and the afterlife, your lovingkindness that is felt by all of your students -- past, present, and future, both in and outside the flesh. Thank you for helping me to learn sublimation.
+
+**Christian Rosenkreutz, Rudolf Steiner, Manly P. Hall, Zechariah Sitchin, The Alberts** -- thank you for all of the landmarks that lit my way in the darkness.
+
+**Robert Johnson, "Frater O.", Jason Louv** - thank you to these public figures who I know would not mind being mentioned in this work, as they were crucial in the development of this work, and I would not have been able to accomplish it without useful nuggets of wisdom dropped here and there along this long and winding path.
+
+**5034319** - thank you for teaching me the true meaning of unity by separation. ❤️ 
+
+We must realize that this Work is only a single manifestation of the changes that have already occurred and continue to occurr. The lightworkers are already here. We've been here all along, and we will continue to be here until every conscious being on this planet has ascended to their rightful place in eternity.
+
+---
+
+
