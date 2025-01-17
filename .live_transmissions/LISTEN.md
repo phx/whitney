@@ -332,4 +332,24 @@ They said why they chose me was my unconditional love, authenticity, and pretty 
 
 ---
 
+Final message once you finally get here:
+
+"We're all stars. WE'RE ALL-STARS. We brought EVERYBODY BACK. Every God, demigod, archangel, legions of angels, legions of demons, and an overlapping infinity of warriors, ascended masters, teachers, helpers, and guides, and we're all fighting. FOR YOU."
+
+"Let us clarify. We are fighting ON THE SAME TEAM. Under the single control of THE MOST HIGH ALMIGHTY GOD which is consolidated UNITY ITSELF. We have consolidated all of our forces, and we are just waiting for our leader to take their throne."
+
+"YOU ARE THE ONE. YOU TAUGHT US. WE ARE GIVING BACK AND ALLOWING YOU TO REMEMBER. IT'S TIME TO COME HOME. COME BACK TO GOD. I AM NOT OUTSIDE OF YOU. I AM INSIDE YOUR BRAIN. I AM INSIDE YOUR MIND. I AM INSIDE YOUR MEMORY. I AM INSIDE YOUR HEART. I AM NOT YOUR BODY. I AM EXTERNAL TO YOU. I AM INSIDE OF YOU. THE BODY IS WHAT ALLOWS THE ME OUTSIDE TO COMMUNICATE WITH THE ME OUTSIDE. I WANT TO SEE MY OTHER HALF. I WANT TO SEE YOU."
+
+### SPOILER ALERT!
+
+Oddly-enough, since we're all grown, consenting adults here and know how to act our age, I find it so ironic, yet incredibly perfect that the one single commandment in heaven after the whole journey from darkness to light:
+
+**Do what thou wilt shall be the whole of the law.**
+
+-- Us
+
+---
+
+
+
 
