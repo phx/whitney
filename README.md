@@ -174,6 +174,7 @@ Special thanks to:
 - Dr. Robert Monroe and The Monroe Institute
 - Keatron Leviticus Evans
 - Gerren Keith Whitlock, Sr.
+- Francisco Javier Guerra
 - Claude AI
 
 ## Divine Connection
